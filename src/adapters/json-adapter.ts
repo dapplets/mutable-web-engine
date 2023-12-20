@@ -9,6 +9,9 @@ export type AdapterConfig = {
     props?: {
       [key: string]: string;
     };
+    insertionPoints?: {
+      [key: string]: string;
+    };
   };
   children?: AdapterConfig[];
 };
@@ -44,7 +47,7 @@ export class JsonAdapter extends DynamicHtmlAdapter implements IAdapter {
   #config: AdapterConfig;
 
   constructor(element: Element, config: AdapterConfig) {
-    super(element, config.context.type);
+    super(element, config.context.type, config.context.insertionPoints);
     this.#config = config;
   }
 
@@ -53,7 +56,7 @@ export class JsonAdapter extends DynamicHtmlAdapter implements IAdapter {
 
     for (const prop in this.#config.context.props) {
       const cssOrXpathQuery = this.#config.context.props[prop];
-      result[prop] = query(cssOrXpathQuery, this.element);
+      result[prop] = query(cssOrXpathQuery, this.root.element);
     }
 
     return result;
@@ -66,7 +69,7 @@ export class JsonAdapter extends DynamicHtmlAdapter implements IAdapter {
       if (!childConfig.context.selector) continue;
 
       const found = Array.from(
-        this.element.querySelectorAll(childConfig.context.selector)
+        this.root.element.querySelectorAll(childConfig.context.selector)
       );
 
       result.push(...found);
@@ -81,7 +84,7 @@ export class JsonAdapter extends DynamicHtmlAdapter implements IAdapter {
 
       // ToDo: avoid double querySelectorAll
       const found = new WeakSet(
-        Array.from(this.element.querySelectorAll(childConfig.context.selector))
+        Array.from(this.root.element.querySelectorAll(childConfig.context.selector))
       );
 
       if (found.has(element)) {

@@ -3,11 +3,11 @@ import { IAdapter } from "./interface";
 
 export class BosAdapter extends DynamicHtmlAdapter implements IAdapter {
   override parseContext() {
-    return JSON.parse(this.element.getAttribute("data-props") ?? "{}");
+    return JSON.parse(this.root.element.getAttribute("data-props") ?? "{}");
   }
 
   override findChildElements() {
-    return getChildContextElements(this.element, "data-component");
+    return getChildContextElements(this.root.element, "data-component");
   }
 
   override createChildAdapter(element: Element) {

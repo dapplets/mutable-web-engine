@@ -1,4 +1,5 @@
 import { JsonAdapter } from "../src/adapters/json-adapter";
+import { ContextEvent } from "../src/events/context-event";
 
 const config = {
   context: {
@@ -16,6 +17,9 @@ const config = {
         props: {
           id: "number(.//@data-id)",
           text: ".text",
+        },
+        insertionPoints: {
+          afterText: ".text",
         },
       },
     },
@@ -83,5 +87,36 @@ describe("semantic tree", () => {
     expect(root.children[1].type).toBe("msg");
     expect(root.children[1].props.id).toBe(2);
     expect(root.children[1].props.text).toBe("Msg 2 changed");
+  });
+
+  it("should inject element", () => {
+    const element = document.createElement("div");
+    element.innerHTML = `<div>
+          <div class="post" data-id="1"><p class="text">Text 1</p></div>
+          <div class="msg" data-id="2"><p class="text">Msg 2</p></div>
+      </div>`;
+
+    const adapter = new JsonAdapter(element, config);
+    const { root } = adapter;
+
+    adapter.start();
+
+    const el = document.createElement("div");
+    el.className = "injected";
+    el.innerText = "Injected element";
+
+    adapter.addEventListener("contextstarted", (event) => {
+      (event as ContextEvent).context.injectElement(el, "afterText");
+    });
+
+    expect(root.type).toBe("root");
+    expect(root.props.id).toBe("global");
+    expect(root.children[0].type).toBe("post");
+    expect(root.children[0].props.id).toBe(1);
+    expect(root.children[0].props.text).toBe("Text 1");
+    expect(root.children[1].type).toBe("msg");
+    expect(root.children[1].props.id).toBe(2);
+    expect(root.children[1].props.text).toBe("Msg 2");
+    expect(element.querySelector(".injected")).toBe(el);
   });
 });

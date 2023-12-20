@@ -1,24 +1,31 @@
 import { ContextNode, ParsedContext } from "../context-node";
+import { ContextEvent } from "../events/context-event";
 import { IAdapter } from "./interface";
 
-export abstract class DynamicHtmlAdapter implements IAdapter {
+export abstract class DynamicHtmlAdapter
+  extends EventTarget
+  implements IAdapter
+{
   public root: ContextNode;
-  protected element: Element;
 
   #mutationObserver: MutationObserver;
   #children: Map<Element, DynamicHtmlAdapter> = new Map();
 
-  constructor(element: Element, contextType = "root") {
+  constructor(
+    element: Element,
+    contextType = "root",
+    insertionPoints: Record<string, string> = {}
+  ) {
+    super();
     this.#mutationObserver = new MutationObserver(
       this._handleMutations.bind(this)
     );
-    this.root = new ContextNode(contextType);
-    this.element = element;
+    this.root = new ContextNode(contextType, element, insertionPoints);
   }
 
   start() {
     this.#children.forEach((adapter) => adapter.start());
-    this.#mutationObserver.observe(this.element, {
+    this.#mutationObserver.observe(this.root.element, {
       attributes: true,
       childList: true,
       subtree: true,
@@ -52,6 +59,7 @@ export abstract class DynamicHtmlAdapter implements IAdapter {
         this.#children.set(el, adapter);
         this.root.addChild(adapter.root);
         adapter.start();
+        this.dispatchEvent(new ContextEvent("contextstarted", adapter.root));
       }
     }
 

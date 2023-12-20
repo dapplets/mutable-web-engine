@@ -1,3 +1,4 @@
+import { ParsedContext } from "../context-node";
 import { getChildContextElements } from "./bos-adapter";
 import { DynamicHtmlAdapter } from "./dynamic-html-adapter";
 import { IAdapter } from "./interface";
@@ -6,22 +7,22 @@ export class MicrodataAdapter extends DynamicHtmlAdapter implements IAdapter {
   override parseContext() {
     const result: ParsedContext = {};
 
-    const elements = getChildContextElements(this.element, "itemprop");
+    const elements = getChildContextElements(this.root.element, "itemprop");
 
     for (const element of elements) {
       const propName = element.getAttribute("itemprop")!;
       result[propName] = MicrodataAdapter.getPropertyValue(element);
     }
 
-    if (this.element.hasAttribute("itemid")) {
-      result.id = this.element.getAttribute("itemid")!;
+    if (this.root.element.hasAttribute("itemid")) {
+      result.id = this.root.element.getAttribute("itemid")!;
     }
 
     return result;
   }
 
   override findChildElements() {
-    return getChildContextElements(this.element, "itemtype");
+    return getChildContextElements(this.root.element, "itemtype");
   }
 
   override createChildAdapter(element: Element) {
