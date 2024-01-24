@@ -59,12 +59,10 @@ describe("JSON parser", () => {
 
     ns = "https://dapplets.org/ns/json/some-web-site";
     jsonParser = new JsonParser(config);
-    ctx = jsonParser.parseContext(element, "root");
   });
 
   it("should return a parsed context", () => {
-    console.log(ctx);
-    expect(ctx.id).toBe("root");
+    expect(jsonParser.parseContext(element, "root").id).toBe("root");
   });
 
   it("should return a child", () => {
