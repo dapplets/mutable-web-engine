@@ -1,7 +1,6 @@
 import { InsertionType } from "../../../src/core/adapters/interface";
 import { IParser } from "../../../src/core/parsers/interface";
 import { JsonParser } from "../../../src/core/parsers/json-parser";
-import { IContextNode } from "../../../src/core/tree/types";
 
 const config = {
   namespace: "sampleNamespace",
