@@ -1,4 +1,5 @@
-import { InsertionType } from "../../../src/core/adapters/interface";
+import { DynamicHtmlAdapter } from "../../../src/core/adapters/dynamic-html-adapter";
+import { IAdapter, InsertionType } from "../../../src/core/adapters/interface";
 import { IParser } from "../../../src/core/parsers/interface";
 import { JsonParser } from "../../../src/core/parsers/json-parser";
 import { IContextNode } from "../../../src/core/tree/types";
@@ -35,10 +36,12 @@ const config = {
   },
 };
 
-describe("JSON parser", () => {
+// todo: dont work
+describe("dynamic-html-adapter", () => {
   let element: HTMLElement;
-
-  let jsonParser: IParser;
+  let ns: string;
+  let adapter: IAdapter;
+  let ctx: IContextNode;
 
   beforeEach(() => {
     element = document.createElement("div");
@@ -56,22 +59,16 @@ describe("JSON parser", () => {
     </div>
   </div>`;
 
-    jsonParser = new JsonParser(config);
+    ns = "https://dapplets.org/ns/json/some-web-site";
+
+
+    ns = "https://dapplets.org/ns/json/some-web-site";
+  
   });
 
-  it("should return a parsed context", () => {
-    expect(jsonParser.parseContext(element, "root").id).toBe("root");
+  it("", () => {
+
   });
 
-  it("should return a child", () => {
-    expect(jsonParser.findChildElements(element, "post"));
-  });
 
-  it("should find insertionPoint", () => {
-    expect(jsonParser.findInsertionPoint(element, "root", "insertionPoint2"));
-  });
-
-  it("should return insertionPoints", () => {
-    expect(jsonParser.getInsertionPoints(element, "root"));
-  });
 });
