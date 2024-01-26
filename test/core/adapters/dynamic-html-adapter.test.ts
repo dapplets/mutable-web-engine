@@ -57,8 +57,6 @@ describe("dynamic-html-adapter", () => {
     element = document.createElement("div");
     element.innerHTML = `  <div id="root">
     <div class="context1-selector" id='test' data-context="context1">
-    <p data-prop1="value1" data-prop2="value2">Context 1 Content</p>
-    <p id="value1" data-prop2="value2">Context 1 Content</p>
       <div data-insertion-point="insertionPoint1" class="insertion-point-selector">
         Insertion Point 1 Content
       </div>
@@ -70,10 +68,8 @@ describe("dynamic-html-adapter", () => {
     </div>
   </div>`;
 
-    injectElement = document.createElement("div");
-    injectElement.innerHTML = `  <div id="root">
-    <p data-prop1="value1" data-prop2="value2">Context 1 Content</p>
-   `;
+    injectElement = document.createElement("p");
+    injectElement.innerText = "Injecting Widget";
     listeners = {
       handleContextStarted: jest.fn(() => undefined),
       handleContextChanged: jest.fn(() => undefined),
@@ -97,16 +93,16 @@ describe("dynamic-html-adapter", () => {
     expect(adapter.getInsertionPoints(targetNode).length).toBe(0);
   });
 
-  // todo: how check?
   it("inject element", () => {
     expect(
       adapter.injectElement(
         injectElement,
         adapter.context,
-        "root",
-        InsertionType.Before
+        "insertionPoint1",
+        InsertionType.After
       )
     );
+    expect(element.querySelector("p")).toBe(injectElement);
   });
 
   it("adapter namespace", () => {
