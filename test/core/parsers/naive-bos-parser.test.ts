@@ -10,7 +10,7 @@ describe("naive bos parser", () => {
 
   beforeEach(() => {
     element = document.createElement("div");
-    element.outerHTML = `<div id="root" data-value="" data-component="near/widget/Posts.Compose" class="sc-gyoxqN crCpYL">
+    element.outerHTML = `<div id="root" data-props="data-props-test" data-value="" data-component="near/widget/Posts.Compose" class="sc-gyoxqN crCpYL">
     <textarea placeholder="What's happening?" data-component="near/widget/Posts.Compose"></textarea>
 
     <p data-component="near/widget/Posts.Compose" class="sc-jWhMlA gLrVan">
@@ -25,17 +25,19 @@ describe("naive bos parser", () => {
   });
 
   it("should return a parsed context", () => {
-    expect(naiveBosParser.parseContext(element, "root"));
+    expect(naiveBosParser.parseContext(element, "root")).toStrictEqual({});
   });
 
   it("should return a child", () => {
-    expect(naiveBosParser.findChildElements(element, "root"));
+    expect(naiveBosParser.findChildElements(element, "root").length).toBe(0);
   });
 
+  // todo: how check?
   it("should find insertionPoint", () => {
     expect(naiveBosParser.findInsertionPoint(element, "root", "before"));
   });
 
+  // todo: how check?
   it("should return insertionPoints", () => {
     expect(naiveBosParser.getInsertionPoints(element, "root"));
   });

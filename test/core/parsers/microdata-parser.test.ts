@@ -1,7 +1,5 @@
-import { InsertionType } from "../../../src/core/adapters/interface";
 import { IParser } from "../../../src/core/parsers/interface";
 import { MicrodataParser } from "../../../src/core/parsers/microdata-parser";
-import { IContextNode } from "../../../src/core/tree/types";
 
 describe("microdata parser", () => {
   let element: HTMLElement;
@@ -44,7 +42,7 @@ describe("microdata parser", () => {
 
   it("should find insertionPoint", () => {
     expect(
-      microdataParser.findInsertionPoint(element, "root", "insertionPoint2")
+      microdataParser.findInsertionPoint(element, "root", "insertionPoint1")
     );
   });
 });
