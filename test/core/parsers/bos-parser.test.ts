@@ -121,14 +121,24 @@ describe("bos parser", () => {
   });
 
   it("should return a child", () => {
-    expect(bosParser.findChildElements(element, "header"));
+    expect(bosParser.findChildElements(element, "header").length).toBe(0);
   });
 
   it("should find insertionPoint", () => {
-    expect(bosParser.findInsertionPoint(element, "root", "insertionPoint2"));
+    const targetElement = document.createElement("div");
+
+    targetElement.innerHTML = `<div data-bos-layout-manager="LayoutManagerA" data-component="BeforeHeaderComponent" data-context-name="beforeHeader" data-insertion-point="beforeHeader" />`;
+    expect(
+      bosParser.findInsertionPoint(element, "main", "beforeHeader")
+    ).toStrictEqual(targetElement.children[0]);
   });
 
   it("should return insertionPoints", () => {
-    expect(bosParser.getInsertionPoints(element, "root"));
+    expect(
+      bosParser.getInsertionPoints(element, "main").some((element) => {
+        let target = "afterHeader";
+        return target.includes(element.name);
+      })
+    ).toBe(true);
   });
 });

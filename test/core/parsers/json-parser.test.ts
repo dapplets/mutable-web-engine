@@ -63,7 +63,7 @@ describe("JSON parser", () => {
   });
 
   it("should return a child", () => {
-    expect(jsonParser.findChildElements(element, "post"));
+    expect(jsonParser.findChildElements(element, "post").length).toBe(0);
   });
 
   it("should find insertionPoint", () => {
@@ -71,6 +71,11 @@ describe("JSON parser", () => {
   });
 
   it("should return insertionPoints", () => {
-    expect(jsonParser.getInsertionPoints(element, "root"));
+    expect(
+      jsonParser.getInsertionPoints(element, "root").some((element) => {
+        let target = "insertionPoint1";
+        return target.includes(element.name);
+      })
+    ).toBe(true);
   });
 });
