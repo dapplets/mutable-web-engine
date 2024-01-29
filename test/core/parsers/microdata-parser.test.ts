@@ -41,8 +41,23 @@ describe("microdata parser", () => {
   });
 
   it("should find insertionPoint", () => {
-    expect(
-      microdataParser.findInsertionPoint(element, "root", "insertionPoint1")
+    const findElement = microdataParser.findInsertionPoint(
+      element,
+      "root",
+      "insertionPoint1"
     );
+
+    expect(findElement?.getAttribute("itemtype")).toBe("insertionPoint1");
+  });
+
+  it("should get insertionPoint", () => {
+    expect(
+      microdataParser
+        .getInsertionPoints(element, "itemtype value")
+        .some((element) => {
+          let target = "itemtype value";
+          return target.includes(element.name);
+        })
+    ).toBe(true);
   });
 });

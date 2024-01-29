@@ -8,7 +8,7 @@ import { PureContextNode } from "../../../../src/core/tree/pure-tree/pure-contex
 
 describe("Dom tree builder", () => {
   let ns: string;
-  let treeBuilder: ITreeBuilder;
+  let treeBuilder: DomTreeBuilder;
   let contextNode: IContextNode;
   let contextChildNode: IContextNode;
   let listeners: IContextListener;
@@ -18,25 +18,30 @@ describe("Dom tree builder", () => {
       handleContextStarted: jest.fn(() => undefined),
       handleContextChanged: jest.fn(() => undefined),
       handleContextFinished: jest.fn(() => undefined),
+      handleInsPointStarted: jest.fn(() => undefined),
+      handleInsPointFinished: jest.fn(() => undefined),
     };
     contextNode = new PureContextNode(ns, "html");
     contextChildNode = new PureContextNode(ns, "div");
     treeBuilder = new DomTreeBuilder(listeners);
   });
 
-  //todo: works, but don't check?
   it("dom tree build append child", () => {
+    expect(contextChildNode.parentNode).toBe(null);
     expect(treeBuilder.appendChild(contextNode, contextChildNode));
+
+    expect(contextChildNode.parentNode).toStrictEqual(contextNode);
   });
 
-  //todo: works, but don't check?
   it("dom tree build removed child", () => {
+    expect(treeBuilder.appendChild(contextNode, contextChildNode));
+    expect(contextChildNode.parentNode).toStrictEqual(contextNode);
     expect(treeBuilder.removeChild(contextNode, contextChildNode));
+    expect(contextChildNode.parentNode).toBe(null);
   });
 
-  //todo: works, but don't check?
   it("tree build create node", () => {
-    expect(treeBuilder.createNode(ns, "div"));
+    expect(treeBuilder.createNode(ns, "div").tagName).toBe("div");
   });
 
   it("tree build update parsed context", () => {

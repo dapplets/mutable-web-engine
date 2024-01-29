@@ -2,13 +2,15 @@ import { DynamicHtmlAdapter } from "../../../src/core/adapters/dynamic-html-adap
 import { IAdapter, InsertionType } from "../../../src/core/adapters/interface";
 import { IParser } from "../../../src/core/parsers/interface";
 import { JsonParser } from "../../../src/core/parsers/json-parser";
+
+import { DomTreeBuilder } from "../../../src/core/tree/dom-tree/dom-tree-builder";
+import { PureContextNode } from "../../../src/core/tree/pure-tree/pure-context-node";
+import { PureTreeBuilder } from "../../../src/core/tree/pure-tree/pure-tree-builder";
 import {
   IContextListener,
   IContextNode,
   ITreeBuilder,
 } from "../../../src/core/tree/types";
-import { DomTreeBuilder } from "../../../src/core/tree/dom-tree/dom-tree-builder";
-import { PureContextNode } from "../../../src/core/tree/pure-tree/pure-context-node";
 
 const config = {
   namespace: "sampleNamespace",
@@ -74,10 +76,12 @@ describe("dynamic-html-adapter", () => {
       handleContextStarted: jest.fn(() => undefined),
       handleContextChanged: jest.fn(() => undefined),
       handleContextFinished: jest.fn(() => undefined),
+      handleInsPointStarted: jest.fn(() => undefined),
+      handleInsPointFinished: jest.fn(() => undefined),
     };
     ns = "https://dapplets.org/ns/json/some-web-site";
     targetNode = new PureContextNode(ns, "p");
-    treeBuilder = new DomTreeBuilder(listeners);
+    treeBuilder = new PureTreeBuilder(listeners);
 
     jsonParser = new JsonParser(config);
     adapter = new DynamicHtmlAdapter(element, treeBuilder, ns, jsonParser);

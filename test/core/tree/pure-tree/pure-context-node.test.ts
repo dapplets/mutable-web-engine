@@ -8,14 +8,16 @@ class MockContextNode implements IContextNode {
   parentNode: IContextNode | null;
   parsedContext?: ParsedContext;
   children?: any;
-
+  insPoints: string[];
   constructor(
     id: string | null,
     tagName: string,
     namespaceURI: string | null,
     parentNode: IContextNode | null,
+    insPoints: string[],
     parsedContext?: ParsedContext,
     children?: any
+  
   ) {
     this.id = id;
     this.tagName = tagName;
@@ -23,6 +25,7 @@ class MockContextNode implements IContextNode {
     this.parentNode = parentNode;
     this.parsedContext = parsedContext;
     this.children = children;
+    this.insPoints= insPoints
   }
 
   removeChild(child: IContextNode): void {
@@ -37,9 +40,7 @@ describe("Pure context node", () => {
   let ns: string;
   let contextNode: IContextNode;
 
-  let rootNode = new MockContextNode("parent", "div", null, null, {
-    class: "root",
-  });
+  let rootNode = new MockContextNode("parent", "div", null, null, ['root']);
 
   beforeEach(() => {
     ns = "https://dapplets.org/ns/json/some-web-site";
