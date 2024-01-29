@@ -21,6 +21,7 @@ const config = {
       },
     },
     post: {
+      // ToDo: specify selector, props
       insertionPoints: {
         insertionPoint1: {
           selector: ".insertion-point-selector",
@@ -30,7 +31,9 @@ const config = {
         insertionPoint2: "data-insertion-point",
       },
     },
-    profile: {},
+    profile: {
+      // ToDo: specify this context
+    },
   },
 };
 
@@ -59,18 +62,22 @@ describe("JSON parser", () => {
   });
 
   it("should return a parsed context", () => {
+    // ToDo: add more props with different data types (boolean, string, number)
     expect(jsonParser.parseContext(element, "root").id).toBe("root");
   });
 
   it("should return a child", () => {
+    // ToDo: should not be 0 posts
     expect(jsonParser.findChildElements(element, "post").length).toBe(0);
   });
 
   it("should find insertionPoint", () => {
+    // ToDo: where assertion is?
     expect(jsonParser.findInsertionPoint(element, "root", "insertionPoint2"));
   });
 
   it("should return insertionPoints", () => {
+    // ToDo: check that all insertion points recognized correctly
     expect(
       jsonParser.getInsertionPoints(element, "root").some((element) => {
         let target = "insertionPoint1";
