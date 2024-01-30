@@ -1,41 +1,10 @@
-import { InsertionType } from "../../../src/core/adapters/interface";
 import { IParser } from "../../../src/core/parsers/interface";
 import { JsonParser } from "../../../src/core/parsers/json-parser";
-
-const config = {
-  namespace: "sampleNamespace",
-  contexts: {
-    root: {
-      selector: ".context1-selector",
-      props: {
-        id: "string('root')",
-      },
-      children: ["post", "profile"],
-      insertionPoints: {
-        insertionPoint1: {
-          selector: ".insertion-point-selector",
-          bosLayoutManager: "layoutManager1",
-          insertionType: InsertionType.After,
-        },
-        insertionPoint2: "data-insertion-point",
-      },
-    },
-    post: {
-      // ToDo: specify selector, props
-      insertionPoints: {
-        insertionPoint1: {
-          selector: ".insertion-point-selector",
-          bosLayoutManager: "layoutManager1",
-          insertionType: InsertionType.After,
-        },
-        insertionPoint2: "data-insertion-point",
-      },
-    },
-    profile: {
-      // ToDo: specify this context
-    },
-  },
-};
+import { describe, expect, it } from "@jest/globals";
+import {
+  configJsonParser,
+  jsonParserDataHtml,
+} from "../../data/parsers/constants";
 
 describe("JSON parser", () => {
   let element: HTMLElement;
@@ -43,46 +12,105 @@ describe("JSON parser", () => {
   let jsonParser: IParser;
 
   beforeEach(() => {
-    element = document.createElement("div");
-    element.innerHTML = `  <div id="root">
-    <div class="context1-selector" id='test' data-context="context1">
-      <p data-prop1="value1" data-prop2="value2">Context 1 Content</p>
-      <div data-insertion-point="insertionPoint1" class="insertion-point-selector">
-        Insertion Point 1 Content
-      </div>
-      <div data-insertion-point="insertionPoint2">
-        Insertion Point 2 Content
-      </div>
-      <div data-child="child1">Child 1 Content</div>
-      <div data-child="child2">Child 2 Content</div>
-    </div>
-  </div>`;
+    element = jsonParserDataHtml;
 
-    jsonParser = new JsonParser(config);
+    jsonParser = new JsonParser(configJsonParser);
   });
 
   it("should return a parsed context", () => {
     // ToDo: add more props with different data types (boolean, string, number)
-    expect(jsonParser.parseContext(element, "root").id).toBe("root");
-  });
+    const checkContext = jsonParser.parseContext(element, "root");
 
-  it("should return a child", () => {
-    // ToDo: should not be 0 posts
-    expect(jsonParser.findChildElements(element, "post").length).toBe(0);
+    const testContext = {
+      id: "root",
+      username: "2",
+      fullname: "Test-fullname",
+      img: null,
+    };
+
+    expect(checkContext).toStrictEqual(testContext);
   });
 
   it("should find insertionPoint", () => {
     // ToDo: where assertion is?
-    expect(jsonParser.findInsertionPoint(element, "root", "insertionPoint2"));
+
+    const checkContext = jsonParser.findInsertionPoint(element, "post", "text");
+
+    const checkContextNull = jsonParser.findInsertionPoint(
+      element,
+      "panel",
+      "avatar"
+    );
+    const testElement = element.getElementsByClassName(
+      "insertion-point-selector"
+    )[0];
+    expect(checkContext).toStrictEqual(testElement);
+    expect(checkContextNull).toStrictEqual(null);
   });
 
   it("should return insertionPoints", () => {
     // ToDo: check that all insertion points recognized correctly
-    expect(
-      jsonParser.getInsertionPoints(element, "root").some((element) => {
-        let target = "insertionPoint1";
-        return target.includes(element.name);
-      })
-    ).toBe(true);
+    const elementPost = document.createElement("div");
+    elementPost.innerHTML = `<div class="context1-selector" data-testid="post" id='test-post' data-context="context1">
+<p data-prop1="value1" data-prop2="value2" data-testid='tweetText'>Context 1 Content</p>
+<div data-insertion-point="insertionPoint1" class="insertion-point-selector">
+  Insertion Point 1 Content
+</div>
+<div data-insertion-point="insertionPoint2">
+  Insertion Point 2 Content
+</div>
+<div data-child="child1">Child 1 Content</div>
+<div data-child="child2">Child 2 Content</div>
+</div>`;
+
+    const elementProfile = document.createElement("div");
+    elementProfile.innerHTML = `<div class="context2-selector" data-testid="profile" id='test-profile' data-context="context2">
+<p data-prop2="value2"  data-testid='tweetProfile'>Context 2 Content</p>
+<div data-insertion-point="insertionPoint3" class="insertion-point-selector-3">
+Insertion Point 3 Content
+</div>
+<div data-insertion-point="insertionPoint4">
+Insertion Point 4 Content
+</div>
+<div data-child="child3">Child 3 Content</div>
+<div data-child="child4">Child 4 Content</div>
+</div>`;
+    const checkContextPost = jsonParser.getInsertionPoints(
+      elementPost.children[0],
+      "post"
+    );
+    const checkContextProfile = jsonParser.getInsertionPoints(
+      elementProfile.children[0],
+      "profile"
+    );
+
+    const testDataPost = [
+      {
+        name: "text",
+        insertionType: "after",
+        bosLayoutManager: "layoutManager1",
+      },
+    ];
+
+    const testDataProfile = [
+      {
+        name: "avatar",
+        insertionType: "after",
+        bosLayoutManager: "layoutManager2",
+      },
+      {
+        name: "text",
+        insertionType: undefined,
+        bosLayoutManager: undefined,
+      },
+    ];
+    expect(checkContextPost).toStrictEqual(testDataPost);
+    expect(checkContextProfile).toStrictEqual(testDataProfile);
+  });
+
+  it("find child elements", () => {
+    // ToDo: should not be 0 posts
+
+    expect(jsonParser.findChildElements(element, "root").length).toBe(4);
   });
 });
