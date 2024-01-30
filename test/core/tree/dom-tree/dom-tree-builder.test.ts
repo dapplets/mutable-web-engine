@@ -1,10 +1,10 @@
 import {
   IContextListener,
   IContextNode,
-  ITreeBuilder,
 } from "../../../../src/core/tree/types";
 import { DomTreeBuilder } from "../../../../src/core/tree/dom-tree/dom-tree-builder";
 import { PureContextNode } from "../../../../src/core/tree/pure-tree/pure-context-node";
+import { describe, expect, it, beforeEach,jest } from "@jest/globals";
 
 describe("Dom tree builder", () => {
   let ns: string;

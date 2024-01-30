@@ -2,8 +2,7 @@ import { DynamicHtmlAdapter } from "../../../src/core/adapters/dynamic-html-adap
 import { IAdapter, InsertionType } from "../../../src/core/adapters/interface";
 import { IParser } from "../../../src/core/parsers/interface";
 import { JsonParser } from "../../../src/core/parsers/json-parser";
-
-import { DomTreeBuilder } from "../../../src/core/tree/dom-tree/dom-tree-builder";
+import { describe, expect, it, beforeEach, jest } from "@jest/globals";
 import { PureContextNode } from "../../../src/core/tree/pure-tree/pure-context-node";
 import { PureTreeBuilder } from "../../../src/core/tree/pure-tree/pure-tree-builder";
 import {
@@ -72,7 +71,7 @@ describe("dynamic-html-adapter", () => {
 
     injectElement = document.createElement("p");
     injectElement.innerText = "Injecting Widget";
-    
+
     // ToDo: it should be tested in tree-builder tree.
     listeners = {
       handleContextStarted: jest.fn(() => undefined),
@@ -87,15 +86,10 @@ describe("dynamic-html-adapter", () => {
     targetNode = new PureContextNode(ns, "p");
     treeBuilder = new PureTreeBuilder(listeners);
     jsonParser = new JsonParser(config);
-    
+
     adapter = new DynamicHtmlAdapter(element, treeBuilder, ns, jsonParser);
 
     adapter.start();
-  });
-
-  it("parsed context", () => {
-    // ToDo: looks that it's already covered in json-parser.test.ts
-    expect(adapter.context.parsedContext).toHaveProperty("id", "root");
   });
 
   it("get insertion points", () => {

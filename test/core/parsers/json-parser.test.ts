@@ -1,6 +1,6 @@
 import { IParser } from "../../../src/core/parsers/interface";
 import { JsonParser } from "../../../src/core/parsers/json-parser";
-import { describe, expect, it } from "@jest/globals";
+import { describe, expect, it, beforeEach } from "@jest/globals";
 import {
   configJsonParser,
   jsonParserDataHtml,
@@ -21,7 +21,7 @@ describe("JSON parser", () => {
     // Arrange
     const expected = {
       id: "root",
-      username: "2", // ToDo: use 2 instead of "2"
+      username: "2", // ToDo: use 2 instead of "2" // returned stroke
       fullname: "Test-fullname",
       img: null,
     };
@@ -33,29 +33,31 @@ describe("JSON parser", () => {
     expect(actual).toStrictEqual(expected);
   });
 
-  // ToDo: use AAA pattern and `expected` and `actual` variable names as written above
   it("should find insertionPoint", () => {
-    // ToDo: where assertion is?
-
-    const checkContext = jsonParser.findInsertionPoint(element, "post", "text");
-
-    // ToDo: move null checking to a separate test in this file
-    const checkContextNull = jsonParser.findInsertionPoint(
-      element,
-      "panel",
-      "avatar"
-    );
-    const testElement = element.getElementsByClassName(
+    // Arrange
+    const expected = element.getElementsByClassName(
       "insertion-point-selector"
     )[0];
-    expect(checkContext).toStrictEqual(testElement);
-    expect(checkContextNull).toStrictEqual(null);
+
+    // Act
+    const actual = jsonParser.findInsertionPoint(element, "post", "text");
+
+    // Assert
+    expect(actual).toStrictEqual(expected);
   });
 
-  it("should return insertionPoints", () => {
-    // ToDo: check that all insertion points recognized correctly
-    const elementPost = document.createElement("div");
-    elementPost.innerHTML = `<div class="context1-selector" data-testid="post" id='test-post' data-context="context1">
+  it("should find null insertionPoint", () => {
+    // Act
+    const actual = jsonParser.findInsertionPoint(element, "panel", "avatar");
+
+    // Assert
+    expect(actual).toStrictEqual(null);
+  });
+
+  it("should return insertionPoints post", () => {
+    // Arrange
+    const element = document.createElement("div");
+    element.innerHTML = `<div class="context1-selector" data-testid="post" id='test-post' data-context="context1">
 <p data-prop1="value1" data-prop2="value2" data-testid='tweetText'>Context 1 Content</p>
 <div data-insertion-point="insertionPoint1" class="insertion-point-selector">
   Insertion Point 1 Content
@@ -67,9 +69,31 @@ describe("JSON parser", () => {
 <div data-child="child2">Child 2 Content</div>
 </div>`;
 
-    // ToDo: split to separate tests
-    const elementProfile = document.createElement("div");
-    elementProfile.innerHTML = `<div class="context2-selector" data-testid="profile" id='test-profile' data-context="context2">
+    const expected = [
+      {
+        name: "root",
+        insertionType: "before",
+        bosLayoutManager: "layoutManagerpost",
+      },
+      {
+        name: "text",
+        insertionType: "after",
+        bosLayoutManager: "layoutManager1",
+      },
+    ];
+    // Act
+    const actual = jsonParser.getInsertionPoints(element.children[0], "post");
+
+    // Assert
+
+    expect(actual).toStrictEqual(expected);
+  });
+
+  it("should return insertionPoints profile", () => {
+    // ToDo: check that all insertion points recognized correctly
+    // Arrange
+    const element = document.createElement("div");
+    element.innerHTML = `<div class="context2-selector" data-testid="profile" id='test-profile' data-context="context2">
 <p data-prop2="value2"  data-testid='tweetProfile'>Context 2 Content</p>
 <div data-insertion-point="insertionPoint3" class="insertion-point-selector-3">
 Insertion Point 3 Content
@@ -80,24 +104,13 @@ Insertion Point 4 Content
 <div data-child="child3">Child 3 Content</div>
 <div data-child="child4">Child 4 Content</div>
 </div>`;
-    const checkContextPost = jsonParser.getInsertionPoints(
-      elementPost.children[0],
-      "post"
-    );
-    const checkContextProfile = jsonParser.getInsertionPoints(
-      elementProfile.children[0],
-      "profile"
-    );
 
-    const testDataPost = [
+    const expected = [
       {
-        name: "text",
-        insertionType: "after",
-        bosLayoutManager: "layoutManager1",
+        name: "root",
+        insertionType: "before",
+        bosLayoutManager: "layoutManagerProfile",
       },
-    ];
-
-    const testDataProfile = [
       {
         name: "avatar",
         insertionType: "after",
@@ -109,12 +122,63 @@ Insertion Point 4 Content
         bosLayoutManager: undefined,
       },
     ];
-    expect(checkContextPost).toStrictEqual(testDataPost);
-    expect(checkContextProfile).toStrictEqual(testDataProfile);
+
+    // Act
+    const actual = jsonParser.getInsertionPoints(
+      element.children[0],
+      "profile"
+    );
+
+    // Assert
+
+    expect(actual).toStrictEqual(expected);
+  });
+
+  it("should return insertionPoints panel", () => {
+    // Arrange
+
+    const expected = [
+      { name: "avatar", insertionType: "after", bosLayoutManager: "null" },
+      {
+        name: "text",
+        insertionType: undefined,
+        bosLayoutManager: undefined,
+      },
+    ];
+
+    // Act
+    const actual = jsonParser.getInsertionPoints(element, "panel");
+
+    // Assert
+
+    expect(actual).toStrictEqual(expected);
   });
 
   it("find child elements", () => {
-    // ToDo: compare elements with toStrictEqual
-    expect(jsonParser.findChildElements(element, "root").length).toBe(4);
+    // Arrange
+    const expected = [
+      {
+        contextName: "post",
+        element: element.getElementsByClassName("post-1")[0],
+      },
+      {
+        contextName: "post",
+        element: element.getElementsByClassName("post-2")[0],
+      },
+      {
+        contextName: "profile",
+        element: element.getElementsByClassName("profile-1")[0],
+      },
+      {
+        contextName: "profile",
+        element: element.getElementsByClassName("profile-2")[0],
+      },
+    ];
+
+    // Act
+    const actual = jsonParser.findChildElements(element, "root");
+
+    // Assert
+    expect(actual).toStrictEqual(expected);
   });
 });

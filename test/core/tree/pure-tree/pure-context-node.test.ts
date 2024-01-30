@@ -1,69 +1,34 @@
-import { IContextNode, ParsedContext } from "../../../../src/core/tree/types";
+import { IContextNode } from "../../../../src/core/tree/types";
 import { PureContextNode } from "../../../../src/core/tree/pure-tree/pure-context-node";
+import { describe, expect, it, beforeEach } from "@jest/globals";
 
-// ToDo: remove
-class MockContextNode implements IContextNode {
-  id: string | null;
-  tagName: string;
-  namespaceURI: string | null;
-  parentNode: IContextNode | null;
-  parsedContext?: ParsedContext;
-  children?: any;
-  insPoints: string[];
-  constructor(
-    id: string | null,
-    tagName: string,
-    namespaceURI: string | null,
-    parentNode: IContextNode | null,
-    insPoints: string[],
-    parsedContext?: ParsedContext,
-    children?: any
-  
-  ) {
-    this.id = id;
-    this.tagName = tagName;
-    this.namespaceURI = namespaceURI;
-    this.parentNode = parentNode;
-    this.parsedContext = parsedContext;
-    this.children = children;
-    this.insPoints= insPoints
-  }
 
-  removeChild(child: IContextNode): void {
-    console.log(`Removing child ${child.tagName} from ${this.tagName}`);
-  }
-
-  appendChild(child: IContextNode): void {
-    console.log(`Appending child ${child.tagName} to ${this.tagName}`);
-  }
-}
 describe("Pure context node", () => {
   let ns: string;
-  let contextNode: IContextNode;
-
-  // ToDo: remove
-  let rootNode = new MockContextNode("parent", "div", null, null, ['root']);
+  let pureContextNode: IContextNode;
+  let expectedNode: IContextNode;
 
   beforeEach(() => {
     ns = "https://dapplets.org/ns/json/some-web-site";
-    contextNode = new PureContextNode(ns, "div");
+    expectedNode = new PureContextNode(ns, "https://expected.org");
+    pureContextNode = new PureContextNode(ns, "div");
   });
 
   it("context node append child", () => {
-    expect(rootNode.parentNode).toBe(null);
+    expect(expectedNode.parentNode).toBe(null);
 
-    expect(contextNode.appendChild(rootNode));
-    expect(rootNode.parentNode?.namespaceURI).toBe(
+    expect(pureContextNode.appendChild(expectedNode));
+
+    expect(expectedNode.parentNode?.namespaceURI).toBe(
       "https://dapplets.org/ns/json/some-web-site"
     );
   });
 
   it("context node remove child", () => {
-    expect(rootNode.parentNode?.namespaceURI).toBe(
-      "https://dapplets.org/ns/json/some-web-site"
-    );
+    expect(expectedNode.parentNode?.namespaceURI).toBe(undefined);
 
-    expect(contextNode.removeChild(rootNode));
-    expect(rootNode.parentNode).toBe(null);
+    expect(pureContextNode.removeChild(expectedNode));
+
+    expect(expectedNode.parentNode).toBe(null);
   });
 });

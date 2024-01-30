@@ -1,9 +1,8 @@
 import { InsertionType } from "../../../src/core/adapters/interface";
 
 export const jsonParserDataHtml = document.createElement("div");
-jsonParserDataHtml.innerHTML = ` 
-<div id="root">
-
+jsonParserDataHtml.innerHTML = `  <div id="root" >
+<!-- root props -->
 <div data-testid='UserName'>
 <span>2</span>
 </div> 
@@ -12,60 +11,56 @@ jsonParserDataHtml.innerHTML = `
 <img alt="Test-fullname"/>
 </div>
 
-<div class="context1-selector" data-testid="post"  id='test-post' data-context="context1">
- <p data-prop1="value1" data-prop2="value2" data-testid='tweetText'>Context 1 Content</p>
- <div data-insertion-point="insertionPoint1" class="insertion-point-selector">
-   Insertion Point 1 Content
- </div>
- <div data-insertion-point="insertionPoint2">
-   Insertion Point 2 Content
- </div>
- <div data-child="child1">Child 1 Content</div>
- <div data-child="child2">Child 2 Content</div>
-</div>
-<div class="context1-selector" data-testid="post" id='test-post' data-context="context1">
-<p data-prop1="value1" data-prop2="value2" data-testid='tweetText'>Context 1 Content</p>
-<div data-insertion-point="insertionPoint1" class="insertion-point-selector2">
- Insertion Point 1 Content
-</div>
-<div data-insertion-point="insertionPoint2">
- Insertion Point 2 Content
-</div>
-<div data-child="child1">Child 1 Content</div>
-<div data-child="child2">Child 2 Content</div>
+<!-- post -->
+<div data-testid="post" id="post" class="post-1">
+  <img id="post-img" />
+  <div data-testid="postText">Post Text</div>
+  <div class="insertion-point-selector">
+    <!-- Insertion Point Content -->
+  </div>
 </div>
 
-<div class="context2-selector" data-testid="profile" id='test-profile' data-context="context2">
-<p data-prop2="value2"  data-testid='tweetProfile'>Context 2 Content</p>
-<div data-insertion-point="insertionPoint3" class="insertion-point-selector-2">
- Insertion Point 3 Content
-</div>
-<div data-insertion-point="insertionPoint4">
- Insertion Point 4 Content
-</div>
-<div data-child="child3">Child 3 Content</div>
-<div data-child="child4">Child 4 Content</div>
+<!-- post -->
+<div data-testid="post" id="post" class="post-2">
+  <img id="post-img" />
+  <div data-testid="postText">Post Text</div>
+  <div class="insertion-point-selector">
+    <!-- Insertion Point Content -->
+  </div>
 </div>
 
-<div class="context2-selector" data-testid="profile" id='test-profile' data-context="context2">
-<p data-prop2="value2"  data-testid='tweetProfile'>Context 2 Content</p>
-<div data-insertion-point="insertionPoint3" class="insertion-point-selector-3">
-Insertion Point 3 Content
-</div>
-<div data-insertion-point="insertionPoint4">
-Insertion Point 4 Content
-</div>
-<div data-child="child3">Child 3 Content</div>
-<div data-child="child4">Child 4 Content</div>
+<!-- profile -->
+<div data-testid="profile" id="profile" class="profile-1">
+  <img id="profile-img" />
+  <div data-testid="textProfile">Profile Text</div>
+  <div class="insertion-point-selector-2">
+    <!-- Insertion Point Content -->
+  </div>
+  <div data-insertion-point>
+    <!-- Insertion Point Content -->
+  </div>
 </div>
 
-</div>`;
+<!-- profile -->
+<div data-testid="profile" id="profile" class="profile-2">
+  <img id="profile-img" />
+  <div data-testid="textProfile">Profile Text</div>
+  <div class="insertion-point-selector-2">
+    <!-- Insertion Point Content -->
+  </div>
+  <div data-insertion-point>
+    <!-- Insertion Point Content -->
+  </div>
+</div>
+
+<!-- panel -->
+`;
 
 export const configJsonParser = {
   namespace: "sampleNamespace",
   contexts: {
     root: {
-      selector: "div[id='root']",
+      selector: "[id='root']",
       props: {
         id: "string('root')",
         username: "number(.//*[@data-testid='UserName']//span[1])",
@@ -75,13 +70,17 @@ export const configJsonParser = {
       children: ["post", "profile", "panel"],
     },
     post: {
-      // ToDo: specify selector, props
-      selector: "div[data-testid='profile']",
+      selector: "div[data-testid=post]",
       props: {
         id: "string(.//img/@id)",
-        text: "string(.//*[@data-testid='tweetText'])",
+        text: "string(.//*[@data-testid='postText'])",
       },
       insertionPoints: {
+        root: {
+          "selector": "[id=post]",
+          "bosLayoutManager": "layoutManagerpost",
+          "insertionType": InsertionType.Before
+        },
         text: {
           selector: ".insertion-point-selector",
           bosLayoutManager: "layoutManager1",
@@ -90,13 +89,17 @@ export const configJsonParser = {
       },
     },
     profile: {
-      // ToDo: specify this context
-      selector: "div[data-testid=profile]",
+      selector: "[id=profile]",
       props: {
         id: "string(.//img/@id)",
-        text: "string(.//*[@data-testid='tweetProfile'])",
+        text: "string(.//*[@data-testid='textProfile'])",
       },
       insertionPoints: {
+        root: {
+          "selector": "div[data-testid=profile]",
+          "bosLayoutManager": "layoutManagerProfile",
+          "insertionType": InsertionType.Before
+        },
         avatar: {
           selector: ".insertion-point-selector-2",
           bosLayoutManager: "layoutManager2",
@@ -109,12 +112,12 @@ export const configJsonParser = {
       selector: "div[data-testid=panel]",
       props: {
         id: "string(.//img/@id)",
-        text: "string(.//*[@data-testid='tweetProfile'])",
+        text: "string(.//*[@data-testid='tweetPanel'])",
       },
       insertionPoints: {
         avatar: {
           selector: ".class-null",
-          bosLayoutManager: "layoutManager1",
+          bosLayoutManager: "null",
           insertionType: InsertionType.After,
         },
         text: "data-null",
