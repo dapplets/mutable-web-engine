@@ -1,6 +1,7 @@
 import { IContextNode, ParsedContext } from "../../../../src/core/tree/types";
 import { PureContextNode } from "../../../../src/core/tree/pure-tree/pure-context-node";
 
+// ToDo: remove
 class MockContextNode implements IContextNode {
   id: string | null;
   tagName: string;
@@ -40,6 +41,7 @@ describe("Pure context node", () => {
   let ns: string;
   let contextNode: IContextNode;
 
+  // ToDo: remove
   let rootNode = new MockContextNode("parent", "div", null, null, ['root']);
 
   beforeEach(() => {

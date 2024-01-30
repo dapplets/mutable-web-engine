@@ -18,24 +18,28 @@ describe("JSON parser", () => {
   });
 
   it("should return a parsed context", () => {
-    // ToDo: add more props with different data types (boolean, string, number)
-    const checkContext = jsonParser.parseContext(element, "root");
-
-    const testContext = {
+    // Arrange
+    const expected = {
       id: "root",
-      username: "2",
+      username: "2", // ToDo: use 2 instead of "2"
       fullname: "Test-fullname",
       img: null,
     };
 
-    expect(checkContext).toStrictEqual(testContext);
+    // Act
+    const actual = jsonParser.parseContext(element, "root");
+
+    // Assert
+    expect(actual).toStrictEqual(expected);
   });
 
+  // ToDo: use AAA pattern and `expected` and `actual` variable names as written above
   it("should find insertionPoint", () => {
     // ToDo: where assertion is?
 
     const checkContext = jsonParser.findInsertionPoint(element, "post", "text");
 
+    // ToDo: move null checking to a separate test in this file
     const checkContextNull = jsonParser.findInsertionPoint(
       element,
       "panel",
@@ -63,6 +67,7 @@ describe("JSON parser", () => {
 <div data-child="child2">Child 2 Content</div>
 </div>`;
 
+    // ToDo: split to separate tests
     const elementProfile = document.createElement("div");
     elementProfile.innerHTML = `<div class="context2-selector" data-testid="profile" id='test-profile' data-context="context2">
 <p data-prop2="value2"  data-testid='tweetProfile'>Context 2 Content</p>
@@ -109,8 +114,7 @@ Insertion Point 4 Content
   });
 
   it("find child elements", () => {
-    // ToDo: should not be 0 posts
-
+    // ToDo: compare elements with toStrictEqual
     expect(jsonParser.findChildElements(element, "root").length).toBe(4);
   });
 });

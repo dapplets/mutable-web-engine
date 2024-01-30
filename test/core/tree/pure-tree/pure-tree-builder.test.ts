@@ -70,8 +70,8 @@ describe("Pure tree builder", () => {
   let listeners: IContextListener;
   beforeEach(() => {
     ns = "https://dapplets.org/ns/engine";
-    rootNode = new PureContextNode(ns, "html");
-    headNode = new PureContextNode(ns, "div");
+    rootNode = new PureContextNode(ns, "html"); // ToDo: mock
+    headNode = new PureContextNode(ns, "div"); // ToDo: mock
     listeners = {
       handleContextStarted: jest.fn(() => undefined),
       handleContextChanged: jest.fn(() => undefined),
@@ -79,7 +79,7 @@ describe("Pure tree builder", () => {
       handleInsPointStarted: jest.fn(() => undefined),
       handleInsPointFinished: jest.fn(() => undefined),
     };
-    treeBuilder = new PureTreeBuilder(listeners);
+    treeBuilder = new PureTreeBuilder(listeners); // ToDo: mock
   });
 
   it("tree build append child", () => {
@@ -87,6 +87,7 @@ describe("Pure tree builder", () => {
     expect(treeBuilder.appendChild(rootNode, headNode));
 
     expect(headNode.parentNode).toStrictEqual(rootNode);
+    // ToDo: check that handleContextStarted was called with correct arguments
   });
 
   it("tree build remove child", () => {
@@ -94,6 +95,7 @@ describe("Pure tree builder", () => {
     expect(headNode.parentNode).toStrictEqual(rootNode);
     expect(treeBuilder.removeChild(rootNode, headNode));
     expect(headNode.parentNode).toBe(null);
+    // ToDo: check that handleContextFinished was called with correct arguments
   });
 
   it("tree build create node", () => {
@@ -103,11 +105,13 @@ describe("Pure tree builder", () => {
   it("tree build update parsed context", () => {
     expect(treeBuilder.updateParsedContext(rootNode, "new context"));
     expect(rootNode.parsedContext).toBe("new context");
+    // ToDo: check that handleContextChanged was called with correct arguments
   });
 
   it("update Insertion Points", () => {
     expect(rootNode.insPoints.length).toBe(0);
     expect(treeBuilder.updateInsertionPoints(rootNode, ["InsertionPoints"]));
     expect(rootNode.insPoints[0]).toBe("InsertionPoints");
+    // ToDo: check that handleInsPointStarted and handleInsPointFinished were called with correct arguments
   });
 });

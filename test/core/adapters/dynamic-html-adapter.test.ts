@@ -72,6 +72,8 @@ describe("dynamic-html-adapter", () => {
 
     injectElement = document.createElement("p");
     injectElement.innerText = "Injecting Widget";
+    
+    // ToDo: it should be tested in tree-builder tree.
     listeners = {
       handleContextStarted: jest.fn(() => undefined),
       handleContextChanged: jest.fn(() => undefined),
@@ -80,16 +82,19 @@ describe("dynamic-html-adapter", () => {
       handleInsPointFinished: jest.fn(() => undefined),
     };
     ns = "https://dapplets.org/ns/json/some-web-site";
+
+    // ToDo: these classes should be mocked
     targetNode = new PureContextNode(ns, "p");
     treeBuilder = new PureTreeBuilder(listeners);
-
     jsonParser = new JsonParser(config);
+    
     adapter = new DynamicHtmlAdapter(element, treeBuilder, ns, jsonParser);
 
     adapter.start();
   });
 
   it("parsed context", () => {
+    // ToDo: looks that it's already covered in json-parser.test.ts
     expect(adapter.context.parsedContext).toHaveProperty("id", "root");
   });
 
