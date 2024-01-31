@@ -4,7 +4,7 @@ import { describe, expect, it, beforeEach } from "@jest/globals";
 import {
   configJsonParser,
   jsonParserDataHtml,
-} from "../../data/parsers/constants";
+} from "../../data/parsers/json-parser-constants";
 
 describe("JSON parser", () => {
   let element: HTMLElement;

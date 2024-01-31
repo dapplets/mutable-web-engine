@@ -1,63 +1,90 @@
 import { IParser } from "../../../src/core/parsers/interface";
 import { MicrodataParser } from "../../../src/core/parsers/microdata-parser";
-
+import { describe, expect, it, beforeEach } from "@jest/globals";
+import { microdataParserElement } from "../../data/parsers/microdata-parser-constants";
 describe("microdata parser", () => {
   let element: HTMLElement;
 
   let microdataParser: IParser;
 
   beforeEach(() => {
-    element = document.createElement("div");
-    element.innerHTML = `  <div id="root">
-    <div class="context1-selector" id='test' data-context="context1">
-      <p data-prop1="value1" data-prop2="value2">Context 1 Content</p>
-      <div itemtype="insertionPoint1" class="insertion-point-selector">
-        Insertion Point 1 Content
-      </div>
-      <div itemprop="itemprop value">
-      itemprop text
-      </div>
-      <div itemid="itemid value">itemid</div>
-      <div itemtype="itemtype value">itemtype text</div>
-    </div>
-  </div>`;
+    element = microdataParserElement;
 
     microdataParser = new MicrodataParser();
   });
 
   it("should return a parsed context", () => {
-    expect(microdataParser.parseContext(element, "root")).toHaveProperty(
-      "itemprop value"
-    );
+    // Arrange
+    const expected = {
+      datePublished: "2024-01-30T12:00:00",
+      image: "https://example.com/image.jpg",
+      jobTitle: "Web Developer",
+      name: "Product Name",
+      price: "19.99",
+      url: "https://example.com",
+    };
+
+    // Act
+    const actual = microdataParser.parseContext(element, "root");
+
+    // Assert
+    expect(actual).toStrictEqual(expected);
   });
 
   it("should return a child", () => {
-    expect(
-      microdataParser.findChildElements(element, "root").some((element) => {
-        let target = "itemtype value";
-        return target.includes(element.contextName);
-      })
-    ).toBe(true);
+    // Arrange
+    const expected = [
+      {
+        element: element.getElementsByClassName("child-person")[0],
+        contextName: "before",
+      },
+      {
+        element: element.getElementsByClassName("child-product")[0],
+        contextName: "after",
+      },
+    ];
+
+    // Act
+    const actual = microdataParser.findChildElements(element, "root");
+
+    // Assert
+    expect(actual).toStrictEqual(expected);
   });
 
-  it("should find insertionPoint", () => {
-    const findElement = microdataParser.findInsertionPoint(
+  it("should find insertionPoint before", () => {
+    // Arrange
+    const expected = element.getElementsByClassName("child-person")[0];
+
+    // Act
+    const actual = microdataParser.findInsertionPoint(
       element,
       "root",
-      "insertionPoint1"
+      "before"
     );
 
-    expect(findElement?.getAttribute("itemtype")).toBe("insertionPoint1");
+    // Assert
+    expect(actual).toStrictEqual(expected);
+  });
+
+  it("should find insertionPoint after", () => {
+    // Arrange
+    const expected = element.getElementsByClassName("child-product")[0];
+
+    // Act
+    const actual = microdataParser.findInsertionPoint(element, "root", "after");
+
+    // Assert
+    expect(actual).toStrictEqual(expected);
   });
 
   it("should get insertionPoint", () => {
-    expect(
-      microdataParser
-        .getInsertionPoints(element, "itemtype value")
-        .some((element) => {
-          let target = "itemtype value";
-          return target.includes(element.name);
-        })
-    ).toBe(true);
+    // Arrange
+    const expected = [{ name: "before" }, { name: "after" }];
+
+    // Act
+    const actual = microdataParser.getInsertionPoints(element, "root");
+
+    // Assert
+    expect(actual).toStrictEqual(expected);
   });
 });

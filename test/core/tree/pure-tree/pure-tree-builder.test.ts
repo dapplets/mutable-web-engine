@@ -35,7 +35,6 @@ describe("Pure tree builder", () => {
     expect(treeBuilder.appendChild(rootNode, headNode));
     // ToDo: check that handleContextStarted was called with correct arguments
     expect(listeners.handleContextStarted.call).toHaveLength(1);
-
     expect(headNode.parentNode).toStrictEqual(rootNode);
   });
 
@@ -61,8 +60,10 @@ describe("Pure tree builder", () => {
 
   it("update Insertion Points", () => {
     expect(rootNode.insPoints.length).toBe(0);
+
     expect(treeBuilder.updateInsertionPoints(rootNode, ["InsertionPoints"]));
     // ToDo: check that handleInsPointStarted and handleInsPointFinished were called with correct arguments
+    expect(listeners.handleInsPointStarted.call).toHaveLength(1);
     expect(listeners.handleInsPointFinished.call).toHaveLength(1);
     expect(rootNode.insPoints[0]).toBe("InsertionPoints");
   });
