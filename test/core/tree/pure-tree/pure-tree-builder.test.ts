@@ -1,70 +1,149 @@
+import { describe, expect, it, beforeEach, jest } from "@jest/globals";
+
 import {
   IContextListener,
-  IContextNode,
   ITreeBuilder,
 } from "../../../../src/core/tree/types";
 import { PureTreeBuilder } from "../../../../src/core/tree/pure-tree/pure-tree-builder";
 import { PureContextNode } from "../../../../src/core/tree/pure-tree/pure-context-node";
-import { describe, expect, it, beforeEach, jest } from "@jest/globals";
+
+const NS = "https://dapplets.org/NS/engine";
+
+// automock dependency
+jest.mock("../../../../src/core/tree/pure-tree/pure-context-node");
 
 describe("Pure tree builder", () => {
-  let ns: string;
   let treeBuilder: ITreeBuilder;
+  let mockListeners: IContextListener;
 
-  let rootNode: IContextNode;
-  let headNode: IContextNode;
-
-  let listeners: IContextListener;
   beforeEach(() => {
-    ns = "https://dapplets.org/ns/engine";
-    rootNode = new PureContextNode(ns, "html"); // ToDo: mock
-    headNode = new PureContextNode(ns, "div"); // ToDo: mock
-
-    listeners = {
-      handleContextStarted: jest.fn(() => undefined),
-      handleContextChanged: jest.fn(() => undefined),
-      handleContextFinished: jest.fn(() => undefined),
-      handleInsPointStarted: jest.fn(() => undefined),
-      handleInsPointFinished: jest.fn(() => undefined),
+    // mock dependency manually
+    mockListeners = {
+      handleContextStarted: jest.fn(),
+      handleContextChanged: jest.fn(),
+      handleContextFinished: jest.fn(),
+      handleInsPointStarted: jest.fn(),
+      handleInsPointFinished: jest.fn(),
     };
-    treeBuilder = new PureTreeBuilder(listeners); // ToDo: mock
+
+    treeBuilder = new PureTreeBuilder(mockListeners);
   });
 
-  it("tree build append child", () => {
-    expect(headNode.parentNode).toBe(null);
-    expect(treeBuilder.appendChild(rootNode, headNode));
-    // ToDo: check that handleContextStarted was called with correct arguments
-    expect(listeners.handleContextStarted.call).toHaveLength(1);
-    expect(headNode.parentNode).toStrictEqual(rootNode);
+  it("initializes correctly", () => {
+    // Assert
+    expect(PureContextNode).toBeCalledTimes(1); // root node created
+    expect(treeBuilder.root).not.toBe(null);
   });
 
-  it("tree build remove child", () => {
-    expect(treeBuilder.appendChild(rootNode, headNode));
-    expect(headNode.parentNode).toStrictEqual(rootNode);
-    expect(treeBuilder.removeChild(rootNode, headNode));
-    // ToDo: check that handleContextFinished was called with correct arguments
-    expect(listeners.handleContextFinished.call).toHaveLength(1);
-    expect(headNode.parentNode).toBe(null);
+  it("create node", () => {
+    // Assert
+    const mockContextNodeClass = PureContextNode as jest.Mock;
+    jest.clearAllMocks(); // reset calling times
+
+    // Act
+    const node = treeBuilder.createNode(NS, "root");
+
+    // Assert
+    expect(PureContextNode).toBeCalledTimes(1);
+    expect(node).toBe(mockContextNodeClass.mock.instances[0]);
   });
 
-  it("tree build create node", () => {
-    expect(treeBuilder.createNode(ns, "span").tagName).toBe("span");
+  it("append child", () => {
+    // Arrange
+    const parent = treeBuilder.createNode(NS, "parent");
+    const child = treeBuilder.createNode(NS, "child");
+
+    // Act
+    treeBuilder.appendChild(parent, child);
+
+    // Assert
+    expect(parent.appendChild).toBeCalledTimes(1);
+    expect(parent.appendChild).toBeCalledWith(child);
+    expect(mockListeners.handleContextStarted).toBeCalledTimes(1);
+    expect(mockListeners.handleContextStarted).toBeCalledWith(child);
   });
 
-  it("tree build update parsed context", () => {
-    expect(treeBuilder.updateParsedContext(rootNode, "new context"));
-    // ToDo: check that handleContextChanged was called with correct arguments
-    expect(listeners.handleContextChanged.call).toHaveLength(1);
-    expect(rootNode.parsedContext).toBe("new context");
+  it("remove child", () => {
+    // Arrange
+    const parent = treeBuilder.createNode(NS, "parent");
+    const child = treeBuilder.createNode(NS, "child");
+    treeBuilder.appendChild(parent, child);
+
+    // Act
+    treeBuilder.removeChild(parent, child);
+
+    // Assert
+    expect(parent.removeChild).toBeCalledTimes(1);
+    expect(parent.removeChild).toBeCalledWith(child);
+    expect(mockListeners.handleContextFinished).toBeCalledTimes(1);
+    expect(mockListeners.handleContextFinished).toBeCalledWith(child);
   });
 
-  it("update Insertion Points", () => {
-    expect(rootNode.insPoints.length).toBe(0);
+  it("should callback if the context ID is changed", () => {
+    // Assert
+    const node = treeBuilder.createNode(NS, "parent");
+    const parsed = { id: "1", data: "data" };
 
-    expect(treeBuilder.updateInsertionPoints(rootNode, ["InsertionPoints"]));
-    // ToDo: check that handleInsPointStarted and handleInsPointFinished were called with correct arguments
-    expect(listeners.handleInsPointStarted.call).toHaveLength(1);
-    expect(listeners.handleInsPointFinished.call).toHaveLength(1);
-    expect(rootNode.insPoints[0]).toBe("InsertionPoints");
+    // Arrange
+    treeBuilder.updateParsedContext(node, parsed);
+
+    // Assert
+    expect(mockListeners.handleContextFinished).toBeCalledTimes(1);
+    expect(mockListeners.handleContextFinished).toBeCalledWith(node);
+    expect(mockListeners.handleContextStarted).toBeCalledTimes(1);
+    expect(mockListeners.handleContextStarted).toBeCalledWith(node);
+    expect(node.parsedContext).toEqual(parsed);
+    expect(node.id).toBe(parsed.id);
   });
+
+  it("should callback if the context is changed", () => {
+    // Assert
+    const node = treeBuilder.createNode(NS, "parent");
+    const parsedOld = { id: "1", data: "old" };
+    const parsedNew = { id: "1", data: "new" };
+    treeBuilder.updateParsedContext(node, parsedOld);
+    jest.clearAllMocks();
+
+    // Arrange
+    treeBuilder.updateParsedContext(node, parsedNew);
+
+    // Assert
+    expect(mockListeners.handleContextChanged).toBeCalledTimes(1);
+    expect(mockListeners.handleContextChanged).toBeCalledWith(node, parsedOld);
+    expect(node.parsedContext).toEqual(parsedNew);
+    expect(node.id).toBe(parsedNew.id);
+  });
+
+  it("should not callback if the parsed context is not changed", () => {
+    // Assert
+    const node = treeBuilder.createNode(NS, "parent");
+    const parsedOld = { id: "1", data: "data" };
+    const parsedNew = { id: "1", data: "data" };
+    treeBuilder.updateParsedContext(node, parsedOld);
+    jest.clearAllMocks();
+
+    // Arrange
+    treeBuilder.updateParsedContext(node, parsedNew);
+
+    // Assert
+    expect(mockListeners.handleContextChanged).toBeCalledTimes(0);
+    expect(mockListeners.handleContextFinished).toBeCalledTimes(0);
+    expect(mockListeners.handleContextStarted).toBeCalledTimes(0);
+  });
+
+  it("update insertion points", () => {
+    // Arrange
+    const node = treeBuilder.root;
+    const insPoints = ["southPanel", "northPanel"];
+
+    // Act
+    treeBuilder.updateInsertionPoints(node, insPoints);
+
+    // Assert
+    expect(node.insPoints).toEqual(insPoints);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  })
 });

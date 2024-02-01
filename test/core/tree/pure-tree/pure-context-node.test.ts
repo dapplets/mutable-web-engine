@@ -23,27 +23,27 @@ describe("PureContextNode", () => {
   it("context node append child", () => {
     // Arrange
     const parent = new PureContextNode(NS, "parent");
-    const children = new PureContextNode(NS, "children");
+    const child = new PureContextNode(NS, "child");
 
     // Act
-    parent.appendChild(children);
+    parent.appendChild(child);
 
     // Assert
-    expect(children.parentNode).toBe(parent);
-    expect(parent.children).toContain(children);
+    expect(child.parentNode).toBe(parent);
+    expect(parent.children).toContain(child);
   });
 
   it("context node remove child", () => {
     // Arrange
     const parent = new PureContextNode(NS, "parent");
-    const children = new PureContextNode(NS, "children");
-    parent.appendChild(children);
+    const child = new PureContextNode(NS, "child");
+    parent.appendChild(child);
 
     // Act
-    parent.removeChild(children);
+    parent.removeChild(child);
 
     // Assert
-    expect(children.parentNode).toBe(null);
-    expect(parent.children).not.toContain(children);
+    expect(child.parentNode).toBe(null);
+    expect(parent.children).not.toContain(child);
   });
 });
