@@ -36,7 +36,7 @@ describe("Pure tree builder", () => {
   });
 
   it("create node", () => {
-    // Assert
+    // Arrange
     const mockContextNodeClass = PureContextNode as jest.Mock;
     jest.clearAllMocks(); // reset calling times
 
@@ -80,11 +80,11 @@ describe("Pure tree builder", () => {
   });
 
   it("should callback if the context ID is changed", () => {
-    // Assert
+    // Arrange
     const node = treeBuilder.createNode(NS, "parent");
     const parsed = { id: "1", data: "data" };
 
-    // Arrange
+    // Act
     treeBuilder.updateParsedContext(node, parsed);
 
     // Assert
@@ -97,14 +97,14 @@ describe("Pure tree builder", () => {
   });
 
   it("should callback if the context is changed", () => {
-    // Assert
+    // Arrange
     const node = treeBuilder.createNode(NS, "parent");
     const parsedOld = { id: "1", data: "old" };
     const parsedNew = { id: "1", data: "new" };
     treeBuilder.updateParsedContext(node, parsedOld);
     jest.clearAllMocks();
 
-    // Arrange
+    // Act
     treeBuilder.updateParsedContext(node, parsedNew);
 
     // Assert
@@ -115,14 +115,14 @@ describe("Pure tree builder", () => {
   });
 
   it("should not callback if the parsed context is not changed", () => {
-    // Assert
+    // Arrange
     const node = treeBuilder.createNode(NS, "parent");
     const parsedOld = { id: "1", data: "data" };
     const parsedNew = { id: "1", data: "data" };
     treeBuilder.updateParsedContext(node, parsedOld);
     jest.clearAllMocks();
 
-    // Arrange
+    // Act
     treeBuilder.updateParsedContext(node, parsedNew);
 
     // Assert
