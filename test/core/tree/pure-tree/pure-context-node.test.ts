@@ -1,34 +1,49 @@
-import { IContextNode } from "../../../../src/core/tree/types";
 import { PureContextNode } from "../../../../src/core/tree/pure-tree/pure-context-node";
-import { describe, expect, it, beforeEach } from "@jest/globals";
+import { describe, expect, it } from "@jest/globals";
 
+const NS = "https://dapplets.org/ns/engine";
 
-describe("Pure context node", () => {
-  let ns: string;
-  let pureContextNode: IContextNode;
-  let expectedNode: IContextNode;
+describe("PureContextNode", () => {
+  it('initializes properties', () => {
+    // Arrange
+    const contextType = "root";
+    
+    // Act
+    const node = new PureContextNode(NS, contextType);
 
-  beforeEach(() => {
-    ns = "https://dapplets.org/ns/json/some-web-site";
-    expectedNode = new PureContextNode(ns, "https://expected.org");
-    pureContextNode = new PureContextNode(ns, "div");
-  });
+    // Assert
+    expect(node.children.length).toBe(0);
+    expect(node.parentNode).toBe(null);
+    expect(node.id).toBe(null);
+    expect(node.insPoints.length).toBe(0);
+    expect(node.namespaceURI).toBe(NS);
+    expect(node.tagName).toBe(contextType);
+  })
 
   it("context node append child", () => {
-    expect(expectedNode.parentNode).toBe(null);
+    // Arrange
+    const parent = new PureContextNode(NS, "parent");
+    const children = new PureContextNode(NS, "children");
 
-    expect(pureContextNode.appendChild(expectedNode));
+    // Act
+    parent.appendChild(children);
 
-    expect(expectedNode.parentNode?.namespaceURI).toBe(
-      "https://dapplets.org/ns/json/some-web-site"
-    );
+    // Assert
+    expect(children.parentNode).toBe(parent);
+    expect(parent.children).toContain(children);
   });
 
   it("context node remove child", () => {
-    expect(expectedNode.parentNode?.namespaceURI).toBe(undefined);
+    // Arrange
+    const parent = new PureContextNode(NS, "parent");
+    const children = new PureContextNode(NS, "children");
+    parent.appendChild(children);
 
-    expect(pureContextNode.removeChild(expectedNode));
+    // Act
+    parent.removeChild(children);
 
-    expect(expectedNode.parentNode).toBe(null);
+    // Assert
+    expect(children.parentNode).toBe(null);
+    expect(parent.children).not.toContain(children);
   });
 });
