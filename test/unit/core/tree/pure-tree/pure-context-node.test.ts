@@ -1,4 +1,4 @@
-import { PureContextNode } from "../../../../src/core/tree/pure-tree/pure-context-node";
+import { PureContextNode } from "../../../../../src/core/tree/pure-tree/pure-context-node";
 import { describe, expect, it } from "@jest/globals";
 
 const NS = "https://dapplets.org/ns/engine";

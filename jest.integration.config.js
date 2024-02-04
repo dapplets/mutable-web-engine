@@ -1,5 +1,6 @@
 module.exports = {
   preset: "ts-jest",
+  testRegex: "/integration/",
   testEnvironment: "jsdom",
   roots: ["<rootDir>/src", "<rootDir>/test"],
   transform: {
@@ -8,7 +9,7 @@ module.exports = {
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
   },
-  testRegex: "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+
   moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
-  testPathIgnorePatterns: ["test/integration"],
+  testPathIgnorePatterns: ["test/unit"],
 };

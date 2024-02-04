@@ -1,7 +1,7 @@
-import { IParser } from "../../../src/core/parsers/interface";
-import { MicrodataParser } from "../../../src/core/parsers/microdata-parser";
+import { IParser } from "../../../../src/core/parsers/interface";
+import { MicrodataParser } from "../../../../src/core/parsers/microdata-parser";
 import { describe, expect, it, beforeEach } from "@jest/globals";
-import { microdataParserElement } from "../../data/parsers/microdata-parser-constants";
+import { microdataParserElement } from "../../../data/parsers/microdata-parser-constants";
 describe("microdata parser", () => {
   let element: HTMLElement;
 

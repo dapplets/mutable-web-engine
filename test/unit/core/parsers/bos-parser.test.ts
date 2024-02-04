@@ -1,14 +1,14 @@
-import { InsertionType } from "../../../src/core/adapters/interface";
+import { InsertionType } from "../../../../src/core/adapters/interface";
 import {
   BosParser,
   BosParserConfig,
-} from "../../../src/core/parsers/bos-parser";
-import { IParser } from "../../../src/core/parsers/interface";
+} from "../../../../src/core/parsers/bos-parser";
+import { IParser } from "../../../../src/core/parsers/interface";
 import { describe, expect, it, beforeEach } from "@jest/globals";
 import {
   bosParserDataHtml,
   config,
-} from "../../data/parsers/bos-parser-constants";
+} from "../../../data/parsers/bos-parser-constants";
 
 describe("bos parser", () => {
   let element: HTMLElement;

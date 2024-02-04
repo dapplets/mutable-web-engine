@@ -1,0 +1,104 @@
+import { InsertionType } from "../../../src/core/adapters/interface";
+
+export const config = {
+  namespace: "sampleNamespace",
+  contexts: {
+    root: {
+      selector: ".root-selector",
+      props: {
+        id: "string('root')",
+        username: "number(.//*[@data-testid='UserName']//span[1])",
+        fullname: "string(.//*[@aria-label='Account menu']//img/@alt)",
+        img: '[data-testid="nothingImg"]',
+      },
+      children: ["post", "profile"],
+      insertionPoints: {
+        rootPoints: {
+          selector: ".post-selector-point",
+          bosLayoutManager: "layoutManager1",
+          insertionType: InsertionType.After,
+        },
+        inject: {
+          selector: '[id="inject"]',
+          bosLayoutManager: "layoutManager1",
+          insertionType: InsertionType.After,
+        },
+      },
+    },
+    post: {
+      selector: "div[data-testid=postTestId]",
+      props: {
+        id: "string('post')",
+        text: "string(.//*[@data-testid='postText'])",
+      },
+      insertionPoints: {
+        root: {
+          selector: ".post-root-selector",
+          bosLayoutManager: "layoutManager1",
+          insertionType: InsertionType.After,
+        },
+        text: {
+          selector: ".post-text-selector",
+          bosLayoutManager: "layoutManager1",
+          insertionType: InsertionType.Before,
+        },
+      },
+    },
+    profile: {
+      selector: "div[data-testid=profileTestId]",
+      props: {
+        id: "string('profile')",
+        text: "string(.//*[@data-testid='profileText'])",
+      },
+      insertionPoints: {
+        root: {
+          selector: ".profile-root-selector",
+          bosLayoutManager: "layoutManager1",
+          insertionType: InsertionType.Begin,
+        },
+        avatar: {
+          selector: ".profile-text-selector",
+          bosLayoutManager: "layoutManager1",
+          insertionType: InsertionType.End,
+        },
+      },
+    },
+  },
+};
+
+export const dynamicHtmlAdapterDataHtml = document.createElement("div");
+
+dynamicHtmlAdapterDataHtml.innerHTML = `
+<div class="root-selector" id="root" >
+<!-- root props -->
+<div data-testid='UserName'>
+<span>2</span>
+</div> 
+
+<div aria-label='Account menu'>
+<img alt="Test-fullname"/>
+</div>
+
+
+    <!-- Insertion Point for Root -->
+    <div class="root-selector" data-bos-layout-manager="layoutManager1">
+
+    <!-- Children: Post -->
+    <div class="post-selector-point" id="post" 
+    data-testid="postTestId">
+
+        <div class="post-root-selector" data-testid='postText' data-bos-layout-manager="layoutManager1">Post Root Insertion Point Content</div>
+
+        <div class="post-text-selector" data-bos-layout-manager="layoutManager1">Post Text Insertion Point Content</div>
+    </div>
+
+    <!-- Children: Profile -->
+    <div class="profile-selector" id="profile" 
+    data-testid="profileTestId">
+
+        <div class="profile-root-selector" data-bos-layout-manager="layoutManager1" data-testid='profileText'>Profile Root Insertion Point Content</div>
+
+        <div class="profile-text-selector" data-bos-layout-manager="layoutManager1">Profile Avatar Insertion Point Content</div>
+    </div>
+    </div>
+</div>`;

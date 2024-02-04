@@ -1,9 +1,9 @@
-import { InsertionType } from "../../../src/core/adapters/interface";
-import { IParser } from "../../../src/core/parsers/interface";
-import { NaiveBosParser } from "../../../src/core/parsers/naive-bos-parser";
-import { IContextNode } from "../../../src/core/tree/types";
+import { InsertionType } from "../../../../src/core/adapters/interface";
+import { IParser } from "../../../../src/core/parsers/interface";
+import { NaiveBosParser } from "../../../../src/core/parsers/naive-bos-parser";
+import { IContextNode } from "../../../../src/core/tree/types";
 import { describe, expect, it, beforeEach } from "@jest/globals";
-import { naiveBosParserElement } from "../../data/parsers/naive-bos-parser-constants";
+import { naiveBosParserElement } from "../../../data/parsers/naive-bos-parser-constants";
 
 describe("naive bos parser", () => {
   let element: HTMLElement;

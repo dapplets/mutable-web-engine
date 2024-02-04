@@ -3,14 +3,14 @@ import { describe, expect, it, beforeEach, jest,afterEach } from "@jest/globals"
 import {
   IContextListener,
   ITreeBuilder,
-} from "../../../../src/core/tree/types";
-import { PureTreeBuilder } from "../../../../src/core/tree/pure-tree/pure-tree-builder";
-import { PureContextNode } from "../../../../src/core/tree/pure-tree/pure-context-node";
+} from "../../../../../src/core/tree/types";
+import { PureTreeBuilder } from "../../../../../src/core/tree/pure-tree/pure-tree-builder";
+import { PureContextNode } from "../../../../../src/core/tree/pure-tree/pure-context-node";
 
 const NS = "https://dapplets.org/NS/engine";
 
 // automock dependency
-jest.mock("../../../../src/core/tree/pure-tree/pure-context-node");
+jest.mock("../../../../../src/core/tree/pure-tree/pure-context-node");
 
 describe("Pure tree builder", () => {
   let treeBuilder: ITreeBuilder;

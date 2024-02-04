@@ -1,10 +1,10 @@
-import { IParser } from "../../../src/core/parsers/interface";
-import { JsonParser } from "../../../src/core/parsers/json-parser";
+import { IParser } from "../../../../src/core/parsers/interface";
+import { JsonParser } from "../../../../src/core/parsers/json-parser";
 import { describe, expect, it, beforeEach } from "@jest/globals";
 import {
   configJsonParser,
   jsonParserDataHtml,
-} from "../../data/parsers/json-parser-constants";
+} from "../../../data/parsers/json-parser-constants";
 
 describe("JSON parser", () => {
   let element: HTMLElement;

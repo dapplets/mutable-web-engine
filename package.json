@@ -7,6 +7,7 @@
     "build": "tsc",
     "start": "tsc --watch",
     "test": "jest",
+    "test:int": "jest -c jest.integration.config.js",
     "test:watch": "jest --watchAll"
   },
   "keywords": [],
