@@ -88,6 +88,7 @@ describe("dynamic html adapter integration test", () => {
         <div class="post-text-selector" data-bos-layout-manager="layoutManager1">Post Text Insertion Point Content</div>
     </div>
     `;
+    const spyAppend = jest.spyOn(treeBuilder, "appendChild");
 
     // Act
     dynamicHtmlAdapterDataHtml
@@ -98,17 +99,24 @@ describe("dynamic html adapter integration test", () => {
     adapter.stop();
     expect(node.children.length).toBe(2);
     adapter.start();
+
     expect(node.children.length).toBe(3);
     expect(expected.parentElement).toBe(
       dynamicHtmlAdapterDataHtml.getElementsByClassName("root-selector")[0]
     );
+
+    expect(spyAppend).toBeCalledWith(node, node.children[0]);
+
+    expect(spyAppend).toBeCalledTimes(1);
+
+    expect(mockListeners.handleContextStarted).toBeCalledWith(node);
   });
 
   it("remove node", () => {
     // Arrange
-
+    const spyRemove = jest.spyOn(treeBuilder, "removeChild");
     const node = adapter.context;
-
+    const expected = node.children[0];
     // Act
     adapter.stop();
     dynamicHtmlAdapterDataHtml
@@ -117,7 +125,11 @@ describe("dynamic html adapter integration test", () => {
 
     // Assert
     expect(node.children.length).toBe(3);
+
     adapter.start();
+    expect(spyRemove).toBeCalledWith(node, expected);
+    expect(spyRemove).toBeCalledTimes(1);
+    expect(mockListeners.handleContextFinished).toBeCalledWith(node);
     expect(node.children.length).toBe(2);
   });
 

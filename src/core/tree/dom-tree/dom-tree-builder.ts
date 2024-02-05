@@ -26,10 +26,13 @@ export class DomTreeBuilder implements ITreeBuilder {
   }
 
   appendChild(parent: IContextNode, child: IContextNode) {
+  
+
     parent.appendChild(child);
   }
 
   removeChild(parent: IContextNode, child: IContextNode) {
+    console.log(parent, child);
     parent.removeChild(child);
   }
 
