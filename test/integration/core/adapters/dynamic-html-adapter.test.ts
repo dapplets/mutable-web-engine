@@ -1,30 +1,50 @@
-import { DynamicHtmlAdapter } from "../../../../src/core/adapters/dynamic-html-adapter";
+import { describe, expect, it, beforeEach, jest } from "@jest/globals";
 import {
   IAdapter,
   InsertionType,
 } from "../../../../src/core/adapters/interface";
-
-import { describe, expect, it, beforeEach, jest } from "@jest/globals";
-
-import { dynamicHtmlAdapterDataHtml } from "../../../data/adapters/dynamic-html-adapter-constants";
-import { mockedJsonParser, mockedTreeBuilder } from "../../../helpers";
+import {
+  IContextListener,
+  ITreeBuilder,
+} from "../../../../src/core/tree/types";
+import { IParser } from "../../../../src/core/parsers/interface";
+import { PureTreeBuilder } from "../../../../src/core/tree/pure-tree/pure-tree-builder";
+import { JsonParser } from "../../../../src/core/parsers/json-parser";
+import { DynamicHtmlAdapter } from "../../../../src/core/adapters/dynamic-html-adapter";
+import {
+  configDynamicHtmlAdapter,
+  dynamicHtmlAdapterDataHtml,
+} from "../../../data/adapters/dynamic-html-adapter-constants";
 
 const NS = "https://dapplets.org/ns/engine";
-
-describe("dynamic-html-adapter", () => {
+describe("dynamic html adapter integration test", () => {
   let adapter: IAdapter;
 
+  let mockListeners: IContextListener;
+  let treeBuilder: ITreeBuilder;
+  let jsonParser: IParser;
+
   beforeEach(() => {
+    mockListeners = {
+      handleContextStarted: jest.fn(() => undefined),
+      handleContextChanged: jest.fn(() => undefined),
+      handleContextFinished: jest.fn(() => undefined),
+      handleInsPointStarted: jest.fn(() => undefined),
+      handleInsPointFinished: jest.fn(() => undefined),
+    };
+
+    treeBuilder = new PureTreeBuilder(mockListeners);
+    jsonParser = new JsonParser(configDynamicHtmlAdapter);
+
     adapter = new DynamicHtmlAdapter(
       dynamicHtmlAdapterDataHtml,
-      mockedTreeBuilder,
+      treeBuilder,
       NS,
-      mockedJsonParser
+      jsonParser
     );
 
     adapter.start();
   });
-
   it("parse adapter context", () => {
     // Arrange
     const expected = {

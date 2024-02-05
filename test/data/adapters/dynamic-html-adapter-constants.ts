@@ -1,6 +1,6 @@
 import { InsertionType } from "../../../src/core/adapters/interface";
 
-export const config = {
+export const configDynamicHtmlAdapter = {
   namespace: "sampleNamespace",
   contexts: {
     root: {
