@@ -16,6 +16,7 @@ import { BosParserConfig } from "../core/parsers/bos-parser";
 import { DappletsEngineNs } from "../constants";
 import { sha256 } from "js-sha256";
 import serializeToDeterministicJson from "json-stringify-deterministic";
+import { SocialDbStorage } from "./social-db-storage";
 
 const DappletsNamespace = "https://dapplets.org/ns/";
 const SupportedParserTypes = ["json", "bos"];
@@ -77,10 +78,12 @@ function getValueByKey(keys: string[], obj: any): any {
  * /docs/social-db-reference.json
  */
 export class SocialDbProvider implements IProvider {
-  #client: SocialDbClient;
+  // #client: SocialDbClient;
+  #storage: SocialDbStorage;
 
   constructor(private _signer: NearSigner, _contractName: string) {
-    this.#client = new SocialDbClient(_signer, _contractName);
+    const client = new SocialDbClient(_signer, _contractName);
+    this.#storage = new SocialDbStorage(client);
   }
 
   // #region Read methods
@@ -129,28 +132,19 @@ export class SocialDbProvider implements IProvider {
   ): Promise<ParserConfig | BosParserConfig | null> {
     const { accountId, parserLocalId } = this._extractParserIdFromNamespace(ns);
 
-    const queryResult = await this.#client.get([
-      `*/${SettingsKey}/${ProjectIdKey}/${ParserKey}/${parserLocalId}/**`,
-    ]);
+    const parser = await this.#storage.getById(
+      `${accountId}/${ParserKey}/${parserLocalId}`
+    );
 
-    const parserConfigJson =
-      queryResult[accountId]?.[SettingsKey]?.[ProjectIdKey]?.[ParserKey]?.[
-        parserLocalId
-      ]?.[SelfKey];
+    if (!parser?.[SelfKey]) return null;
 
-    if (!parserConfigJson) return null;
-
-    return JSON.parse(parserConfigJson);
+    return JSON.parse(parser[SelfKey]);
   }
 
   async getAllAppIds(): Promise<string[]> {
-    const keys = [WildcardKey, SettingsKey, ProjectIdKey, AppKey, WildcardKey];
-    const appKeys = await this.#client.keys([keys.join(KeyDelimiter)]);
-
-    return appKeys.map((key) => {
-      const [authorId, , , , localAppId] = key.split(KeyDelimiter);
-      return [authorId, AppKey, localAppId].join(KeyDelimiter);
-    });
+    const keys = [WildcardKey, AppKey, WildcardKey];
+    const apps = await this.#storage.getKeys(keys.join(KeyDelimiter));
+    return apps;
   }
 
   async getAppsForContext(
@@ -261,19 +255,12 @@ export class SocialDbProvider implements IProvider {
   async getApplication(globalAppId: string): Promise<AppMetadata | null> {
     const [authorId, , appLocalId] = globalAppId.split(KeyDelimiter);
 
-    const queryResult = await this.#client.get([
-      `${authorId}/${SettingsKey}/${ProjectIdKey}/${AppKey}/${appLocalId}`,
-    ]);
+    const app = await this.#storage.getById(globalAppId);
 
-    const appMetadataJson =
-      queryResult[authorId]?.[SettingsKey]?.[ProjectIdKey]?.[AppKey]?.[
-        appLocalId
-      ];
-
-    if (!appMetadataJson) return null;
+    if (!app?.[SelfKey]) return null;
 
     return {
-      ...JSON.parse(appMetadataJson),
+      ...JSON.parse(app[SelfKey]),
       id: globalAppId,
       appLocalId,
       authorId,
@@ -369,11 +356,12 @@ export class SocialDbProvider implements IProvider {
       LinkKey,
       WildcardKey, // any app author, ToDo: it works if linkId is globally unique
       AppKey,
-      WildcardKey,  // any app local id, ToDo: it works if linkId is globally unique
+      WildcardKey, // any app local id, ToDo: it works if linkId is globally unique
       linkId,
       RecursiveWildcardKey,
     ];
 
+    await this.#storage.deleteById()
     await this.#client.delete([keys.join(KeyDelimiter)]);
   }
 
@@ -522,6 +510,7 @@ export class SocialDbProvider implements IProvider {
         }
 
         if (expr === "*") {
+          // ToDo: replace with %ANY_SPECIFIC_ID%
           if (
             context.parsedContext[prop] === undefined ||
             context.parsedContext[prop] === null
