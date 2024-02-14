@@ -1,5 +1,5 @@
 import { DynamicHtmlAdapter } from '../../../../src/core/adapters/dynamic-html-adapter'
-import { IAdapter, InsertionType } from '../../../../src/core/adapters/interface'
+import { IAdapter } from '../../../../src/core/adapters/interface'
 
 import { describe, expect, it, beforeEach } from '@jest/globals'
 
@@ -24,7 +24,7 @@ describe('dynamic-html-adapter', () => {
     // Arrange
     const expected = {
       id: 'root',
-      insPoints: ['rootPoints'],
+      insPoints: ['rootPointBefore', 'rootPointAfter', 'rootPointEnd', 'rootPointBegin'],
       namespaceURI: NS,
       parentNode: null,
       parsedContext: {
@@ -134,109 +134,100 @@ describe('dynamic-html-adapter', () => {
     expect(dynamicAdapter.context.children[0]!.parsedContext!.text).toBe('Let it be, let it be!')
   })
 
-  it('inject element before', () => {
+  it('inject element to the begin of the context', () => {
     // Arrange
     const elToInject = document.createElement('p')
-    elToInject.setAttribute('id', 'inject')
+    elToInject.setAttribute('id', 'injected')
     elToInject.innerText = 'Injecting Widget'
 
-    const targetNode = mockedSite.getElementsByClassName('post-selector-point')[0]
+    const firstNode = mockedSite.getElementsByClassName('post-selector-point')[0]
 
     // Act
-    dynamicAdapter.injectElement(
-      elToInject,
-      dynamicAdapter.context,
-      'rootPoints',
-      InsertionType.Before
-    ) // ToDo: 4-th param shold be like in the config (will be removed)
+    dynamicAdapter.injectElement(elToInject, dynamicAdapter.context, 'rootPointBegin') // ToDo: 4-th param shold be like in the config (will be removed)
 
     // Assert
     expect(mockedSite.querySelector('p')).toBe(elToInject)
-    expect(mockedSite.querySelector('p')!.getAttribute('id')).toBe('inject')
+    expect(mockedSite.querySelector('p')!.getAttribute('id')).toBe('injected')
     expect(mockedSite.querySelector('p')!.previousElementSibling).toBeNull()
-    expect(mockedSite.querySelector('p')!.nextElementSibling).toBe(targetNode)
+    expect(mockedSite.querySelector('p')!.nextElementSibling).toBe(firstNode)
   })
 
-  it('inject element after', () => {
+  it('inject element to the end of the context', () => {
     // Arrange
     const elToInject = document.createElement('p')
-    elToInject.setAttribute('id', 'inject')
+    elToInject.setAttribute('id', 'injected')
     elToInject.innerText = 'Injecting Widget'
 
-    const targetNode = mockedSite.getElementsByClassName('post-selector-point')[0]
-    const nextNode = mockedSite.getElementsByClassName('profile-selector')[0]
+    const lastNode = mockedSite.getElementsByClassName('profile-selector')[0]
 
     // Act
-    dynamicAdapter.injectElement(
-      elToInject,
-      dynamicAdapter.context,
-      'rootPoints',
-      InsertionType.After
-    ) // ToDo: 4-th param shold be like in the config (will be removed)
+    dynamicAdapter.injectElement(elToInject, dynamicAdapter.context, 'rootPointEnd') // ToDo: 4-th param shold be like in the config (will be removed)
 
     // Assert
     expect(mockedSite.querySelector('p')).toStrictEqual(elToInject)
-    expect(mockedSite.querySelector('p')!.getAttribute('id')).toBe('inject')
-    expect(mockedSite.querySelector('p')!.previousElementSibling).toBe(targetNode)
-    expect(mockedSite.querySelector('p')!.nextElementSibling).toBe(nextNode)
+    expect(mockedSite.querySelector('p')!.getAttribute('id')).toBe('injected')
+    expect(mockedSite.querySelector('p')!.previousElementSibling).toBe(lastNode)
+    expect(mockedSite.querySelector('p')!.nextElementSibling).toBeNull()
   })
 
-  it('inject element end', () => {
+  it('inject element right before the context', () => {
     // Arrange
     const elToInject = document.createElement('a')
-    elToInject.setAttribute('id', 'injectEnd')
+    elToInject.setAttribute('id', 'injected')
     elToInject.innerText = 'Injecting Widget'
 
-    const lastChildOfTarget = mockedSite.getElementsByClassName('post-text-selector')[0]
+    const rootContainer = mockedSite.getElementsByClassName('root-selector')[0]
+    const accountMenu = mockedSite.querySelector("[aria-label='Account menu']")
 
     // Act
-    dynamicAdapter.injectElement(
-      elToInject,
-      dynamicAdapter.context,
-      'rootPoints',
-      InsertionType.End
-    ) // ToDo: 4-th param shold be like in the config (will be removed)
+    dynamicAdapter.injectElement(elToInject, dynamicAdapter.context, 'rootPointBefore') // ToDo: 4-th param shold be like in the config (will be removed)
 
     // Assert
     expect(mockedSite.querySelector('a')).toStrictEqual(elToInject)
-    expect(mockedSite.querySelector('a')?.getAttribute('id')).toBe('injectEnd')
-    expect(mockedSite.querySelector('a')?.previousElementSibling).toBe(lastChildOfTarget)
+    expect(mockedSite.querySelector('a')?.getAttribute('id')).toBe('injected')
+    expect(mockedSite.querySelector('a')?.previousElementSibling).toBe(accountMenu)
+    expect(mockedSite.querySelector('a')?.nextElementSibling).toBe(rootContainer)
+  })
+
+  it('inject element right after the context', () => {
+    // Arrange
+    const elToInject = document.createElement('a')
+    elToInject.setAttribute('id', 'injected')
+    elToInject.innerText = 'Injecting Widget'
+
+    const rootContainer = mockedSite.getElementsByClassName('root-selector')[0]
+
+    // Act
+    dynamicAdapter.injectElement(elToInject, dynamicAdapter.context, 'rootPointAfter') // ToDo: 4-th param shold be like in the config (will be removed)
+
+    // Assert
+    expect(mockedSite.querySelector('a')).toStrictEqual(elToInject)
+    expect(mockedSite.querySelector('a')?.getAttribute('id')).toBe('injected')
+    expect(mockedSite.querySelector('a')?.previousElementSibling).toBe(rootContainer)
     expect(mockedSite.querySelector('a')?.nextElementSibling).toBeNull()
-  })
-
-  it('inject element begin', () => {
-    // Arrange
-    const elToInject = document.createElement('a')
-    elToInject.setAttribute('id', 'injectBegin')
-    elToInject.innerText = 'Injecting Widget'
-
-    const firstChildOfTarget = mockedSite.getElementsByClassName('post-root-selector')[0]
-    // Act
-    dynamicAdapter.injectElement(
-      elToInject,
-      dynamicAdapter.context,
-      'rootPoints',
-      InsertionType.Begin
-    ) // ToDo: 4-th param shold be like in the config (will be removed)
-
-    // Assert
-    expect(mockedSite.querySelector('a')).toStrictEqual(elToInject)
-    expect(mockedSite.querySelector('a')?.getAttribute('id')).toBe('injectBegin')
-    expect(mockedSite.querySelector('a')?.previousElementSibling).toBeNull()
-    expect(mockedSite.querySelector('a')?.nextElementSibling).toBe(firstChildOfTarget)
   })
 
   it('get insertion points', () => {
     // Arrange
     const expected = [
       {
-        name: 'rootPoints',
+        name: 'rootPointBefore',
+        insertionType: 'before',
+        bosLayoutManager: 'layoutManager1',
+      },
+      {
+        name: 'rootPointAfter',
         insertionType: 'after',
         bosLayoutManager: 'layoutManager1',
       },
       {
-        name: 'inject',
-        insertionType: 'after',
+        name: 'rootPointEnd',
+        insertionType: 'end',
+        bosLayoutManager: 'layoutManager1',
+      },
+      {
+        name: 'rootPointBegin',
+        insertionType: 'begin',
         bosLayoutManager: 'layoutManager1',
       },
     ]

@@ -4,7 +4,7 @@ export const configDynamicHtmlAdapter = {
   namespace: 'sampleNamespace',
   contexts: {
     root: {
-      selector: '.root-selector',
+      selector: '#root',
       props: {
         id: "string('root')",
         username: "number(.//*[@data-testid='UserName']//span[1])",
@@ -13,15 +13,25 @@ export const configDynamicHtmlAdapter = {
       },
       children: ['post', 'profile'],
       insertionPoints: {
-        rootPoints: {
-          selector: '.post-selector-point',
+        rootPointBefore: {
+          selector: '.root-selector',
+          bosLayoutManager: 'layoutManager1',
+          insertionType: InsertionType.Before,
+        },
+        rootPointAfter: {
+          selector: '.root-selector',
           bosLayoutManager: 'layoutManager1',
           insertionType: InsertionType.After,
         },
-        inject: {
-          selector: '[id="inject"]',
+        rootPointEnd: {
+          selector: '.root-selector',
           bosLayoutManager: 'layoutManager1',
-          insertionType: InsertionType.After,
+          insertionType: InsertionType.End,
+        },
+        rootPointBegin: {
+          selector: '.root-selector',
+          bosLayoutManager: 'layoutManager1',
+          insertionType: InsertionType.Begin,
         },
       },
     },
@@ -67,7 +77,7 @@ export const configDynamicHtmlAdapter = {
 }
 
 export const dynamicHtmlAdapterDataStr = `
-<div class="root-selector" id="root" >
+<div id="root" >
 
   <!-- root props -->
   <div data-testid='UserName'>
