@@ -1,53 +1,103 @@
-import { IContextNode } from "../core/tree/types";
 import { ParserConfig } from "../core/parsers/json-parser";
 import { BosParserConfig } from "../core/parsers/bos-parser";
 
 export type UserLinkId = string;
+export type AppId = string;
+export type MutationId = string;
 
-export type DependantContext = {
+export type ScalarType = string | number | boolean | null;
+
+export type LinkIndex = string;
+
+export type TargetCondition = {
+  not?: ScalarType;
+  eq?: ScalarType;
+  contains?: string;
+  in?: ScalarType[];
+  index?: boolean;
+};
+
+export type ContextFilter = {
   namespace: string;
   contextType: string;
   contextId: string | null;
 };
 
+export type IndexedLink = {
+  id: UserLinkId;
+  authorId: string;
+};
+
 export type BosUserLink = {
   id: UserLinkId;
   namespace: string;
-  contextType: string; // ToDo: replace with expression
-  contextId: string | null; // ToDo: replace with expression
   insertionPoint: string;
   bosWidgetId: string;
   authorId: string;
   // ToDo: add props
 };
 
-export type LinkTemplate = {
-  id: string;
+export type AppMetadataTarget = {
   namespace: string;
   contextType: string;
-  contextId: string | null;
-  insertionPoint: string;
-  bosWidgetId: string;
+  if: Record<string, TargetCondition>;
+  componentId: string;
+  injectTo: string;
+  injectOnce?: boolean;
+};
+
+export type AppMetadata = {
+  id: AppId;
+  authorId: string;
+  appLocalId: string;
+  targets: AppMetadataTarget[];
+};
+
+export type Mutation = {
+  id: MutationId;
+  metadata?: {
+    name?: string;
+    description?: string;
+    image?: {
+      ipfs_cid?: string;
+    };
+  };
+  apps: string[];
+};
+
+export type LinkIndexObject = {
+  appId: AppId;
+  mutationId: MutationId;
+
+  // context related fields
+  namespace: string;
+  contextType: string;
+  if: Record<string, ScalarType>;
 };
 
 export interface IProvider {
+  // Read
   getParserConfigsForContext(
-    context: IContextNode
+    contextFilter: ContextFilter
   ): Promise<(ParserConfig | BosParserConfig)[]>;
-  getLinksForContext(context: IContextNode): Promise<BosUserLink[]>;
-  createLink(link: Omit<BosUserLink, "id" | "authorId">): Promise<BosUserLink>;
-  // ToDo: generic parser config
-  getParserConfig(
-    namespace: string
-  ): Promise<ParserConfig | BosParserConfig | null>;
-  createParserConfig(
-    parserConfig: ParserConfig | BosParserConfig
-  ): Promise<void>;
-  getLinkTemplates(bosWidgetId: string): Promise<LinkTemplate[]>;
-  createLinkTemplate(
-    linkTemplate: Omit<LinkTemplate, "id">
-  ): Promise<LinkTemplate>;
-  deleteUserLink(
-    userLink: Pick<BosUserLink, "id" | "bosWidgetId">
+  getParserConfig(ns: string): Promise<ParserConfig | BosParserConfig | null>;
+  getAllAppIds(): Promise<AppId[]>;
+  getLinksByIndex(indexObject: LinkIndexObject): Promise<IndexedLink[]>;
+  getApplication(globalAppId: AppId): Promise<AppMetadata | null>;
+  getMutation(globalMutationId: MutationId): Promise<Mutation | null>;
+  getMutations(): Promise<Mutation[]>;
+
+  // Write
+  createLink(indexObject: LinkIndexObject): Promise<IndexedLink>;
+  deleteUserLink(linkId: UserLinkId): Promise<void>;
+  createApplication(
+    appMetadata: Omit<AppMetadata, "authorId" | "appLocalId">
+  ): Promise<AppMetadata>;
+  createMutation(mutation: Mutation): Promise<Mutation>;
+  createParserConfig(config: ParserConfig): Promise<void>;
+  setContextIdsForParser(
+    parserGlobalId: string,
+    contextsToBeAdded: ContextFilter[],
+    contextsToBeDeleted: ContextFilter[]
   ): Promise<void>;
 }

@@ -1,18 +1,23 @@
+import { sha256 } from "js-sha256";
+import serializeToDeterministicJson from "json-stringify-deterministic";
+
 import { NearSigner } from "./near-signer";
 import { ParserConfig } from "../core/parsers/json-parser";
 import {
-  BosUserLink,
-  DependantContext,
+  AppMetadata,
+  ContextFilter,
   IProvider,
-  LinkTemplate,
+  UserLinkId,
+  AppId,
+  Mutation,
+  IndexedLink,
+  LinkIndexObject,
+  MutationId,
 } from "./provider";
-import { IContextNode } from "../core/tree/types";
 import { generateGuid } from "../core/utils";
 import { SocialDbClient } from "./social-db-client";
 import { BosParserConfig } from "../core/parsers/bos-parser";
 import { DappletsEngineNs } from "../constants";
-import { sha256 } from "js-sha256";
-import serializeToDeterministicJson from "json-stringify-deterministic";
 
 const DappletsNamespace = "https://dapplets.org/ns/";
 const SupportedParserTypes = ["json", "bos"];
@@ -21,47 +26,14 @@ const ProjectIdKey = "dapplets.near";
 const ParserKey = "parser";
 const SettingsKey = "settings";
 const LinkKey = "link";
-const WidgetKey = "widget";
 const SelfKey = "";
-const LinkTemplateKey = "linkTemplate";
 const ParserContextsKey = "contexts";
+const AppKey = "app";
+const MutationKey = "mutation";
 const WildcardKey = "*";
-
-/**
- * Source: https://gist.github.com/themikefuller/c1de46cbbdad02645b9dc006baedf88e
- */
-function base64EncodeURL(
-  byteArray: ArrayLike<number> | ArrayBufferLike
-): string {
-  return btoa(
-    Array.from(new Uint8Array(byteArray))
-      .map((val) => {
-        return String.fromCharCode(val);
-      })
-      .join("")
-  )
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/\=/g, "");
-}
-
-/**
- * Hashes object using deterministic serializator, SHA-256 and base64url encoding
- */
-function hashObject(obj: any): string {
-  const json = serializeToDeterministicJson(obj);
-  const hashBytes = sha256.create().update(json).arrayBuffer();
-  return base64EncodeURL(hashBytes);
-}
-
-function getValueByKey(keys: string[], obj: any): any {
-  const [firstKey, ...anotherKeys] = keys;
-  if (anotherKeys.length === 0) {
-    return obj[firstKey];
-  } else {
-    return getValueByKey(anotherKeys, obj[firstKey]);
-  }
-}
+const RecursiveWildcardKey = "**";
+const IndexesKey = "indexes";
+const KeyDelimiter = "/";
 
 /**
  * All Mutable Web data is stored in the Social DB contract in `settings` namespace.
@@ -81,16 +53,12 @@ export class SocialDbProvider implements IProvider {
   // #region Read methods
 
   async getParserConfigsForContext(
-    context: IContextNode
+    contextFilter: ContextFilter
   ): Promise<(ParserConfig | BosParserConfig)[]> {
     // ToDo: implement adapters loading for another types of contexts
-    if (context.namespaceURI !== DappletsEngineNs) return [];
+    if (contextFilter.namespace !== DappletsEngineNs) return [];
 
-    const contextHashKey = hashObject({
-      namespace: context.namespaceURI,
-      contextType: context.tagName,
-      contextId: context.id,
-    });
+    const contextHashKey = SocialDbProvider._hashObject(contextFilter);
 
     const keys = [
       WildcardKey, // from any user
@@ -102,17 +70,20 @@ export class SocialDbProvider implements IProvider {
       contextHashKey,
     ];
 
-    const availableKeys = await this.#client.keys([keys.join("/")]);
+    const availableKeys = await this.#client.keys([keys.join(KeyDelimiter)]);
     const parserKeys = availableKeys
-      .map((key) => key.substring(0, key.lastIndexOf("/"))) // discard contextHashKey
-      .map((key) => key.substring(0, key.lastIndexOf("/"))); // discard ParserContextsKey
+      .map((key) => key.substring(0, key.lastIndexOf(KeyDelimiter))) // discard contextHashKey
+      .map((key) => key.substring(0, key.lastIndexOf(KeyDelimiter))); // discard ParserContextsKey
 
     const queryResult = await this.#client.get(parserKeys);
 
     const parsers = [];
 
     for (const key of parserKeys) {
-      const json = getValueByKey(key.split("/"), queryResult);
+      const json = SocialDbProvider._getValueByKey(
+        key.split(KeyDelimiter),
+        queryResult
+      );
       parsers.push(JSON.parse(json));
     }
 
@@ -138,6 +109,216 @@ export class SocialDbProvider implements IProvider {
     return JSON.parse(parserConfigJson);
   }
 
+  async getAllAppIds(): Promise<AppId[]> {
+    const keys = [WildcardKey, SettingsKey, ProjectIdKey, AppKey, WildcardKey];
+    const appKeys = await this.#client.keys([keys.join(KeyDelimiter)]);
+
+    return appKeys.map((key) => {
+      const [authorId, , , , localAppId] = key.split(KeyDelimiter);
+      return [authorId, AppKey, localAppId].join(KeyDelimiter);
+    });
+  }
+
+  async getLinksByIndex(indexObject: LinkIndexObject): Promise<IndexedLink[]> {
+    const index = SocialDbProvider._hashObject(indexObject);
+
+    const key = [
+      WildcardKey, // from any user
+      SettingsKey,
+      ProjectIdKey,
+      LinkKey,
+      WildcardKey, // any user link id
+      IndexesKey,
+      index,
+    ].join(KeyDelimiter);
+
+    // ToDo: batch requests
+    const resp = await this.#client.keys([key]);
+
+    return resp.map((key) => {
+      const [authorId, , , , id] = key.split(KeyDelimiter);
+      return { id, authorId };
+    });
+  }
+
+  async getApplication(globalAppId: AppId): Promise<AppMetadata | null> {
+    const [authorId, , appLocalId] = globalAppId.split(KeyDelimiter);
+
+    const keys = [authorId, SettingsKey, ProjectIdKey, AppKey, appLocalId];
+    const queryResult = await this.#client.get([
+      [...keys, RecursiveWildcardKey].join(KeyDelimiter),
+    ]);
+
+    const mutation = SocialDbProvider._getValueByKey(keys, queryResult);
+
+    if (!mutation?.[SelfKey]) return null;
+
+    return {
+      ...JSON.parse(mutation[SelfKey]),
+      id: globalAppId,
+      appLocalId,
+      authorId,
+    };
+  }
+
+  async getMutation(globalMutationId: MutationId): Promise<Mutation | null> {
+    const [authorId, , mutationLocalId] = globalMutationId.split(KeyDelimiter);
+
+    const keys = [
+      authorId,
+      SettingsKey,
+      ProjectIdKey,
+      MutationKey,
+      mutationLocalId,
+    ];
+    const queryResult = await this.#client.get([
+      [...keys, RecursiveWildcardKey].join(KeyDelimiter),
+    ]);
+
+    const mutation = SocialDbProvider._getValueByKey(keys, queryResult);
+
+    if (!mutation) return null;
+
+    return {
+      id: globalMutationId,
+      metadata: mutation.metadata,
+      apps: mutation.apps ? JSON.parse(mutation.apps) : [],
+    };
+  }
+
+  async getMutations(): Promise<Mutation[]> {
+    const keys = [
+      WildcardKey, // any author id
+      SettingsKey,
+      ProjectIdKey,
+      MutationKey,
+      WildcardKey, // any mutation local id
+    ];
+
+    const queryResult = await this.#client.get([
+      [...keys, RecursiveWildcardKey].join(KeyDelimiter),
+    ]);
+
+    const mutationsByKey = SocialDbProvider._splitObjectByDepth(
+      queryResult,
+      keys.length
+    );
+
+    const mutations = Object.entries(mutationsByKey).map(
+      ([key, value]: [string, any]) => {
+        const [accountId, , , , localMutationId] = key.split(KeyDelimiter);
+        const mutationId = [accountId, MutationKey, localMutationId].join(
+          KeyDelimiter
+        );
+
+        return {
+          id: mutationId,
+          metadata: value.metadata,
+          apps: JSON.parse(value.apps),
+        };
+      }
+    );
+
+    return mutations;
+  }
+
+  // #endregion
+
+  // #region Write methods
+
+  async createLink(indexObject: LinkIndexObject): Promise<IndexedLink> {
+    const linkId = generateGuid();
+
+    const accountId = await this._signer.getAccountId();
+
+    if (!accountId) throw new Error("User is not logged in");
+
+    const index = SocialDbProvider._hashObject(indexObject);
+
+    const keys = [accountId, SettingsKey, ProjectIdKey, LinkKey, linkId];
+
+    const storedAppLink = {
+      indexes: {
+        [index]: "",
+      },
+    };
+
+    await this.#client.set(
+      SocialDbProvider._buildNestedData(keys, storedAppLink)
+    );
+
+    return {
+      id: linkId,
+      authorId: accountId,
+    };
+  }
+
+  async deleteUserLink(linkId: UserLinkId): Promise<void> {
+    const accountId = await this._signer.getAccountId();
+
+    if (!accountId) throw new Error("User is not logged in");
+
+    // ToDo: check link ownership?
+
+    const keys = [
+      accountId,
+      SettingsKey,
+      ProjectIdKey,
+      LinkKey,
+      linkId,
+      RecursiveWildcardKey,
+    ];
+
+    await this.#client.delete([keys.join(KeyDelimiter)]);
+  }
+
+  async createApplication(
+    appMetadata: Omit<AppMetadata, "authorId" | "appLocalId">
+  ): Promise<AppMetadata> {
+    const [authorId, , appLocalId] = appMetadata.id.split(KeyDelimiter);
+
+    const keys = [authorId, SettingsKey, ProjectIdKey, AppKey, appLocalId];
+
+    const storedAppMetadata = {
+      [SelfKey]: JSON.stringify({
+        targets: appMetadata.targets,
+      }),
+    };
+
+    await this.#client.set(
+      SocialDbProvider._buildNestedData(keys, storedAppMetadata)
+    );
+
+    return {
+      ...appMetadata,
+      appLocalId,
+      authorId,
+    };
+  }
+
+  async createMutation(mutation: Mutation): Promise<Mutation> {
+    const [authorId, , mutationLocalId] = mutation.id.split(KeyDelimiter);
+
+    const keys = [
+      authorId,
+      SettingsKey,
+      ProjectIdKey,
+      MutationKey,
+      mutationLocalId,
+    ];
+
+    const storedAppMetadata = {
+      metadata: mutation.metadata,
+      apps: mutation.apps ? JSON.stringify(mutation.apps) : null,
+    };
+
+    await this.#client.set(
+      SocialDbProvider._buildNestedData(keys, storedAppMetadata)
+    );
+
+    return mutation;
+  }
+
   async createParserConfig(config: ParserConfig): Promise<void> {
     const { accountId, parserLocalId } = this._extractParserIdFromNamespace(
       config.namespace
@@ -155,238 +336,25 @@ export class SocialDbProvider implements IProvider {
       [SelfKey]: JSON.stringify(config),
     };
 
-    await this.#client.set(this._buildNestedData(keys, storedParserConfig));
-  }
-
-  async getLinksForContext(context: IContextNode): Promise<BosUserLink[]> {
-    // JSON-configured parsers require id for the context
-    if (
-      !context.id &&
-      context.namespaceURI!.startsWith("https://dapplets.org/ns/json/")
-    ) {
-      return [];
-    }
-
-    // ToDo: index links by context/widget/contextType/etc.
-    // ToDo: fix GasLimitExceeded error using Social DB API
-    // ToDo: cache the query
-    // Fetch all links from every user
-    const resp = await this.#client.get([
-      `*/${SettingsKey}/${ProjectIdKey}/${LinkKey}/*/${WidgetKey}/*/**`,
-    ]);
-
-    const userLinksOutput: BosUserLink[] = [];
-
-    for (const accountId in resp) {
-      const widgetOwners = resp[accountId][SettingsKey][ProjectIdKey][LinkKey];
-      for (const widgetOwnerId in widgetOwners) {
-        const widgets = widgetOwners[widgetOwnerId][WidgetKey];
-        for (const widgetLocalId in widgets) {
-          const userLinks = widgets[widgetLocalId];
-          for (const linkId in userLinks) {
-            const link = userLinks[linkId];
-
-            // Include only suitable links
-            if (link.namespace && link.namespace !== context.namespaceURI)
-              continue;
-            if (link.contextType && link.contextType !== context.tagName)
-              continue;
-            if (link.contextId && link.contextId !== context.id) continue;
-
-            const userLink: BosUserLink = {
-              id: linkId,
-              namespace: link.namespace,
-              contextType: link.contextType,
-              contextId: link.contextId ?? null,
-              insertionPoint: link.insertionPoint,
-              bosWidgetId: `${widgetOwnerId}/${WidgetKey}/${widgetLocalId}`,
-              authorId: accountId,
-            };
-            userLinksOutput.push(userLink);
-          }
-        }
-      }
-    }
-
-    return userLinksOutput;
-  }
-
-  async createLink(
-    link: Omit<BosUserLink, "id" | "authorId">
-  ): Promise<BosUserLink> {
-    const linkId = generateGuid();
-    const [widgetOwnerId, , bosWidgetLocalId] = link.bosWidgetId.split("/");
-
-    const accountId = await this._signer.getAccountId();
-
-    if (!accountId) throw new Error("User is not logged in");
-
-    const keys = [
-      accountId,
-      SettingsKey,
-      ProjectIdKey,
-      LinkKey,
-      widgetOwnerId,
-      WidgetKey,
-      bosWidgetLocalId,
-      linkId,
-    ];
-
-    const storedUserLink = {
-      namespace: link.namespace,
-      contextType: link.contextType,
-      contextId: link.contextId ?? null,
-      insertionPoint: link.insertionPoint,
-    };
-
-    await this.#client.set(this._buildNestedData(keys, storedUserLink));
-
-    return { id: linkId, ...link, authorId: accountId };
-  }
-
-  async deleteUserLink(
-    userLink: Pick<BosUserLink, "id" | "bosWidgetId">
-  ): Promise<void> {
-    const [widgetOwnerId, , bosWidgetLocalId] = userLink.bosWidgetId.split("/");
-    const accountId = await this._signer.getAccountId();
-
-    if (!accountId) throw new Error("User is not logged in");
-
-    const keys = [
-      accountId,
-      SettingsKey,
-      ProjectIdKey,
-      LinkKey,
-      widgetOwnerId,
-      WidgetKey,
-      bosWidgetLocalId,
-      userLink.id,
-    ];
-
-    const storedUserLink = {
-      [SelfKey]: null,
-      namespace: null,
-      contextType: null,
-      contextId: null,
-      insertionPoint: null,
-    };
-
-    await this.#client.set(this._buildNestedData(keys, storedUserLink));
-  }
-
-  async getLinkTemplates(bosWidgetId: string): Promise<LinkTemplate[]> {
-    const [ownerId, , bosWidgetLocalId] = bosWidgetId.split("/");
-    const resp = await this.#client.get([
-      `${ownerId}/${SettingsKey}/${ProjectIdKey}/${LinkTemplateKey}/${ownerId}/${WidgetKey}/${bosWidgetLocalId}/**`,
-    ]);
-
-    const linkTemplates =
-      resp[ownerId]?.[SettingsKey]?.[ProjectIdKey]?.[LinkTemplateKey]?.[
-        ownerId
-      ]?.[WidgetKey]?.[bosWidgetLocalId];
-
-    if (!linkTemplates) return [];
-
-    const linksOutput: LinkTemplate[] = [];
-
-    for (const linkTemplateId in linkTemplates) {
-      const link = linkTemplates[linkTemplateId];
-      const userLink: LinkTemplate = {
-        id: linkTemplateId,
-        namespace: link.namespace,
-        contextType: link.contextType,
-        contextId: link.contextId,
-        insertionPoint: link.insertionPoint,
-        bosWidgetId: `${ownerId}/${WidgetKey}/${bosWidgetLocalId}`,
-      };
-      linksOutput.push(userLink);
-    }
-
-    return linksOutput;
-  }
-
-  // #endregion
-
-  // #region Write methods
-
-  async createLinkTemplate(
-    linkTemplate: Omit<LinkTemplate, "id">
-  ): Promise<LinkTemplate> {
-    const linkTemplateId = generateGuid();
-    const [widgetOwnerId, , bosWidgetLocalId] =
-      linkTemplate.bosWidgetId.split("/");
-
-    const accountId = await this._signer.getAccountId();
-
-    if (!accountId) throw new Error("User is not logged in");
-
-    const keys = [
-      accountId,
-      SettingsKey,
-      ProjectIdKey,
-      LinkTemplateKey,
-      widgetOwnerId,
-      WidgetKey,
-      bosWidgetLocalId,
-      linkTemplateId,
-    ];
-
-    const storedLinkTemplate = {
-      namespace: linkTemplate.namespace,
-      contextType: linkTemplate.contextType,
-      contextId: linkTemplate.contextId ?? null,
-      insertionPoint: linkTemplate.insertionPoint,
-    };
-
-    await this.#client.set(this._buildNestedData(keys, storedLinkTemplate));
-
-    return { id: linkTemplateId, ...linkTemplate };
-  }
-
-  async deleteLinkTemplate(
-    linkTemplate: Pick<BosUserLink, "id" | "bosWidgetId">
-  ): Promise<void> {
-    const [widgetOwnerId, , bosWidgetLocalId] =
-      linkTemplate.bosWidgetId.split("/");
-    const accountId = await this._signer.getAccountId();
-
-    if (!accountId) throw new Error("User is not logged in");
-
-    const keys = [
-      accountId,
-      SettingsKey,
-      ProjectIdKey,
-      LinkTemplateKey,
-      widgetOwnerId,
-      WidgetKey,
-      bosWidgetLocalId,
-      linkTemplate.id,
-    ];
-
-    const storedLinkTemplate = {
-      [SelfKey]: null,
-      namespace: null,
-      contextType: null,
-      contextId: null,
-      insertionPoint: null,
-    };
-
-    await this.#client.set(this._buildNestedData(keys, storedLinkTemplate));
+    await this.#client.set(
+      SocialDbProvider._buildNestedData(keys, storedParserConfig)
+    );
   }
 
   async setContextIdsForParser(
     parserGlobalId: string,
-    contextsToBeAdded: DependantContext[],
-    contextsToBeDeleted: DependantContext[]
+    contextsToBeAdded: ContextFilter[],
+    contextsToBeDeleted: ContextFilter[]
   ): Promise<void> {
-    const [parserOwnerId, parserKey, parserLocalId] = parserGlobalId.split("/");
+    const [parserOwnerId, parserKey, parserLocalId] =
+      parserGlobalId.split(KeyDelimiter);
 
     if (parserKey !== ParserKey) {
       throw new Error("Invalid parser ID");
     }
 
-    const addingKeys = contextsToBeAdded.map(hashObject);
-    const deletingKeys = contextsToBeDeleted.map(hashObject);
+    const addingKeys = contextsToBeAdded.map(SocialDbProvider._hashObject);
+    const deletingKeys = contextsToBeDeleted.map(SocialDbProvider._hashObject);
 
     const savingData = {
       ...Object.fromEntries(addingKeys.map((k) => [k, ""])),
@@ -404,10 +372,14 @@ export class SocialDbProvider implements IProvider {
       ParserContextsKey,
     ];
 
-    await this.#client.set(this._buildNestedData(parentKeys, savingData));
+    await this.#client.set(
+      SocialDbProvider._buildNestedData(parentKeys, savingData)
+    );
   }
 
   // #endregion
+
+  // #region Private methods
 
   private _extractParserIdFromNamespace(namespace: string): {
     parserType: string;
@@ -422,7 +394,7 @@ export class SocialDbProvider implements IProvider {
 
     // Example: example.near/parser/social-network
     const [parserType, accountId, entityType, parserLocalId] =
-      parserGlobalId.split("/");
+      parserGlobalId.split(KeyDelimiter);
 
     if (entityType !== "parser" || !accountId || !parserLocalId) {
       throw new Error("Invalid namespace");
@@ -435,7 +407,11 @@ export class SocialDbProvider implements IProvider {
     return { parserType, accountId, parserLocalId };
   }
 
-  private _buildNestedData(keys: string[], data: any): any {
+  // #endregion
+
+  // #region Utils
+
+  static _buildNestedData(keys: string[], data: any): any {
     const [firstKey, ...anotherKeys] = keys;
     if (anotherKeys.length === 0) {
       return {
@@ -447,4 +423,62 @@ export class SocialDbProvider implements IProvider {
       };
     }
   }
+
+  static _splitObjectByDepth(obj: any, depth = 0, path: string[] = []): any {
+    if (depth === 0 || typeof obj !== "object" || obj === null) {
+      return { [path.join(KeyDelimiter)]: obj };
+    }
+
+    const result: any = {};
+    for (const key in obj) {
+      const newPath = [...path, key];
+      const nestedResult = this._splitObjectByDepth(
+        obj[key],
+        depth - 1,
+        newPath
+      );
+      for (const nestedKey in nestedResult) {
+        result[nestedKey] = nestedResult[nestedKey];
+      }
+    }
+    return result;
+  }
+
+  /**
+   * Hashes object using deterministic serializator, SHA-256 and base64url encoding
+   */
+  static _hashObject(obj: any): string {
+    const json = serializeToDeterministicJson(obj);
+    const hashBytes = sha256.create().update(json).arrayBuffer();
+    return this._base64EncodeURL(hashBytes);
+  }
+
+  /**
+   * Source: https://gist.github.com/themikefuller/c1de46cbbdad02645b9dc006baedf88e
+   */
+  static _base64EncodeURL(
+    byteArray: ArrayLike<number> | ArrayBufferLike
+  ): string {
+    return btoa(
+      Array.from(new Uint8Array(byteArray))
+        .map((val) => {
+          return String.fromCharCode(val);
+        })
+        .join("")
+    )
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/\=/g, "");
+  }
+
+  static _getValueByKey(keys: string[], obj: any): any {
+    const [firstKey, ...anotherKeys] = keys;
+    if (anotherKeys.length === 0) {
+      return obj?.[firstKey];
+    } else {
+      return this._getValueByKey(anotherKeys, obj?.[firstKey]);
+    }
+  }
+
+  // #endregion
 }
