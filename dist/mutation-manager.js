@@ -30,6 +30,23 @@ class MutationManager {
         __classPrivateFieldSet(this, _MutationManager_provider, provider, "f");
     }
     // #region Read methods
+    getAppsAndLinksForContext(context) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const promises = [];
+            for (const app of __classPrivateFieldGet(this, _MutationManager_activeApps, "f")) {
+                const suitableTargets = app.targets.filter((target) => MutationManager._isTargetMet(target, context));
+                if (suitableTargets.length > 0) {
+                    // ToDo: batch requests
+                    const targetPromises = suitableTargets.map((target) => this._getUserLinksForTarget(app.id, target, context).then((links) => (Object.assign(Object.assign({}, target), { links }))));
+                    const appPromise = Promise.all(targetPromises).then((targets) => (Object.assign(Object.assign({}, app), { targets })));
+                    promises.push(appPromise);
+                }
+            }
+            const appLinksNested = yield Promise.all(promises);
+            return appLinksNested;
+        });
+    }
+    // ToDo: replace with getAppsAndLinksForContext
     filterSuitableApps(context) {
         return __awaiter(this, void 0, void 0, function* () {
             const suitableApps = [];
@@ -42,15 +59,12 @@ class MutationManager {
             return suitableApps;
         });
     }
+    // ToDo: replace with getAppsAndLinksForContext
     getLinksForContext(context) {
         return __awaiter(this, void 0, void 0, function* () {
             const promises = [];
             for (const app of __classPrivateFieldGet(this, _MutationManager_activeApps, "f")) {
-                if (!app)
-                    continue;
                 const suitableTargets = app.targets.filter((target) => MutationManager._isTargetMet(target, context));
-                if (!suitableTargets.length)
-                    continue;
                 // ToDo: batch requests
                 suitableTargets.forEach((target) => {
                     promises.push(this._getUserLinksForTarget(app.id, target, context));
@@ -91,6 +105,13 @@ class MutationManager {
             }
             const [target] = suitableTargets;
             const indexObject = MutationManager._buildLinkIndex(app.id, this.mutation.id, target, context);
+            // ToDo: this limitation on the frontend side only
+            if (target.injectOnce) {
+                const existingLinks = yield __classPrivateFieldGet(this, _MutationManager_provider, "f").getLinksByIndex(indexObject);
+                if (existingLinks.length > 0) {
+                    throw new Error(`The widget is injected already. The "injectOnce" parameter limits multiple insertion of widgets`);
+                }
+            }
             const indexedLink = yield __classPrivateFieldGet(this, _MutationManager_provider, "f").createLink(indexObject);
             return {
                 id: indexedLink.id,

@@ -1,9 +1,15 @@
 import { IContextNode } from "./core/tree/types";
 import { AppId, AppMetadata, AppMetadataTarget, BosUserLink, IProvider, LinkIndexObject, Mutation, MutationId, ScalarType, TargetCondition, UserLinkId } from "./providers/provider";
+export type AppWithTargetLinks = AppMetadata & {
+    targets: {
+        links: BosUserLink[];
+    }[];
+};
 export declare class MutationManager {
     #private;
     mutation: Mutation | null;
     constructor(provider: IProvider);
+    getAppsAndLinksForContext(context: IContextNode): Promise<AppWithTargetLinks[]>;
     filterSuitableApps(context: IContextNode): Promise<AppMetadata[]>;
     getLinksForContext(context: IContextNode): Promise<BosUserLink[]>;
     switchMutation(mutationId: string): Promise<void>;

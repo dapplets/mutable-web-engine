@@ -14,6 +14,7 @@ var _DynamicHtmlAdapter_observerByElement, _DynamicHtmlAdapter_elementByContext,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DynamicHtmlAdapter = void 0;
 const interface_1 = require("./interface");
+const DefaultInsertionType = interface_1.InsertionType.Before;
 class DynamicHtmlAdapter {
     constructor(element, treeBuilder, namespace, parser) {
         _DynamicHtmlAdapter_observerByElement.set(this, new Map());
@@ -44,6 +45,7 @@ class DynamicHtmlAdapter {
         __classPrivateFieldGet(this, _DynamicHtmlAdapter_observerByElement, "f").forEach((observer) => observer.disconnect());
     }
     injectElement(injectingElement, context, insertionPoint) {
+        var _a;
         const contextElement = __classPrivateFieldGet(this, _DynamicHtmlAdapter_elementByContext, "f").get(context);
         if (!contextElement) {
             throw new Error("Context element not found");
@@ -54,11 +56,12 @@ class DynamicHtmlAdapter {
         if (!insPoint) {
             throw new Error(`Insertion point "${insertionPoint}" is not defined in the parser`);
         }
-        let insPointElement = this.parser.findInsertionPoint(contextElement, context.tagName, insertionPoint);
+        const insPointElement = this.parser.findInsertionPoint(contextElement, context.tagName, insertionPoint);
+        const insertionType = (_a = insPoint.insertionType) !== null && _a !== void 0 ? _a : DefaultInsertionType;
         if (!insPointElement) {
-            throw new Error(`Insertion point "${insertionPoint}" not found in "${context.tagName}" context type for "${insPoint.insertionType}" insertion type`);
+            throw new Error(`Insertion point "${insertionPoint}" not found in "${context.tagName}" context type for "${insertionType}" insertion type`);
         }
-        switch (insPoint.insertionType) {
+        switch (insertionType) {
             case interface_1.InsertionType.Before:
                 insPointElement.before(injectingElement);
                 break;

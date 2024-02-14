@@ -22,10 +22,8 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
 var _ContextManager_adapter, _ContextManager_widgetFactory, _ContextManager_layoutManagers, _ContextManager_mutationManager, _ContextManager_userLinks, _ContextManager_apps;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ContextManager = void 0;
-const interface_1 = require("./core/adapters/interface");
 const layout_manager_1 = require("./layout-manager");
 const DefaultLayoutManager = "bos.dapplets.near/widget/DefaultLayoutManager";
-const DefaultInsertionType = interface_1.InsertionType.Before;
 class ContextManager {
     constructor(context, adapter, widgetFactory, mutationManager) {
         _ContextManager_adapter.set(this, void 0);
@@ -65,6 +63,7 @@ class ContextManager {
         (_a = __classPrivateFieldGet(this, _ContextManager_layoutManagers, "f").get(link.insertionPoint)) === null || _a === void 0 ? void 0 : _a.removeUserLink(link.id);
     }
     addAppMetadata(appMetadata) {
+        // ToDo: use getAppsAndLinksForContext to filter `injectOnce` targets
         __classPrivateFieldGet(this, _ContextManager_apps, "f").set(appMetadata.id, appMetadata); // save app for further layout managers
         __classPrivateFieldGet(this, _ContextManager_layoutManagers, "f").forEach((lm) => lm.addAppMetadata(appMetadata));
     }
