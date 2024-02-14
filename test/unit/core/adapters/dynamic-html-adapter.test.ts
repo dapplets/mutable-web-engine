@@ -1,259 +1,252 @@
-import { DynamicHtmlAdapter } from "../../../../src/core/adapters/dynamic-html-adapter";
-import {
-  IAdapter,
-  InsertionType,
-} from "../../../../src/core/adapters/interface";
+import { DynamicHtmlAdapter } from '../../../../src/core/adapters/dynamic-html-adapter'
+import { IAdapter, InsertionType } from '../../../../src/core/adapters/interface'
 
-import { describe, expect, it, beforeEach, jest } from "@jest/globals";
+import { describe, expect, it, beforeEach } from '@jest/globals'
 
-import { dynamicHtmlAdapterDataHtml } from "../../../data/adapters/dynamic-html-adapter-constants";
-import { mockedJsonParser, mockedTreeBuilder } from "../../../helpers";
+import { dynamicHtmlAdapterDataStr } from '../../../data/adapters/dynamic-html-adapter-constants'
+import { mockedJsonParser, mockedTreeBuilder } from '../../../helpers'
 
-const NS = "https://dapplets.org/ns/engine";
+const NS = 'https://dapplets.org/ns/engine'
 
-describe("dynamic-html-adapter", () => {
-  let adapter: IAdapter;
+describe('dynamic-html-adapter', () => {
+  let dynamicAdapter: IAdapter
+  let mockedSite: HTMLDivElement
 
   beforeEach(() => {
-    adapter = new DynamicHtmlAdapter(
-      dynamicHtmlAdapterDataHtml,
-      mockedTreeBuilder,
-      NS,
-      mockedJsonParser
-    );
+    mockedSite = document.createElement('div')
+    mockedSite.innerHTML = dynamicHtmlAdapterDataStr
 
-    adapter.start();
-  });
+    dynamicAdapter = new DynamicHtmlAdapter(mockedSite, mockedTreeBuilder, NS, mockedJsonParser)
+    dynamicAdapter.start()
+  })
 
-  it("parse adapter context", () => {
+  it('parse adapter context', () => {
     // Arrange
     const expected = {
-      id: "root",
-      insPoints: ["rootPoints"],
+      id: 'root',
+      insPoints: ['rootPoints'],
       namespaceURI: NS,
       parentNode: null,
       parsedContext: {
-        fullname: "Test-fullname",
-        id: "root",
-        img: null,
-        username: "2",
+        fullname: 'Test-fullname',
+        id: 'root',
+        img: 'https://img.com/profile_images/id/Q_300x300.jpg',
+        username: '2',
       },
-      tagName: "root",
-    };
+      tagName: 'root',
+    }
 
     // Act
-    const node = adapter.context;
+    const node = dynamicAdapter.context
 
     // Assert
 
-    expect(node.id).toBe(expected.id);
-    expect(node.insPoints).toStrictEqual(expected.insPoints);
-    expect(node.namespaceURI).toBe(expected.namespaceURI);
-    expect(node.parentNode).toBe(expected.parentNode);
-    expect(node.parsedContext).toStrictEqual(expected.parsedContext);
-    expect(node.tagName).toBe(expected.tagName);
-  });
+    expect(node.id).toBe(expected.id)
+    expect(node.insPoints).toStrictEqual(expected.insPoints)
+    expect(node.namespaceURI).toBe(expected.namespaceURI)
+    expect(node.parentNode).toBe(expected.parentNode)
+    expect(node.parsedContext).toStrictEqual(expected.parsedContext)
+    expect(node.tagName).toBe(expected.tagName)
+  })
 
-  it("append node", () => {
+  it('append node', async () => {
     // Arrange
-    const node = adapter.context;
+    expect(dynamicAdapter.context.children.length).toBe(2)
 
-    const expected = document.createElement("div");
+    const mockedParentNode = mockedSite.getElementsByClassName('root-selector')[0]
+
+    const expected = document.createElement('div')
     expected.innerHTML = `
-    <div class="post-selector-point" id="post" 
-    data-testid="postTestId">
-
+    <div class="post-selector-point" id="post" data-testid="postTestId">
         <div class="post-root-selector" data-testid='postText' data-bos-layout-manager="layoutManager1">Post Root Insertion Point Content</div>
-
         <div class="post-text-selector" data-bos-layout-manager="layoutManager1">Post Text Insertion Point Content</div>
     </div>
-    `;
+    `
 
     // Act
-    dynamicHtmlAdapterDataHtml
-      .getElementsByClassName("root-selector")[0]
-      .append(expected);
+    mockedParentNode.append(expected)
+    await new Promise((res) => setTimeout(res, 1000))
 
     // Assert
-    adapter.stop();
-    expect(node.children.length).toBe(2);
-    adapter.start();
-    expect(node.children.length).toBe(3);
-    expect(expected.parentElement).toBe(
-      dynamicHtmlAdapterDataHtml.getElementsByClassName("root-selector")[0]
-    );
-  });
+    expect(dynamicAdapter.context.children.length).toBe(3)
+    expect(expected.parentElement).toBe(mockedParentNode)
+  })
 
-  it("remove node", () => {
+  it('remove node', async () => {
     // Arrange
-
-    const node = adapter.context;
+    expect(dynamicAdapter.context.children.length).toBe(2)
 
     // Act
-    adapter.stop();
-    dynamicHtmlAdapterDataHtml
-      .getElementsByClassName("post-selector-point")[0]
-      .remove();
+    mockedSite.getElementsByClassName('post-selector-point')[0].remove()
+    await new Promise((res) => setTimeout(res, 1000))
 
     // Assert
-    expect(node.children.length).toBe(3);
-    adapter.start();
-    expect(node.children.length).toBe(2);
-  });
+    expect(dynamicAdapter.context.children.length).toBe(1)
+  })
 
-  it("inject element before", () => {
+  it('change node text content', async () => {
     // Arrange
-    const injectElement = document.createElement("p");
-    injectElement.setAttribute("id", "inject");
-    injectElement.innerText = "Injecting Widget";
-    const expected =
-      dynamicHtmlAdapterDataHtml.getElementsByClassName("post-text-selector")[0]
-        .textContent;
+    expect(dynamicAdapter.context.parsedContext?.username).toBe('2')
 
     // Act
-    adapter.injectElement(
-      injectElement,
-      adapter.context,
-      "rootPoints",
+    mockedSite.querySelector('div[data-testid="UserName"]>span')!.textContent = '58392'
+    await new Promise((res) => setTimeout(res, 1000))
+
+    // Assert
+    expect(dynamicAdapter.context.parsedContext?.username).toBe('58392')
+  })
+
+  it('change node parameter value', async () => {
+    // Arrange
+    expect(dynamicAdapter.context.parsedContext?.img).toBe(
+      'https://img.com/profile_images/id/Q_300x300.jpg'
+    )
+
+    const imageNode: HTMLImageElement = mockedSite.querySelector(
+      'div[aria-label="Account menu"]>img'
+    )!
+    expect(imageNode.getAttribute('src')).toBe('https://img.com/profile_images/id/Q_300x300.jpg')
+
+    // Act
+    imageNode.setAttribute('src', 'https://img.com/profile_images/id/QXWR_1300x1300.jpg')
+    await new Promise((res) => setTimeout(res, 1000))
+
+    // Assert
+    expect(dynamicAdapter.context.parsedContext?.img).toBe(
+      'https://img.com/profile_images/id/QXWR_1300x1300.jpg'
+    )
+  })
+
+  it('change child node content', async () => {
+    // Arrange
+    expect(dynamicAdapter.context.children[0]!.parsedContext!.text).toBe(
+      'Post Root Insertion Point Content'
+    )
+    expect(mockedSite.getElementsByClassName('post-root-selector')[0].textContent).toBe(
+      'Post Root Insertion Point Content'
+    )
+
+    // Act
+    mockedSite.getElementsByClassName('post-root-selector')[0].textContent = 'Let it be, let it be!'
+    await new Promise((res) => setTimeout(res, 1000))
+
+    // Assert
+    expect(dynamicAdapter.context.children[0]!.parsedContext!.text).toBe('Let it be, let it be!')
+  })
+
+  it('inject element before', () => {
+    // Arrange
+    const elToInject = document.createElement('p')
+    elToInject.setAttribute('id', 'inject')
+    elToInject.innerText = 'Injecting Widget'
+
+    const targetNode = mockedSite.getElementsByClassName('post-selector-point')[0]
+
+    // Act
+    dynamicAdapter.injectElement(
+      elToInject,
+      dynamicAdapter.context,
+      'rootPoints',
       InsertionType.Before
-    );
+    ) // ToDo: 4-th param shold be like in the config (will be removed)
 
     // Assert
-    expect(
-      dynamicHtmlAdapterDataHtml
-        .querySelector("p")
-        ?.previousSibling?.textContent?.trim()
-    ).toBe("");
-    expect(
-      dynamicHtmlAdapterDataHtml
-        .querySelector("p")
-        ?.nextSibling?.textContent?.trim()
-    ).toContain(expected);
-    expect(dynamicHtmlAdapterDataHtml.querySelector("p")).toBe(injectElement);
-    expect(
-      dynamicHtmlAdapterDataHtml.querySelector("p")?.getAttribute("id")
-    ).toBe("inject");
-  });
+    expect(mockedSite.querySelector('p')).toBe(elToInject)
+    expect(mockedSite.querySelector('p')!.getAttribute('id')).toBe('inject')
+    expect(mockedSite.querySelector('p')!.previousElementSibling).toBeNull()
+    expect(mockedSite.querySelector('p')!.nextElementSibling).toBe(targetNode)
+  })
 
-  it("inject element after", () => {
+  it('inject element after', () => {
     // Arrange
-    const injectElement = document.createElement("p");
-    injectElement.setAttribute("id", "inject");
-    injectElement.innerText = "Injecting Widget";
-    const expected =
-      dynamicHtmlAdapterDataHtml.getElementsByClassName("post-root-selector")[0]
-        .textContent;
+    const elToInject = document.createElement('p')
+    elToInject.setAttribute('id', 'inject')
+    elToInject.innerText = 'Injecting Widget'
+
+    const targetNode = mockedSite.getElementsByClassName('post-selector-point')[0]
+    const nextNode = mockedSite.getElementsByClassName('profile-selector')[0]
 
     // Act
-    adapter.injectElement(
-      injectElement,
-      adapter.context,
-      "rootPoints",
+    dynamicAdapter.injectElement(
+      elToInject,
+      dynamicAdapter.context,
+      'rootPoints',
       InsertionType.After
-    );
+    ) // ToDo: 4-th param shold be like in the config (will be removed)
 
     // Assert
-    expect(
-      dynamicHtmlAdapterDataHtml
-        .querySelector("p")
-        ?.nextSibling?.textContent?.trim()
-    ).toContain(expected);
-    expect(
-      dynamicHtmlAdapterDataHtml
-        .querySelector("p")
-        ?.previousSibling?.textContent?.trim()
-    ).toBe("");
-    expect(dynamicHtmlAdapterDataHtml.querySelector("p")).toStrictEqual(
-      injectElement
-    );
-    expect(
-      dynamicHtmlAdapterDataHtml.querySelector("p")?.getAttribute("id")
-    ).toBe("inject");
-  });
+    expect(mockedSite.querySelector('p')).toStrictEqual(elToInject)
+    expect(mockedSite.querySelector('p')!.getAttribute('id')).toBe('inject')
+    expect(mockedSite.querySelector('p')!.previousElementSibling).toBe(targetNode)
+    expect(mockedSite.querySelector('p')!.nextElementSibling).toBe(nextNode)
+  })
 
-  it("inject element end", () => {
+  it('inject element end', () => {
     // Arrange
-    const injectElement = document.createElement("a");
-    injectElement.setAttribute("id", "injectEnd");
-    injectElement.innerText = "Injecting Widget";
-    const expected =
-      dynamicHtmlAdapterDataHtml.getElementsByClassName(
-        "post-text-selector"
-      )[0];
+    const elToInject = document.createElement('a')
+    elToInject.setAttribute('id', 'injectEnd')
+    elToInject.innerText = 'Injecting Widget'
+
+    const lastChildOfTarget = mockedSite.getElementsByClassName('post-text-selector')[0]
+
     // Act
-    adapter.injectElement(
-      injectElement,
-      adapter.context,
-      "rootPoints",
+    dynamicAdapter.injectElement(
+      elToInject,
+      dynamicAdapter.context,
+      'rootPoints',
       InsertionType.End
-    );
+    ) // ToDo: 4-th param shold be like in the config (will be removed)
 
     // Assert
-    expect(
-      dynamicHtmlAdapterDataHtml.querySelector("a")?.nextElementSibling
-    ).toStrictEqual(null);
-    expect(
-      dynamicHtmlAdapterDataHtml.querySelector("a")?.previousElementSibling
-    ).toStrictEqual(expected);
+    expect(mockedSite.querySelector('a')).toStrictEqual(elToInject)
+    expect(mockedSite.querySelector('a')?.getAttribute('id')).toBe('injectEnd')
+    expect(mockedSite.querySelector('a')?.previousElementSibling).toBe(lastChildOfTarget)
+    expect(mockedSite.querySelector('a')?.nextElementSibling).toBeNull()
+  })
 
-    expect(dynamicHtmlAdapterDataHtml.querySelector("a")).toStrictEqual(
-      injectElement
-    );
-    expect(
-      dynamicHtmlAdapterDataHtml.querySelector("a")?.getAttribute("id")
-    ).toBe("injectEnd");
-  });
-
-  it("inject element begin", () => {
+  it('inject element begin', () => {
     // Arrange
-    const injectElement = document.createElement("a");
-    injectElement.setAttribute("id", "injectEnd");
-    injectElement.innerText = "Injecting Widget";
-    const expected =
-      dynamicHtmlAdapterDataHtml.getElementsByClassName(
-        "post-root-selector"
-      )[0];
+    const elToInject = document.createElement('a')
+    elToInject.setAttribute('id', 'injectBegin')
+    elToInject.innerText = 'Injecting Widget'
+
+    const firstChildOfTarget = mockedSite.getElementsByClassName('post-root-selector')[0]
     // Act
-    adapter.injectElement(
-      injectElement,
-      adapter.context,
-      "rootPoints",
+    dynamicAdapter.injectElement(
+      elToInject,
+      dynamicAdapter.context,
+      'rootPoints',
       InsertionType.Begin
-    );
+    ) // ToDo: 4-th param shold be like in the config (will be removed)
 
     // Assert
-    expect(
-      dynamicHtmlAdapterDataHtml.querySelector("a")?.nextElementSibling
-    ).toStrictEqual(expected);
-    expect(
-      dynamicHtmlAdapterDataHtml.querySelector("a")?.previousElementSibling
-    ).toStrictEqual(null);
+    expect(mockedSite.querySelector('a')).toStrictEqual(elToInject)
+    expect(mockedSite.querySelector('a')?.getAttribute('id')).toBe('injectBegin')
+    expect(mockedSite.querySelector('a')?.previousElementSibling).toBeNull()
+    expect(mockedSite.querySelector('a')?.nextElementSibling).toBe(firstChildOfTarget)
+  })
 
-    expect(dynamicHtmlAdapterDataHtml.querySelector("a")).toStrictEqual(
-      injectElement
-    );
-    expect(
-      dynamicHtmlAdapterDataHtml.querySelector("a")?.getAttribute("id")
-    ).toBe("injectEnd");
-  });
-
-  it("get insertion points", () => {
+  it('get insertion points', () => {
     // Arrange
     const expected = [
       {
-        name: "rootPoints",
-        insertionType: "after",
-        bosLayoutManager: "layoutManager1",
+        name: 'rootPoints',
+        insertionType: 'after',
+        bosLayoutManager: 'layoutManager1',
       },
       {
-        name: "inject",
-        insertionType: "after",
-        bosLayoutManager: "layoutManager1",
+        name: 'inject',
+        insertionType: 'after',
+        bosLayoutManager: 'layoutManager1',
       },
-    ];
+    ]
     // Act
-    const actual = adapter.getInsertionPoints(adapter.context);
+    const actual = dynamicAdapter.getInsertionPoints(dynamicAdapter.context)
     // Assert
-    expect(actual).toStrictEqual(expected);
-  });
-});
+    expect(actual).toStrictEqual(expected)
+  })
+
+  // ToDo: test getInsertionPoints() for other contexts
+
+  // ToDo: test stop()
+})
