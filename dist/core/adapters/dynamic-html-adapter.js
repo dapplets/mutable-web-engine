@@ -43,24 +43,22 @@ class DynamicHtmlAdapter {
         __classPrivateFieldSet(this, _DynamicHtmlAdapter_isStarted, false, "f");
         __classPrivateFieldGet(this, _DynamicHtmlAdapter_observerByElement, "f").forEach((observer) => observer.disconnect());
     }
-    injectElement(injectingElement, context, insertionPoint, insertionType) {
-        if (!Object.values(interface_1.InsertionType).includes(insertionType)) {
-            throw new Error(`Unknown insertion type "${insertionType}"`);
-        }
+    injectElement(injectingElement, context, insertionPoint) {
         const contextElement = __classPrivateFieldGet(this, _DynamicHtmlAdapter_elementByContext, "f").get(context);
         if (!contextElement) {
             throw new Error("Context element not found");
         }
-        let insPointElement = this.parser.findInsertionPoint(contextElement, context.tagName, insertionPoint);
-        // ToDo: move to separate adapter?
-        // Generic insertion point for "the ear"
-        // if (!insPointElement && insertionPoint === "root") {
-        //   insPointElement = contextElement;
-        // }
-        if (!insPointElement) {
-            throw new Error(`Insertion point "${insertionPoint}" not found in "${context.tagName}" context type for "${insertionType}" insertion type`);
+        const insPoint = this.parser
+            .getInsertionPoints(contextElement, context.tagName)
+            .find((ip) => ip.name === insertionPoint);
+        if (!insPoint) {
+            throw new Error(`Insertion point "${insertionPoint}" is not defined in the parser`);
         }
-        switch (insertionType) {
+        let insPointElement = this.parser.findInsertionPoint(contextElement, context.tagName, insertionPoint);
+        if (!insPointElement) {
+            throw new Error(`Insertion point "${insertionPoint}" not found in "${context.tagName}" context type for "${insPoint.insertionType}" insertion type`);
+        }
+        switch (insPoint.insertionType) {
             case interface_1.InsertionType.Before:
                 insPointElement.before(injectingElement);
                 break;
