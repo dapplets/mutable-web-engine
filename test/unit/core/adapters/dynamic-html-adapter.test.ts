@@ -143,7 +143,7 @@ describe('dynamic-html-adapter', () => {
     const firstNode = mockedSite.getElementsByClassName('post-selector-point')[0]
 
     // Act
-    dynamicAdapter.injectElement(elToInject, dynamicAdapter.context, 'rootPointBegin') // ToDo: 4-th param shold be like in the config (will be removed)
+    dynamicAdapter.injectElement(elToInject, dynamicAdapter.context, 'rootPointBegin')
 
     // Assert
     expect(mockedSite.querySelector('p')).toBe(elToInject)
@@ -161,7 +161,7 @@ describe('dynamic-html-adapter', () => {
     const lastNode = mockedSite.getElementsByClassName('profile-selector')[0]
 
     // Act
-    dynamicAdapter.injectElement(elToInject, dynamicAdapter.context, 'rootPointEnd') // ToDo: 4-th param shold be like in the config (will be removed)
+    dynamicAdapter.injectElement(elToInject, dynamicAdapter.context, 'rootPointEnd')
 
     // Assert
     expect(mockedSite.querySelector('p')).toStrictEqual(elToInject)
@@ -180,7 +180,7 @@ describe('dynamic-html-adapter', () => {
     const accountMenu = mockedSite.querySelector("[aria-label='Account menu']")
 
     // Act
-    dynamicAdapter.injectElement(elToInject, dynamicAdapter.context, 'rootPointBefore') // ToDo: 4-th param shold be like in the config (will be removed)
+    dynamicAdapter.injectElement(elToInject, dynamicAdapter.context, 'rootPointBefore')
 
     // Assert
     expect(mockedSite.querySelector('a')).toStrictEqual(elToInject)
@@ -198,7 +198,7 @@ describe('dynamic-html-adapter', () => {
     const rootContainer = mockedSite.getElementsByClassName('root-selector')[0]
 
     // Act
-    dynamicAdapter.injectElement(elToInject, dynamicAdapter.context, 'rootPointAfter') // ToDo: 4-th param shold be like in the config (will be removed)
+    dynamicAdapter.injectElement(elToInject, dynamicAdapter.context, 'rootPointAfter')
 
     // Assert
     expect(mockedSite.querySelector('a')).toStrictEqual(elToInject)
@@ -207,7 +207,7 @@ describe('dynamic-html-adapter', () => {
     expect(mockedSite.querySelector('a')?.nextElementSibling).toBeNull()
   })
 
-  it('get insertion points', () => {
+  it('get root insertion points', () => {
     // Arrange
     const expected = [
       {
@@ -231,13 +231,84 @@ describe('dynamic-html-adapter', () => {
         bosLayoutManager: 'layoutManager1',
       },
     ]
+
     // Act
     const actual = dynamicAdapter.getInsertionPoints(dynamicAdapter.context)
+
     // Assert
     expect(actual).toStrictEqual(expected)
   })
 
-  // ToDo: test getInsertionPoints() for other contexts
+  it('get profile insertion points', () => {
+    // Arrange
+    const expected = [
+      {
+        name: 'root',
+        insertionType: 'begin',
+        bosLayoutManager: 'layoutManager1',
+      },
+      {
+        name: 'avatar',
+        insertionType: 'end',
+        bosLayoutManager: 'layoutManager1',
+      },
+    ]
 
-  // ToDo: test stop()
+    const profileContext = dynamicAdapter.context.children!.find((c) => c.id === 'profile')!
+
+    // Act
+    const actual = dynamicAdapter.getInsertionPoints(profileContext)
+
+    // Assert
+    expect(actual).toStrictEqual(expected)
+  })
+
+  it('test stop()', async () => {
+    // Arrange
+    expect(dynamicAdapter.context.children.length).toBe(2)
+
+    const mockedParentNode = mockedSite.getElementsByClassName('root-selector')[0]
+
+    const expected = document.createElement('div')
+    expected.innerHTML = `
+    <div class="post-selector-point" id="post" data-testid="postTestId">
+        <div class="post-root-selector" data-testid='postText' data-bos-layout-manager="layoutManager1">Post Root Insertion Point Content</div>
+        <div class="post-text-selector" data-bos-layout-manager="layoutManager1">Post Text Insertion Point Content</div>
+    </div>
+    `
+
+    // Act
+    dynamicAdapter.stop()
+
+    mockedParentNode.append(expected)
+    await new Promise((res) => setTimeout(res, 1000))
+
+    // Assert
+    expect(dynamicAdapter.context.children.length).toBe(2)
+    expect(expected.parentElement).toBe(mockedParentNode)
+
+    // Act
+    dynamicAdapter.start()
+    await new Promise((res) => setTimeout(res, 1000))
+
+    // Assert
+    expect(dynamicAdapter.context.children.length).toBe(3)
+    expect(expected.parentElement).toBe(mockedParentNode)
+
+    // Act
+    dynamicAdapter.stop()
+
+    mockedSite.getElementsByClassName('post-selector-point')[0].remove()
+    await new Promise((res) => setTimeout(res, 1000))
+
+    // Assert
+    expect(dynamicAdapter.context.children.length).toBe(3)
+
+    // Act
+    dynamicAdapter.start()
+    await new Promise((res) => setTimeout(res, 1000))
+
+    // Assert
+    expect(dynamicAdapter.context.children.length).toBe(2)
+  }, 10000)
 })
