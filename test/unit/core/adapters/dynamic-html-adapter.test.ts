@@ -2,6 +2,7 @@ import { DynamicHtmlAdapter } from '../../../../src/core/adapters/dynamic-html-a
 import { IAdapter } from '../../../../src/core/adapters/interface'
 import { describe, expect, it, beforeEach } from '@jest/globals'
 import { PureTreeBuilder } from '../../../../src/core/tree/pure-tree/pure-tree-builder'
+import { IContextNode } from '../../../../src/core/tree/types'
 import { JsonParser } from '../../../../src/core/parsers/json-parser'
 import {
   configDynamicHtmlAdapter,
@@ -14,11 +15,11 @@ describe('dynamic-html-adapter', () => {
   let dynamicAdapter: IAdapter
   let mockedSite: HTMLDivElement
   const mockListeners = {
-    handleContextStarted: jest.fn(() => undefined),
-    handleContextChanged: jest.fn(() => undefined),
-    handleContextFinished: jest.fn(() => undefined),
-    handleInsPointStarted: jest.fn(() => undefined),
-    handleInsPointFinished: jest.fn(() => undefined),
+    handleContextStarted: jest.fn((context: IContextNode) => undefined),
+    handleContextChanged: jest.fn((context: IContextNode, oldParsedContext: any) => undefined),
+    handleContextFinished: jest.fn((context: IContextNode) => undefined),
+    handleInsPointStarted: jest.fn((context: IContextNode, newInsPoint: string) => undefined),
+    handleInsPointFinished: jest.fn((context: IContextNode, oldInsPoint: string) => undefined),
   }
   const mockedTreeBuilder = new PureTreeBuilder(mockListeners)
   const mockedJsonParser = new JsonParser(configDynamicHtmlAdapter)
@@ -28,6 +29,7 @@ describe('dynamic-html-adapter', () => {
     mockedSite.innerHTML = dynamicHtmlAdapterDataStr
     dynamicAdapter = new DynamicHtmlAdapter(mockedSite, mockedTreeBuilder, NS, mockedJsonParser)
     dynamicAdapter.start()
+    jest.clearAllMocks()
   })
 
   it('parse adapter context', () => {
@@ -80,11 +82,19 @@ describe('dynamic-html-adapter', () => {
     // Assert
     expect(dynamicAdapter.context.children.length).toBe(3)
     expect(expected.parentElement).toBe(mockedParentNode)
+
+    expect(mockListeners.handleContextStarted).toBeCalledTimes(1)
+    expect(mockListeners.handleContextStarted).toBeCalledWith(dynamicAdapter.context.children[2])
+    expect(mockListeners.handleContextFinished).toBeCalledTimes(0)
+    expect(mockListeners.handleContextChanged).toBeCalledTimes(0)
+    expect(mockListeners.handleInsPointStarted).toBeCalledTimes(0)
+    expect(mockListeners.handleInsPointFinished).toBeCalledTimes(0)
   })
 
   it('remove node', async () => {
     // Arrange
     expect(dynamicAdapter.context.children.length).toBe(2)
+    const postContext = dynamicAdapter.context.children[0]
 
     // Act
     mockedSite.getElementsByClassName('post-selector-point')[0].remove()
@@ -92,11 +102,19 @@ describe('dynamic-html-adapter', () => {
 
     // Assert
     expect(dynamicAdapter.context.children.length).toBe(1)
+
+    expect(mockListeners.handleContextStarted).toBeCalledTimes(0)
+    expect(mockListeners.handleContextFinished).toBeCalledTimes(1)
+    expect(mockListeners.handleContextFinished).toBeCalledWith(postContext)
+    expect(mockListeners.handleContextChanged).toBeCalledTimes(0)
+    expect(mockListeners.handleInsPointStarted).toBeCalledTimes(0)
+    expect(mockListeners.handleInsPointFinished).toBeCalledTimes(0)
   })
 
   it('change node text content', async () => {
     // Arrange
     expect(dynamicAdapter.context.parsedContext?.username).toBe('2')
+    const oldParsedContext = dynamicAdapter.context.parsedContext
 
     // Act
     mockedSite.querySelector('div[data-testid="UserName"]>span')!.textContent = '58392'
@@ -104,6 +122,16 @@ describe('dynamic-html-adapter', () => {
 
     // Assert
     expect(dynamicAdapter.context.parsedContext?.username).toBe('58392')
+
+    expect(mockListeners.handleContextStarted).toBeCalledTimes(0)
+    expect(mockListeners.handleContextFinished).toBeCalledTimes(0)
+    expect(mockListeners.handleContextChanged).toBeCalledTimes(1)
+    expect(mockListeners.handleContextChanged).toBeCalledWith(
+      dynamicAdapter.context,
+      oldParsedContext
+    )
+    expect(mockListeners.handleInsPointStarted).toBeCalledTimes(0)
+    expect(mockListeners.handleInsPointFinished).toBeCalledTimes(0)
   })
 
   it('change node parameter value', async () => {
@@ -111,6 +139,7 @@ describe('dynamic-html-adapter', () => {
     expect(dynamicAdapter.context.parsedContext?.img).toBe(
       'https://img.com/profile_images/id/Q_300x300.jpg'
     )
+    const oldParsedContext = dynamicAdapter.context.parsedContext
 
     const imageNode: HTMLImageElement = mockedSite.querySelector(
       'div[aria-label="Account menu"]>img'
@@ -125,6 +154,16 @@ describe('dynamic-html-adapter', () => {
     expect(dynamicAdapter.context.parsedContext?.img).toBe(
       'https://img.com/profile_images/id/QXWR_1300x1300.jpg'
     )
+
+    expect(mockListeners.handleContextStarted).toBeCalledTimes(0)
+    expect(mockListeners.handleContextFinished).toBeCalledTimes(0)
+    expect(mockListeners.handleContextChanged).toBeCalledTimes(1)
+    expect(mockListeners.handleContextChanged).toBeCalledWith(
+      dynamicAdapter.context,
+      oldParsedContext
+    )
+    expect(mockListeners.handleInsPointStarted).toBeCalledTimes(0)
+    expect(mockListeners.handleInsPointFinished).toBeCalledTimes(0)
   })
 
   it('change child node content', async () => {
@@ -135,6 +174,7 @@ describe('dynamic-html-adapter', () => {
     expect(mockedSite.getElementsByClassName('post-root-selector')[0].textContent).toBe(
       'Post Root Insertion Point Content'
     )
+    const oldParsedContext = dynamicAdapter.context.children[0]!.parsedContext
 
     // Act
     mockedSite.getElementsByClassName('post-root-selector')[0].textContent = 'Let it be, let it be!'
@@ -142,6 +182,16 @@ describe('dynamic-html-adapter', () => {
 
     // Assert
     expect(dynamicAdapter.context.children[0]!.parsedContext!.text).toBe('Let it be, let it be!')
+
+    expect(mockListeners.handleContextStarted).toBeCalledTimes(0)
+    expect(mockListeners.handleContextFinished).toBeCalledTimes(0)
+    expect(mockListeners.handleContextChanged).toBeCalledTimes(1)
+    expect(mockListeners.handleContextChanged).toBeCalledWith(
+      dynamicAdapter.context.children[0],
+      oldParsedContext
+    )
+    expect(mockListeners.handleInsPointStarted).toBeCalledTimes(0)
+    expect(mockListeners.handleInsPointFinished).toBeCalledTimes(0)
   })
 
   it('inject element to the begin of the context', () => {
@@ -273,7 +323,7 @@ describe('dynamic-html-adapter', () => {
     expect(actual).toStrictEqual(expected)
   })
 
-  it('shows available insertion poins after changing the context', async () => {
+  it('shows available insertion poins after changing the context, test insertion point listeners', async () => {
     // Arrange
     const expected = [
       {
@@ -310,6 +360,35 @@ describe('dynamic-html-adapter', () => {
     // Assert
     expect(postContext.insPoints).toEqual(['text'])
     expect(newActual).toStrictEqual(expected)
+
+    expect(mockListeners.handleContextStarted).toBeCalledTimes(0)
+    expect(mockListeners.handleContextFinished).toBeCalledTimes(0)
+    expect(mockListeners.handleContextChanged).toBeCalledTimes(0)
+    expect(mockListeners.handleInsPointStarted).toBeCalledTimes(0)
+    expect(mockListeners.handleInsPointFinished).toBeCalledTimes(1)
+    expect(mockListeners.handleInsPointFinished).toBeCalledWith(newPostContext, 'root')
+
+    // Arrange
+    mockListeners.handleInsPointFinished.mockClear()
+
+    firstInsPointNode?.classList.replace('post-title-selector', 'post-root-selector')
+    await new Promise((res) => setTimeout(res, 1000))
+
+    const newPostContext2 = dynamicAdapter.context.children!.find((c) => c.id === 'post')!
+
+    // Act
+    const newActual2 = dynamicAdapter.getInsertionPoints(newPostContext2)
+
+    // Assert
+    expect(postContext.insPoints).toEqual(['root', 'text'])
+    expect(newActual2).toStrictEqual(expected)
+
+    expect(mockListeners.handleContextStarted).toBeCalledTimes(0)
+    expect(mockListeners.handleContextFinished).toBeCalledTimes(0)
+    expect(mockListeners.handleContextChanged).toBeCalledTimes(0)
+    expect(mockListeners.handleInsPointStarted).toBeCalledTimes(1)
+    expect(mockListeners.handleInsPointStarted).toBeCalledWith(newPostContext2, 'root')
+    expect(mockListeners.handleInsPointFinished).toBeCalledTimes(0)
   })
 
   it('test stop()', async () => {
