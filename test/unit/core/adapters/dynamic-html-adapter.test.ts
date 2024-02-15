@@ -1,21 +1,31 @@
 import { DynamicHtmlAdapter } from '../../../../src/core/adapters/dynamic-html-adapter'
 import { IAdapter } from '../../../../src/core/adapters/interface'
-
 import { describe, expect, it, beforeEach } from '@jest/globals'
-
-import { dynamicHtmlAdapterDataStr } from '../../../data/adapters/dynamic-html-adapter-constants'
-import { mockedJsonParser, mockedTreeBuilder } from '../../../helpers'
+import { PureTreeBuilder } from '../../../../src/core/tree/pure-tree/pure-tree-builder'
+import { JsonParser } from '../../../../src/core/parsers/json-parser'
+import {
+  configDynamicHtmlAdapter,
+  dynamicHtmlAdapterDataStr,
+} from '../../../data/adapters/dynamic-html-adapter-constants'
 
 const NS = 'https://dapplets.org/ns/engine'
 
 describe('dynamic-html-adapter', () => {
   let dynamicAdapter: IAdapter
   let mockedSite: HTMLDivElement
+  const mockListeners = {
+    handleContextStarted: jest.fn(() => undefined),
+    handleContextChanged: jest.fn(() => undefined),
+    handleContextFinished: jest.fn(() => undefined),
+    handleInsPointStarted: jest.fn(() => undefined),
+    handleInsPointFinished: jest.fn(() => undefined),
+  }
+  const mockedTreeBuilder = new PureTreeBuilder(mockListeners)
+  const mockedJsonParser = new JsonParser(configDynamicHtmlAdapter)
 
   beforeEach(() => {
     mockedSite = document.createElement('div')
     mockedSite.innerHTML = dynamicHtmlAdapterDataStr
-
     dynamicAdapter = new DynamicHtmlAdapter(mockedSite, mockedTreeBuilder, NS, mockedJsonParser)
     dynamicAdapter.start()
   })
@@ -261,6 +271,45 @@ describe('dynamic-html-adapter', () => {
 
     // Assert
     expect(actual).toStrictEqual(expected)
+  })
+
+  it('shows available insertion poins after changing the context', async () => {
+    // Arrange
+    const expected = [
+      {
+        name: 'root',
+        insertionType: 'after',
+        bosLayoutManager: 'layoutManager1',
+      },
+      {
+        name: 'text',
+        insertionType: 'before',
+        bosLayoutManager: 'layoutManager1',
+      },
+    ]
+
+    const postContext = dynamicAdapter.context.children!.find((c) => c.id === 'post')!
+
+    // Act
+    const actual = dynamicAdapter.getInsertionPoints(postContext)
+
+    // Assert
+    expect(postContext.insPoints).toEqual(['root', 'text'])
+    expect(actual).toStrictEqual(expected)
+
+    // Arrange
+    const firstInsPointNode = mockedSite.querySelector('.post-root-selector')
+    firstInsPointNode?.classList.replace('post-root-selector', 'post-title-selector')
+    await new Promise((res) => setTimeout(res, 1000))
+
+    const newPostContext = dynamicAdapter.context.children!.find((c) => c.id === 'post')!
+
+    // Act
+    const newActual = dynamicAdapter.getInsertionPoints(newPostContext)
+
+    // Assert
+    expect(postContext.insPoints).toEqual(['text'])
+    expect(newActual).toStrictEqual(expected)
   })
 
   it('test stop()', async () => {
