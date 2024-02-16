@@ -77,9 +77,19 @@ class BosComponent extends HTMLElement {
         shadowRoot.appendChild(this._stylesMountPoint);
         // It will prevent inheritance without affecting other CSS defined within the ShadowDOM.
         // https://stackoverflow.com/a/68062098
-        const disableInheritanceRule = ":host { all: initial; } ";
-        this._adapterStylesMountPoint.innerHTML = disableInheritanceRule;
+        const resetCssRules = `
+      :host { 
+        all: initial; 
+        display: flex; 
+        align-items: center;
+        justify-content: center;
+        position: relative;
+      }
+    `;
+        this._adapterStylesMountPoint.innerHTML = resetCssRules;
         shadowRoot.appendChild(this._adapterStylesMountPoint);
+        // For full-width components
+        this._componentMountPoint.style.flex = "1";
         // Initial render
         this._render();
     }

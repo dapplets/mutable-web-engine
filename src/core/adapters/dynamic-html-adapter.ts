@@ -2,6 +2,8 @@ import { IParser, InsertionPoint } from "../parsers/interface";
 import { IContextNode, ITreeBuilder } from "../tree/types";
 import { IAdapter, InsertionType } from "./interface";
 
+const DefaultInsertionType: InsertionType = InsertionType.Before;
+
 export class DynamicHtmlAdapter implements IAdapter {
   protected element: Element;
   protected treeBuilder: ITreeBuilder;
@@ -51,30 +53,31 @@ export class DynamicHtmlAdapter implements IAdapter {
   injectElement(
     injectingElement: Element,
     context: IContextNode,
-    insertionPoint: string | "root",
-    insertionType: InsertionType
+    insertionPoint: string | "root"
   ) {
-    if (!Object.values(InsertionType).includes(insertionType)) {
-      throw new Error(`Unknown insertion type "${insertionType}"`);
-    }
-
     const contextElement = this.#elementByContext.get(context);
 
     if (!contextElement) {
       throw new Error("Context element not found");
     }
 
-    let insPointElement: Element | null = this.parser.findInsertionPoint(
+    const insPoint = this.parser
+      .getInsertionPoints(contextElement, context.tagName)
+      .find((ip) => ip.name === insertionPoint);
+
+    if (!insPoint) {
+      throw new Error(
+        `Insertion point "${insertionPoint}" is not defined in the parser`
+      );
+    }
+
+    const insPointElement: Element | null = this.parser.findInsertionPoint(
       contextElement,
       context.tagName,
       insertionPoint
     );
 
-    // ToDo: move to separate adapter?
-    // Generic insertion point for "the ear"
-    // if (!insPointElement && insertionPoint === "root") {
-    //   insPointElement = contextElement;
-    // }
+    const insertionType = insPoint.insertionType ?? DefaultInsertionType;
 
     if (!insPointElement) {
       throw new Error(
@@ -193,7 +196,9 @@ export class DynamicHtmlAdapter implements IAdapter {
     const definedInsPoints = parser.getInsertionPoints(element, contextName);
 
     const availableInsPoints = definedInsPoints
-      .filter((ip) => !!parser.findInsertionPoint(element, contextName, ip.name))
+      .filter(
+        (ip) => !!parser.findInsertionPoint(element, contextName, ip.name)
+      )
       .map((ip) => ip.name);
 
     return availableInsPoints;

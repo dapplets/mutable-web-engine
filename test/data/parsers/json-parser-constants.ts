@@ -1,6 +1,6 @@
-import { InsertionType } from "../../../src/core/adapters/interface";
+import { InsertionType } from '../../../src/core/adapters/interface'
 
-export const jsonParserDataHtml = document.createElement("div");
+export const jsonParserDataHtml = document.createElement('div')
 jsonParserDataHtml.innerHTML = `  <div id="root" >
 <!-- root props -->
 <div data-testid='UserName'>
@@ -8,7 +8,7 @@ jsonParserDataHtml.innerHTML = `  <div id="root" >
 </div> 
 
 <div aria-label='Account menu'>
-<img alt="Test-fullname"/>
+<img src="https://img.com/profile_images/id/Q_300x300.jpg" alt="Test-fullname" data-testid="nothingImg"/>
 </div>
 
 <!-- post -->
@@ -54,10 +54,10 @@ jsonParserDataHtml.innerHTML = `  <div id="root" >
 </div>
 
 <!-- panel -->
-`;
+`
 
 export const configJsonParser = {
-  namespace: "sampleNamespace",
+  namespace: 'sampleNamespace',
   contexts: {
     root: {
       selector: "[id='root']",
@@ -65,63 +65,63 @@ export const configJsonParser = {
         id: "string('root')",
         username: "number(.//*[@data-testid='UserName']//span[1])",
         fullname: "string(.//*[@aria-label='Account menu']//img/@alt)",
-        img: '[data-testid="nothingImg"]',
+        img: 'string(.//*[@data-testid="nothingImg"]/@src)',
       },
-      children: ["post", "profile", "panel"],
+      children: ['post', 'profile', 'panel'],
     },
     post: {
-      selector: "div[data-testid=post]",
+      selector: 'div[data-testid=post]',
       props: {
-        id: "string(.//img/@id)",
+        id: 'string(.//img/@id)',
         text: "string(.//*[@data-testid='postText'])",
       },
       insertionPoints: {
         root: {
-          "selector": "[id=post]",
-          "bosLayoutManager": "layoutManagerpost",
-          "insertionType": InsertionType.Before
+          selector: '[id=post]',
+          bosLayoutManager: 'layoutManagerpost',
+          insertionType: InsertionType.Before,
         },
         text: {
-          selector: ".insertion-point-selector",
-          bosLayoutManager: "layoutManager1",
+          selector: '.insertion-point-selector',
+          bosLayoutManager: 'layoutManager1',
           insertionType: InsertionType.After,
         },
       },
     },
     profile: {
-      selector: "[id=profile]",
+      selector: '[id=profile]',
       props: {
-        id: "string(.//img/@id)",
+        id: 'string(.//img/@id)',
         text: "string(.//*[@data-testid='textProfile'])",
       },
       insertionPoints: {
         root: {
-          "selector": "div[data-testid=profile]",
-          "bosLayoutManager": "layoutManagerProfile",
-          "insertionType": InsertionType.Before
+          selector: 'div[data-testid=profile]',
+          bosLayoutManager: 'layoutManagerProfile',
+          insertionType: InsertionType.Before,
         },
         avatar: {
-          selector: ".insertion-point-selector-2",
-          bosLayoutManager: "layoutManager2",
+          selector: '.insertion-point-selector-2',
+          bosLayoutManager: 'layoutManager2',
           insertionType: InsertionType.After,
         },
-        text: "data-insertion-point",
+        text: 'data-insertion-point',
       },
     },
     panel: {
-      selector: "div[data-testid=panel]",
+      selector: 'div[data-testid=panel]',
       props: {
-        id: "string(.//img/@id)",
+        id: 'string(.//img/@id)',
         text: "string(.//*[@data-testid='tweetPanel'])",
       },
       insertionPoints: {
         avatar: {
-          selector: ".class-null",
-          bosLayoutManager: "null",
+          selector: '.class-null',
+          bosLayoutManager: 'null',
           insertionType: InsertionType.After,
         },
-        text: "data-null",
+        text: 'data-null',
       },
     },
   },
-};
+}

@@ -4,10 +4,11 @@ export type ParsedContext = {
 export interface IContextNode {
     id: string | null;
     tagName: string;
-    namespaceURI: string | null;
+    namespaceURI: string;
     parentNode: IContextNode | null;
-    parsedContext?: ParsedContext;
+    parsedContext: ParsedContext;
     insPoints: string[];
+    children: IContextNode[];
     removeChild(child: IContextNode): void;
     appendChild(child: IContextNode): void;
 }
