@@ -20,7 +20,7 @@ class PureTreeBuilder {
     constructor(contextListener) {
         _PureTreeBuilder_listeners.set(this, void 0);
         // ToDo: move to engine, it's not a core responsibility
-        this.root = this.createNode(constants_1.DappletsEngineNs, "website"); // default ns
+        this.root = this.createNode(constants_1.DappletsEngineNs, 'website'); // default ns
         __classPrivateFieldSet(this, _PureTreeBuilder_listeners, contextListener, "f");
     }
     appendChild(parent, child) {
@@ -31,11 +31,12 @@ class PureTreeBuilder {
         parent.removeChild(child);
         __classPrivateFieldGet(this, _PureTreeBuilder_listeners, "f").handleContextFinished(child);
     }
-    createNode(namespaceURI, tagName) {
-        return new pure_context_node_1.PureContextNode(namespaceURI, tagName);
+    createNode(namespace, contextType) {
+        return new pure_context_node_1.PureContextNode(namespace, contextType);
     }
     updateParsedContext(context, newParsedContext) {
         const oldParsedContext = context.parsedContext;
+        // ToDo: what to do with contexts without IDs?
         // ToDo: what to do with contexts without IDs?
         if ((oldParsedContext === null || oldParsedContext === void 0 ? void 0 : oldParsedContext.id) !== (newParsedContext === null || newParsedContext === void 0 ? void 0 : newParsedContext.id)) {
             __classPrivateFieldGet(this, _PureTreeBuilder_listeners, "f").handleContextFinished(context);
