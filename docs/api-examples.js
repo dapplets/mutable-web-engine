@@ -117,6 +117,26 @@ temp1.provider.createApplication({
   },
 })
 
+temp1.provider.createApplication({
+  id: 'bos.dapplets.near/app/OnboardingQuestion',
+  targets: [
+    {
+      namespace: 'bos.dapplets.near/parser/twitter',
+      contextType: 'post',
+      if: { id: { not: null, index: true } },
+      injectTo: 'southPanel',
+      componentId: 'bos.dapplets.near/widget/Onboarding.Question',
+    },
+  ],
+  metadata: {
+    name: 'Onboarding Question',
+    description: 'Onboarding callout for testing purposes',
+    image: {
+      ipfs_cid: 'bafkreigx7d64p4tie7hrldb4gwiozde3vdig2eoimtjbdjvjqopgzd57re',
+    },
+  },
+})
+
 temp1.provider.createParserConfig({
   id: 'bos.dapplets.near/parser/twitter',
   parserType: 'json',
