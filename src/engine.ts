@@ -12,6 +12,7 @@ import { ContextManager } from './context-manager'
 import { MutationManager } from './mutation-manager'
 import { JsonParser } from './core/parsers/json-parser'
 import { BosParser } from './core/parsers/bos-parser'
+import { PureContextNode } from './core/tree/pure-tree/pure-context-node'
 
 export enum AdapterType {
   Bos = 'bos',
@@ -114,20 +115,20 @@ export class Engine implements IContextListener {
   }
 
   async start(mutationId = this.#nearConfig.defaultMutationId): Promise<void> {
-    // load mutation and apps
-    await this.#mutationManager.switchMutation(mutationId)
+    const mutations = await this.getMutations()
+    const mutation = mutations.find((mutation) => mutation.id === mutationId) ?? null
 
-    this.started = true
+    if (mutation) {
+      // load mutation and apps
+      await this.#mutationManager.switchMutation(mutation)
+    } else {
+      console.error('No suitable mutations found')
+    }
+
     this.treeBuilder = new PureTreeBuilder(this)
+    this.started = true
 
-    // ToDo: instantiate root context with data initially
-    // ToDo: looks like circular dependency
-    this.treeBuilder.updateParsedContext(this.treeBuilder.root, {
-      id: window.location.hostname,
-      url: window.location.href,
-      mutationId: mutationId,
-      gatewayId: this.config.gatewayId,
-    })
+    this._updateRootContext()
 
     console.log('Mutable Web Engine started!', {
       engine: this,
@@ -145,7 +146,10 @@ export class Engine implements IContextListener {
   }
 
   async getMutations(): Promise<Mutation[]> {
-    return this.#provider.getMutations()
+    // ToDo: use real context from the PureTreeBuilder
+    const context = new PureContextNode('engine', 'website')
+    context.parsedContext = { id: window.location.hostname }
+    return this.#mutationManager.getMutationsForContext(context)
   }
 
   async switchMutation(mutationId: string): Promise<void> {
@@ -246,5 +250,18 @@ export class Engine implements IContextListener {
       console.error(err)
       this.disableDevMode()
     }
+  }
+
+  private _updateRootContext() {
+    if (!this.treeBuilder) throw new Error('Tree builder is not inited')
+
+    // ToDo: instantiate root context with data initially
+    // ToDo: looks like circular dependency
+    this.treeBuilder.updateParsedContext(this.treeBuilder.root, {
+      id: window.location.hostname,
+      url: window.location.href,
+      mutationId: this.#mutationManager.mutation?.id ?? null,
+      gatewayId: this.config.gatewayId,
+    })
   }
 }

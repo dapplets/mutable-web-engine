@@ -47,6 +47,12 @@ class MutationManager {
             return appLinksNested;
         });
     }
+    getMutationsForContext(context) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const mutations = yield __classPrivateFieldGet(this, _MutationManager_provider, "f").getMutations();
+            return mutations.filter((mutation) => mutation.targets.some((target) => MutationManager._isTargetMet(target, context)));
+        });
+    }
     // ToDo: replace with getAppsAndLinksForContext
     filterSuitableApps(context) {
         const suitableApps = [];
@@ -85,11 +91,14 @@ class MutationManager {
     }
     // #endregion
     // #region Write methods
-    switchMutation(mutationId) {
+    switchMutation(mutation) {
         return __awaiter(this, void 0, void 0, function* () {
-            const mutation = yield __classPrivateFieldGet(this, _MutationManager_provider, "f").getMutation(mutationId);
-            if (!mutation)
-                throw new Error("Mutation doesn't exist");
+            if (!mutation) {
+                __classPrivateFieldSet(this, _MutationManager_activeApps, [], "f");
+                __classPrivateFieldSet(this, _MutationManager_activeParsers, [], "f");
+                this.mutation = null;
+                return;
+            }
             const apps = yield Promise.all(mutation.apps.map((app) => __classPrivateFieldGet(this, _MutationManager_provider, "f").getApplication(app)));
             const activeApps = apps.flatMap((app) => (app ? [app] : [])); // filter empty apps
             // get parser ids from target namespaces
@@ -202,7 +211,7 @@ class MutationManager {
         return true;
     }
     static _isConditionMet(condition, value) {
-        const { not: _not, eq: _eq, contains: _contains, in: _in } = condition;
+        const { not: _not, eq: _eq, contains: _contains, in: _in, endsWith: _endsWith } = condition;
         if (_not !== undefined) {
             return _not !== value;
         }
@@ -211,6 +220,9 @@ class MutationManager {
         }
         if (_contains !== undefined && typeof value === 'string') {
             return value.includes(_contains);
+        }
+        if (_endsWith !== undefined && typeof value === 'string') {
+            return value.endsWith(_endsWith);
         }
         if (_in !== undefined) {
             return _in.includes(value);
