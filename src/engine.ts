@@ -22,6 +22,7 @@ import { PureContextNode } from './core/tree/pure-tree/pure-context-node'
 import { IStorage } from './storage/storage'
 import { Repository } from './storage/repository'
 import { JsonStorage } from './storage/json-storage'
+import { LocalStorage } from './storage/local-storage'
 
 export enum AdapterType {
   Bos = 'bos',
@@ -33,7 +34,7 @@ export type EngineConfig = {
   networkId: string
   gatewayId: string
   selector: WalletSelector
-  storage: IStorage
+  storage?: IStorage
   bosElementName?: string
 }
 
@@ -53,6 +54,10 @@ export class Engine implements IContextListener {
   started: boolean = false
 
   constructor(private config: EngineConfig) {
+    if (!this.config.storage) {
+      this.config.storage = new LocalStorage('mutable-web-engine')
+    }
+
     this.#bosWidgetFactory = new BosWidgetFactory({
       networkId: this.config.networkId,
       selector: this.config.selector,
