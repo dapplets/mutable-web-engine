@@ -60,11 +60,12 @@ export class Engine implements IContextListener {
     })
     this.#selector = this.config.selector
     const nearConfig = getNearConfig(this.config.networkId)
-    const nearSigner = new NearSigner(this.#selector, nearConfig.nodeUrl)
+    const jsonStorage = new JsonStorage(this.config.storage)
+    this.#nearConfig = nearConfig
+    this.#repository = new Repository(jsonStorage)
+    const nearSigner = new NearSigner(this.#selector, jsonStorage, nearConfig)
     this.#provider = new SocialDbProvider(nearSigner, nearConfig.contractName)
     this.#mutationManager = new MutationManager(this.#provider)
-    this.#nearConfig = nearConfig
-    this.#repository = new Repository(new JsonStorage(this.config.storage))
   }
 
   async handleContextStarted(context: IContextNode): Promise<void> {
