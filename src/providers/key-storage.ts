@@ -25,7 +25,7 @@ export class KeyStorage extends keyStores.KeyStore {
     const result = await this._storage.getItem<string | null>(key)
 
     if (!result) {
-      throw new Error(`No key for ${accountId} account`)
+      return null as any as KeyPair
     }
 
     return KeyPair.fromString(result)
@@ -89,10 +89,7 @@ export class KeyStorage extends keyStores.KeyStore {
   private async registerStorageKey(storageKey: string): Promise<void> {
     const storageKeysKey = this.storageKeyForStorageKeysArray()
     const allStorageKeys = (await this._storage.getItem<string[]>(storageKeysKey)) ?? []
-    await this._storage.setItem(
-      storageKeysKey,
-      allStorageKeys.filter((key) => key !== storageKey)
-    )
+    await this._storage.setItem(storageKeysKey, [...allStorageKeys, storageKey])
   }
 
   private async unregisterStorageKey(storageKey: string): Promise<void> {

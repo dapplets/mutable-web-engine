@@ -5,6 +5,7 @@ import { KeyStorage } from './key-storage'
 import { JsonStorage } from '../storage/json-storage'
 import Big from 'big.js'
 import { NearConfig } from '../constants'
+import { TypedError } from 'near-api-js/lib/providers'
 
 export const DefaultGas = '30000000000000' // 30 TGas
 export const TGas = Big(10).pow(12)
@@ -55,11 +56,15 @@ export class NearSigner {
 
   async call(contractName: string, methodName: string, args: any, gas?: string, deposit?: string) {
     if (contractName === this._nearConfig.contractName) {
-      const contractWalletConnection = await this._createWalletConnectionForContract(contractName)
-      if (contractWalletConnection.isSignedIn()) {
-        const functionAccessKeyAccount = contractWalletConnection.account()
+      const account = await this._createConnectionForContract(contractName)
 
-        return functionAccessKeyAccount.functionCall({
+      // No session key for this contract
+      if (!account) {
+        return this._signInAndSetCallMethod(contractName, methodName, args, gas, deposit)
+      }
+
+      try {
+        return await account.functionCall({
           contractId: contractName,
           methodName,
           args,
@@ -67,8 +72,12 @@ export class NearSigner {
           // @ts-ignore
           gas,
         })
-      } else {
-        return this._signInAndSetPendingTransaction(contractName, methodName, args, gas, deposit)
+      } catch (e) {
+        if (e instanceof TypedError && e.type === 'NotEnoughAllowance') {
+          return this._signInAndSetCallMethod(contractName, methodName, args, gas, deposit)
+        } else {
+          throw e
+        }
       }
     }
 
@@ -102,21 +111,39 @@ export class NearSigner {
     return new KeyStorage(this._jsonStorage, `${contractId}:keystore:`)
   }
 
-  private async _createWalletConnectionForContract(contractId: string) {
+  private async _createConnectionForContract(contractId: string) {
     const keyStore = this._getKeyStoreForContract(contractId)
+
+    const loggedInAccountId = await this.getAccountId()
+
+    if (!loggedInAccountId) throw new Error('Not logged in')
+
+    const keyForContract = await keyStore.getKey(this._nearConfig.networkId, loggedInAccountId)
+
+    if (!keyForContract) return null
 
     const near = await nearAPI.connect({
       keyStore,
-      // walletUrl: wallet.metadata.walletUrl,
-      networkId: 'mainnet', // ToDo: parametrize
+      networkId: this._nearConfig.networkId,
       nodeUrl: this.provider.connection.url,
       headers: {},
     })
 
-    return new nearAPI.WalletConnection(near, contractId)
+    const account = await near.account(loggedInAccountId)
+
+    // two parameters of this methods are not implemented
+    // see more: https://github.com/near/near-api-js/blob/45cfbec891d996915c32f66d8ddcdca540ea3645/packages/accounts/src/account.ts#L231
+    const accessKey = await account.findAccessKey(contractId, [])
+
+    // key doesn't exist
+    if (!accessKey) {
+      return null
+    }
+
+    return account
   }
 
-  private async _signInAndSetPendingTransaction(
+  private async _signInAndSetCallMethod(
     contractName: string,
     methodName: string,
     args: any,
@@ -124,7 +151,9 @@ export class NearSigner {
     deposit?: string
   ) {
     const keyPair = nearAPI.utils.KeyPair.fromRandom('ed25519')
-    const accessKey = nearAPI.transactions.functionCallAccessKey(contractName, [])
+    const allowance = nearAPI.utils.format.parseNearAmount('0.25')
+    // @ts-ignore
+    const accessKey = nearAPI.transactions.functionCallAccessKey(contractName, [], allowance)
 
     const publicKey = keyPair.getPublicKey()
     const wallet = await this._selector.wallet()
