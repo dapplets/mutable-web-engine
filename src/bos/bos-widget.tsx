@@ -91,6 +91,7 @@ export class BosComponent extends HTMLElement {
     // For external bootstrap styles
     this._styleLibraryMountPoint.rel = 'stylesheet'
     this._shadowRoot.appendChild(this._styleLibraryMountPoint)
+    this._componentMountPoint.setAttribute('data-bs-theme', 'light')
 
     // For full-width components
     this._componentMountPoint.style.flex = '1'
