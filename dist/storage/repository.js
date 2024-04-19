@@ -27,16 +27,16 @@ class Repository {
             return this._set(FAVORITE_MUTATION, mutationId);
         });
     }
-    getMutationLastUsage(mutationId) {
+    getMutationLastUsage(mutationId, hostname) {
         return __awaiter(this, void 0, void 0, function* () {
             var _a;
-            const key = this._makeKey(MUTATION_LAST_USAGE, mutationId);
+            const key = this._makeKey(MUTATION_LAST_USAGE, mutationId, hostname);
             return ((_a = this._get(key)) !== null && _a !== void 0 ? _a : null);
         });
     }
-    setMutationLastUsage(mutationId, value) {
+    setMutationLastUsage(mutationId, value, hostname) {
         return __awaiter(this, void 0, void 0, function* () {
-            const key = this._makeKey(MUTATION_LAST_USAGE, mutationId);
+            const key = this._makeKey(MUTATION_LAST_USAGE, mutationId, hostname);
             return this._set(key, value);
         });
     }

@@ -19,13 +19,17 @@ export class Repository {
     return this._set(FAVORITE_MUTATION, mutationId)
   }
 
-  async getMutationLastUsage(mutationId: string): Promise<string | null> {
-    const key = this._makeKey(MUTATION_LAST_USAGE, mutationId)
+  async getMutationLastUsage(mutationId: string, hostname: string): Promise<string | null> {
+    const key = this._makeKey(MUTATION_LAST_USAGE, mutationId, hostname)
     return (this._get(key) ?? null) as Promise<string | null>
   }
 
-  async setMutationLastUsage(mutationId: string, value: string | null): Promise<void> {
-    const key = this._makeKey(MUTATION_LAST_USAGE, mutationId)
+  async setMutationLastUsage(
+    mutationId: string,
+    value: string | null,
+    hostname: string
+  ): Promise<void> {
+    const key = this._makeKey(MUTATION_LAST_USAGE, mutationId, hostname)
     return this._set(key, value)
   }
 

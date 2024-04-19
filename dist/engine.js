@@ -35,6 +35,7 @@ const bos_parser_1 = require("./core/parsers/bos-parser");
 const pure_context_node_1 = require("./core/tree/pure-tree/pure-context-node");
 const repository_1 = require("./storage/repository");
 const json_storage_1 = require("./storage/json-storage");
+const overlay_1 = require("./bos/overlay");
 var AdapterType;
 (function (AdapterType) {
     AdapterType["Bos"] = "bos";
@@ -57,10 +58,42 @@ class Engine {
         this.adapters = new Set();
         this.treeBuilder = null;
         this.started = false;
+        this.getLastUsedMutation = () => __awaiter(this, void 0, void 0, function* () {
+            const allMutations = yield this.getMutations();
+            console.log('allMutations', allMutations);
+            const hostname = window.location.hostname;
+            console.log('hostname', hostname);
+            const lastUsedData = yield Promise.all(allMutations.map((m) => __awaiter(this, void 0, void 0, function* () {
+                return ({
+                    id: m.id,
+                    lastUsage: yield __classPrivateFieldGet(this, _Engine_repository, "f").getMutationLastUsage(m.id, hostname),
+                });
+            })));
+            console.log('lastUsedData', lastUsedData);
+            const usedMutationsData = lastUsedData
+                .filter((m) => m.lastUsage)
+                .map((m) => ({ id: m.id, lastUsage: new Date(m.lastUsage).getTime() }));
+            console.log('usedMutationsData', usedMutationsData);
+            if (usedMutationsData === null || usedMutationsData === void 0 ? void 0 : usedMutationsData.length) {
+                if (usedMutationsData.length === 1)
+                    return usedMutationsData[0].id;
+                let lastMutationId = usedMutationsData[0].id;
+                for (let i = 1; i < usedMutationsData.length; i++) {
+                    if (usedMutationsData[i].lastUsage > usedMutationsData[i - 1].lastUsage) {
+                        lastMutationId = usedMutationsData[i].id;
+                    }
+                }
+                console.log('lastMutationId', lastMutationId);
+                return lastMutationId;
+            }
+            else {
+                // Activate default mutation for new users
+                return __classPrivateFieldGet(this, _Engine_nearConfig, "f").defaultMutationId;
+            }
+        });
         __classPrivateFieldSet(this, _Engine_bosWidgetFactory, new bos_widget_factory_1.BosWidgetFactory({
-            networkId: this.config.networkId,
-            selector: this.config.selector,
             tagName: (_a = this.config.bosElementName) !== null && _a !== void 0 ? _a : 'bos-component',
+            bosElementStyleSrc: this.config.bosElementStyleSrc,
         }), "f");
         __classPrivateFieldSet(this, _Engine_selector, this.config.selector, "f");
         const nearConfig = (0, constants_1.getNearConfig)(this.config.networkId);
@@ -69,6 +102,13 @@ class Engine {
         __classPrivateFieldSet(this, _Engine_mutationManager, new mutation_manager_1.MutationManager(__classPrivateFieldGet(this, _Engine_provider, "f")), "f");
         __classPrivateFieldSet(this, _Engine_nearConfig, nearConfig, "f");
         __classPrivateFieldSet(this, _Engine_repository, new repository_1.Repository(new json_storage_1.JsonStorage(this.config.storage)), "f");
+        // ToDo: refactor this hack. Maybe extract ShadowDomWrapper as customElement to initNear
+        if (config.bosElementStyleSrc) {
+            const externalStyleLink = document.createElement('link');
+            externalStyleLink.rel = 'stylesheet';
+            externalStyleLink.href = config.bosElementStyleSrc;
+            overlay_1.shadowRoot.appendChild(externalStyleLink);
+        }
     }
     handleContextStarted(context) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -121,7 +161,9 @@ class Engine {
         return __awaiter(this, void 0, void 0, function* () {
             var _a;
             if (mutationId === undefined) {
-                mutationId = yield this.getFavoriteMutation();
+                const favouriteMutationId = yield this.getFavoriteMutation();
+                mutationId = favouriteMutationId || (yield this.getLastUsedMutation());
+                console.log('mutationId', mutationId);
             }
             if (mutationId !== null) {
                 const mutations = yield this.getMutations();
@@ -131,7 +173,7 @@ class Engine {
                     yield __classPrivateFieldGet(this, _Engine_mutationManager, "f").switchMutation(mutation);
                     // save last usage
                     const currentDate = new Date().toISOString();
-                    yield __classPrivateFieldGet(this, _Engine_repository, "f").setMutationLastUsage(mutation.id, currentDate);
+                    yield __classPrivateFieldGet(this, _Engine_repository, "f").setMutationLastUsage(mutation.id, currentDate, window.location.hostname);
                 }
                 else {
                     console.error('No suitable mutations found');
@@ -235,16 +277,12 @@ class Engine {
     getFavoriteMutation() {
         return __awaiter(this, void 0, void 0, function* () {
             const value = yield __classPrivateFieldGet(this, _Engine_repository, "f").getFavoriteMutation();
-            // Activate default mutation for new users
-            if (value === undefined) {
-                return __classPrivateFieldGet(this, _Engine_nearConfig, "f").defaultMutationId;
-            }
-            return value;
+            return value !== null && value !== void 0 ? value : null;
         });
     }
     removeMutationFromRecents(mutationId) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield __classPrivateFieldGet(this, _Engine_repository, "f").setMutationLastUsage(mutationId, null);
+            yield __classPrivateFieldGet(this, _Engine_repository, "f").setMutationLastUsage(mutationId, null, window.location.hostname);
         });
     }
     getApplications() {
@@ -315,7 +353,7 @@ class Engine {
     _populateMutationSettings(mutation) {
         return __awaiter(this, void 0, void 0, function* () {
             const isFavorite = (yield this.getFavoriteMutation()) === mutation.id;
-            const lastUsage = yield __classPrivateFieldGet(this, _Engine_repository, "f").getMutationLastUsage(mutation.id);
+            const lastUsage = yield __classPrivateFieldGet(this, _Engine_repository, "f").getMutationLastUsage(mutation.id, window.location.hostname);
             return Object.assign(Object.assign({}, mutation), { settings: {
                     isFavorite,
                     lastUsage,

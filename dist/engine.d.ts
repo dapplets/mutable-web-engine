@@ -14,6 +14,7 @@ export type EngineConfig = {
     selector: WalletSelector;
     storage: IStorage;
     bosElementName?: string;
+    bosElementStyleSrc?: string;
 };
 export declare class Engine implements IContextListener {
     #private;
@@ -27,6 +28,7 @@ export declare class Engine implements IContextListener {
     handleContextFinished(context: IContextNode): void;
     handleInsPointStarted(context: IContextNode, newInsPoint: string): void;
     handleInsPointFinished(context: IContextNode, oldInsPoint: string): void;
+    getLastUsedMutation: () => Promise<string | null>;
     start(mutationId?: string | null): Promise<void>;
     stop(): void;
     getMutations(): Promise<MutationWithSettings[]>;
