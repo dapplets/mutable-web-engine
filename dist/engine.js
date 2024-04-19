@@ -35,6 +35,7 @@ const bos_parser_1 = require("./core/parsers/bos-parser");
 const pure_context_node_1 = require("./core/tree/pure-tree/pure-context-node");
 const repository_1 = require("./storage/repository");
 const json_storage_1 = require("./storage/json-storage");
+const local_storage_1 = require("./storage/local-storage");
 const overlay_1 = require("./bos/overlay");
 var AdapterType;
 (function (AdapterType) {
@@ -58,50 +59,21 @@ class Engine {
         this.adapters = new Set();
         this.treeBuilder = null;
         this.started = false;
-        this.getLastUsedMutation = () => __awaiter(this, void 0, void 0, function* () {
-            const allMutations = yield this.getMutations();
-            console.log('allMutations', allMutations);
-            const hostname = window.location.hostname;
-            console.log('hostname', hostname);
-            const lastUsedData = yield Promise.all(allMutations.map((m) => __awaiter(this, void 0, void 0, function* () {
-                return ({
-                    id: m.id,
-                    lastUsage: yield __classPrivateFieldGet(this, _Engine_repository, "f").getMutationLastUsage(m.id, hostname),
-                });
-            })));
-            console.log('lastUsedData', lastUsedData);
-            const usedMutationsData = lastUsedData
-                .filter((m) => m.lastUsage)
-                .map((m) => ({ id: m.id, lastUsage: new Date(m.lastUsage).getTime() }));
-            console.log('usedMutationsData', usedMutationsData);
-            if (usedMutationsData === null || usedMutationsData === void 0 ? void 0 : usedMutationsData.length) {
-                if (usedMutationsData.length === 1)
-                    return usedMutationsData[0].id;
-                let lastMutationId = usedMutationsData[0].id;
-                for (let i = 1; i < usedMutationsData.length; i++) {
-                    if (usedMutationsData[i].lastUsage > usedMutationsData[i - 1].lastUsage) {
-                        lastMutationId = usedMutationsData[i].id;
-                    }
-                }
-                console.log('lastMutationId', lastMutationId);
-                return lastMutationId;
-            }
-            else {
-                // Activate default mutation for new users
-                return __classPrivateFieldGet(this, _Engine_nearConfig, "f").defaultMutationId;
-            }
-        });
+        if (!this.config.storage) {
+            this.config.storage = new local_storage_1.LocalStorage('mutable-web-engine');
+        }
         __classPrivateFieldSet(this, _Engine_bosWidgetFactory, new bos_widget_factory_1.BosWidgetFactory({
             tagName: (_a = this.config.bosElementName) !== null && _a !== void 0 ? _a : 'bos-component',
             bosElementStyleSrc: this.config.bosElementStyleSrc,
         }), "f");
         __classPrivateFieldSet(this, _Engine_selector, this.config.selector, "f");
         const nearConfig = (0, constants_1.getNearConfig)(this.config.networkId);
-        const nearSigner = new near_signer_1.NearSigner(__classPrivateFieldGet(this, _Engine_selector, "f"), nearConfig.nodeUrl);
+        const jsonStorage = new json_storage_1.JsonStorage(this.config.storage);
+        __classPrivateFieldSet(this, _Engine_nearConfig, nearConfig, "f");
+        __classPrivateFieldSet(this, _Engine_repository, new repository_1.Repository(jsonStorage), "f");
+        const nearSigner = new near_signer_1.NearSigner(__classPrivateFieldGet(this, _Engine_selector, "f"), jsonStorage, nearConfig);
         __classPrivateFieldSet(this, _Engine_provider, new social_db_provider_1.SocialDbProvider(nearSigner, nearConfig.contractName), "f");
         __classPrivateFieldSet(this, _Engine_mutationManager, new mutation_manager_1.MutationManager(__classPrivateFieldGet(this, _Engine_provider, "f")), "f");
-        __classPrivateFieldSet(this, _Engine_nearConfig, nearConfig, "f");
-        __classPrivateFieldSet(this, _Engine_repository, new repository_1.Repository(new json_storage_1.JsonStorage(this.config.storage)), "f");
         // ToDo: refactor this hack. Maybe extract ShadowDomWrapper as customElement to initNear
         if (config.bosElementStyleSrc) {
             const externalStyleLink = document.createElement('link');
