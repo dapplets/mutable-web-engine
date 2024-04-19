@@ -59,6 +59,34 @@ class Engine {
         this.adapters = new Set();
         this.treeBuilder = null;
         this.started = false;
+        this.getLastUsedMutation = () => __awaiter(this, void 0, void 0, function* () {
+            const allMutations = yield this.getMutations();
+            const hostname = window.location.hostname;
+            const lastUsedData = yield Promise.all(allMutations.map((m) => __awaiter(this, void 0, void 0, function* () {
+                return ({
+                    id: m.id,
+                    lastUsage: yield __classPrivateFieldGet(this, _Engine_repository, "f").getMutationLastUsage(m.id, hostname),
+                });
+            })));
+            const usedMutationsData = lastUsedData
+                .filter((m) => m.lastUsage)
+                .map((m) => ({ id: m.id, lastUsage: new Date(m.lastUsage).getTime() }));
+            if (usedMutationsData === null || usedMutationsData === void 0 ? void 0 : usedMutationsData.length) {
+                if (usedMutationsData.length === 1)
+                    return usedMutationsData[0].id;
+                let lastMutationId = usedMutationsData[0].id;
+                for (let i = 1; i < usedMutationsData.length; i++) {
+                    if (usedMutationsData[i].lastUsage > usedMutationsData[i - 1].lastUsage) {
+                        lastMutationId = usedMutationsData[i].id;
+                    }
+                }
+                return lastMutationId;
+            }
+            else {
+                // Activate default mutation for new users
+                return __classPrivateFieldGet(this, _Engine_nearConfig, "f").defaultMutationId;
+            }
+        });
         if (!this.config.storage) {
             this.config.storage = new local_storage_1.LocalStorage('mutable-web-engine');
         }
@@ -133,9 +161,7 @@ class Engine {
         return __awaiter(this, void 0, void 0, function* () {
             var _a;
             if (mutationId === undefined) {
-                const favouriteMutationId = yield this.getFavoriteMutation();
-                mutationId = favouriteMutationId || (yield this.getLastUsedMutation());
-                console.log('mutationId', mutationId);
+                mutationId = (yield this.getFavoriteMutation()) || (yield this.getLastUsedMutation());
             }
             if (mutationId !== null) {
                 const mutations = yield this.getMutations();
