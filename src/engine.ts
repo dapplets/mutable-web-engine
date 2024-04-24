@@ -9,7 +9,13 @@ import {
   ParserConfig,
 } from './providers/provider'
 import { WalletSelector } from '@near-wallet-selector/core'
-import { NearConfig, bosLoaderUrl, getNearConfig } from './constants'
+import {
+  NearConfig,
+  ViewportElementId,
+  ViewportInnerElementId,
+  bosLoaderUrl,
+  getNearConfig,
+} from './constants'
 import { NearSigner } from './providers/near-signer'
 import { SocialDbProvider } from './providers/social-db-provider'
 import { IContextListener, IContextNode, ITreeBuilder } from './core/tree/types'
@@ -23,7 +29,6 @@ import { IStorage } from './storage/storage'
 import { Repository } from './storage/repository'
 import { JsonStorage } from './storage/json-storage'
 import { LocalStorage } from './storage/local-storage'
-import { shadowRoot as overlayShadowRoot } from './bos/overlay'
 
 export enum AdapterType {
   Bos = 'bos',
@@ -50,6 +55,7 @@ export class Engine implements IContextListener {
   #redirectMap: any = null
   #devModePollingTimer: number | null = null
   #repository: Repository
+  #viewport: HTMLDivElement | null = null
 
   adapters: Set<IAdapter> = new Set()
   treeBuilder: ITreeBuilder | null = null
@@ -72,14 +78,6 @@ export class Engine implements IContextListener {
     const nearSigner = new NearSigner(this.#selector, jsonStorage, nearConfig)
     this.#provider = new SocialDbProvider(nearSigner, nearConfig.contractName)
     this.#mutationManager = new MutationManager(this.#provider)
-
-    // ToDo: refactor this hack. Maybe extract ShadowDomWrapper as customElement to initNear
-    if (config.bosElementStyleSrc) {
-      const externalStyleLink = document.createElement('link')
-      externalStyleLink.rel = 'stylesheet'
-      externalStyleLink.href = config.bosElementStyleSrc
-      overlayShadowRoot.appendChild(externalStyleLink)
-    }
   }
 
   async handleContextStarted(context: IContextNode): Promise<void> {
@@ -130,7 +128,7 @@ export class Engine implements IContextListener {
   handleContextFinished(context: IContextNode): void {
     if (!this.started) return
 
-    this.#contextManagers.get(context)?.destroy();
+    this.#contextManagers.get(context)?.destroy()
     this.#contextManagers.delete(context)
   }
 
@@ -166,6 +164,7 @@ export class Engine implements IContextListener {
     this.treeBuilder = new PureTreeBuilder(this)
     this.started = true
 
+    this._attachViewport()
     this._updateRootContext()
 
     console.log('Mutable Web Engine started!', {
@@ -181,6 +180,7 @@ export class Engine implements IContextListener {
     this.adapters.clear()
     this.#contextManagers.clear()
     this.treeBuilder = null
+    this._detachViewport()
   }
 
   async getMutations(): Promise<MutationWithSettings[]> {
@@ -365,6 +365,48 @@ export class Engine implements IContextListener {
         isFavorite,
         lastUsage,
       },
+    }
+  }
+
+  private _attachViewport() {
+    if (this.#viewport) throw new Error('Already attached')
+
+    const viewport = document.createElement('div')
+    viewport.id = ViewportElementId
+    const shadowRoot = viewport.attachShadow({ mode: 'open' })
+
+    // It will prevent inheritance without affecting other CSS defined within the ShadowDOM.
+    // https://stackoverflow.com/a/68062098
+    const disableCssInheritanceStyle = document.createElement('style')
+    disableCssInheritanceStyle.innerHTML = ':host { all: initial; }'
+    shadowRoot.appendChild(disableCssInheritanceStyle)
+
+    if (this.config.bosElementStyleSrc) {
+      const externalStyleLink = document.createElement('link')
+      externalStyleLink.rel = 'stylesheet'
+      externalStyleLink.href = this.config.bosElementStyleSrc
+      shadowRoot.appendChild(externalStyleLink)
+    }
+
+    const viewportInner = document.createElement('div')
+    viewportInner.id = ViewportInnerElementId
+    viewportInner.setAttribute('data-bs-theme', 'light') // ToDo: parametrize
+    shadowRoot.appendChild(viewportInner)
+
+    // Prevent event propagation from BOS-component to parent
+    const EventsToStopPropagation = ['click', 'keydown', 'keyup', 'keypress']
+    EventsToStopPropagation.forEach((eventName) => {
+      viewport.addEventListener(eventName, (e) => e.stopPropagation())
+    })
+
+    document.body.appendChild(viewport)
+
+    this.#viewport = viewport
+  }
+
+  private _detachViewport() {
+    if (this.#viewport) {
+      document.body.removeChild(this.#viewport)
     }
   }
 }
