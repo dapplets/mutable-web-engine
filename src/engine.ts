@@ -130,7 +130,7 @@ export class Engine implements IContextListener {
   handleContextFinished(context: IContextNode): void {
     if (!this.started) return
 
-    // ToDo: will layout managers be removed from the DOM?
+    this.#contextManagers.get(context)?.destroy();
     this.#contextManagers.delete(context)
   }
 
@@ -139,7 +139,7 @@ export class Engine implements IContextListener {
   }
 
   handleInsPointFinished(context: IContextNode, oldInsPoint: string): void {
-    // ToDo: do nothing because IP unmounted?
+    this.#contextManagers.get(context)?.destroyLayoutManager(oldInsPoint)
   }
 
   async start(mutationId?: string | null): Promise<void> {

@@ -137,6 +137,11 @@ export class ContextManager {
     }
   }
 
+  destroyLayoutManager(insPointName: string) {
+    this.#layoutManagers.get(insPointName)?.destroy()
+    this.#layoutManagers.delete(insPointName)
+  }
+
   destroy() {
     this.#layoutManagers.forEach((lm) => lm.destroy())
     this.#layoutManagers.clear()
