@@ -19,6 +19,7 @@ const StorageCostPerByte = Big(10).pow(19)
 const MinStorageBalance = StorageCostPerByte.mul(2000)
 const InitialAccountStorageBalance = StorageCostPerByte.mul(500)
 const ExtraStorageBalance = StorageCostPerByte.mul(500)
+const ExtraStorageForSession = Big(10).pow(22).mul(5) // 0.05 NEAR
 
 const isArray = (a: any): boolean => Array.isArray(a)
 
@@ -135,8 +136,8 @@ export class SocialDbClient {
     const accountStorage = await this._getAccountStorage(signedAccountId)
 
     const availableBytes = Big(accountStorage?.availableBytes || '0')
-    
-    let data = originalData;
+
+    let data = originalData
     const currentData = await this._fetchCurrentData(data)
     data = removeDuplicates(data, currentData)
 
@@ -146,10 +147,15 @@ export class SocialDbClient {
       .add(accountStorage ? Big(0) : InitialAccountStorageBalance)
       .add(ExtraStorageBalance)
 
-    const deposit = bigMax(
+    let deposit = bigMax(
       expectedDataBalance.sub(availableBytes.mul(StorageCostPerByte)),
       !accountStorage ? MinStorageBalance : Big(0)
     )
+
+    // If deposit required add extra deposit to avoid future wallet TX confirmation
+    if (!deposit.eq(Big(0))) {
+      deposit = deposit.add(ExtraStorageForSession)
+    }
 
     await this._signer.call(
       this._contractName,
