@@ -135,12 +135,12 @@ export class SocialDbClient {
     const accountStorage = await this._getAccountStorage(signedAccountId)
 
     const availableBytes = Big(accountStorage?.availableBytes || '0')
-    let data = {
-      [accountId]: convertToStringLeaves(originalData),
-    }
-
+    
+    let data = originalData;
     const currentData = await this._fetchCurrentData(data)
     data = removeDuplicates(data, currentData)
+
+    // ToDo: check is_write_permission_granted
 
     const expectedDataBalance = StorageCostPerByte.mul(estimateDataSize(data, currentData))
       .add(accountStorage ? Big(0) : InitialAccountStorageBalance)
@@ -148,7 +148,7 @@ export class SocialDbClient {
 
     const deposit = bigMax(
       expectedDataBalance.sub(availableBytes.mul(StorageCostPerByte)),
-      !accountStorage ? MinStorageBalance : Big(1)
+      !accountStorage ? MinStorageBalance : Big(0)
     )
 
     await this._signer.call(
