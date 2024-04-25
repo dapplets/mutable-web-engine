@@ -95,7 +95,7 @@ export class BosComponent extends HTMLElement {
 
     // For full-width components
     this._componentMountPoint.style.flex = '1'
-
+    this._componentMountPoint.style.height = '1px'
     // Initial render
     this._render()
   }
@@ -107,7 +107,12 @@ export class BosComponent extends HTMLElement {
   _render() {
     this._root.render(
       <StyleSheetManager target={this._stylesMountPoint}>
-        <Widget src={this.#src} props={this.#props} config={{ redirectMap: this.#redirectMap }} />
+        <Widget
+          src={this.#src}
+          props={this.#props}
+          config={{ redirectMap: this.#redirectMap }}
+          loading={<></>}
+        />
       </StyleSheetManager>
     )
   }
