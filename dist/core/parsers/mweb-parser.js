@@ -4,7 +4,6 @@ exports.MutableWebParser = void 0;
 const utils_1 = require("./utils");
 const PROPS_ATTR = 'data-mweb-context-parsed';
 const TYPE_ATTR = 'data-mweb-context-type';
-const ID_ATTR = 'data-mweb-context-id';
 const INS_ATTR = 'data-mweb-insertion-point';
 const SHADOW_HOST = 'data-mweb-shadow-host';
 class MutableWebParser {

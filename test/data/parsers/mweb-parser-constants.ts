@@ -6,7 +6,6 @@ mwebParserElement.innerHTML = `
 <article
   id="article-1"
   data-mweb-context-type="article"
-  data-mweb-context-id="1"
   data-mweb-context-parsed='{"text":"Article 1"}'
 >
   <p>Article 1</p>
@@ -17,7 +16,6 @@ mwebParserElement.innerHTML = `
 <article
   id="article-2"
   data-mweb-context-type="article"
-  data-mweb-context-id="2"
   data-mweb-context-parsed='{"text":"Article 2"}'
 >
   <p>Article 2</p>
@@ -34,7 +32,6 @@ shadowElement.innerHTML = `
 <article
   id="article-3"
   data-mweb-context-type="article"
-  data-mweb-context-id="3"
   data-mweb-context-parsed='{"text":"Article 3"}'
 >
   <p>Article 3</p>
