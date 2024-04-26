@@ -21,7 +21,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
 };
 var _Engine_provider, _Engine_bosWidgetFactory, _Engine_selector, _Engine_contextManagers, _Engine_mutationManager, _Engine_nearConfig, _Engine_redirectMap, _Engine_devModePollingTimer, _Engine_repository;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Engine = exports.AdapterType = void 0;
+exports.Engine = void 0;
 const dynamic_html_adapter_1 = require("./core/adapters/dynamic-html-adapter");
 const bos_widget_factory_1 = require("./bos/bos-widget-factory");
 const constants_1 = require("./constants");
@@ -32,17 +32,12 @@ const context_manager_1 = require("./context-manager");
 const mutation_manager_1 = require("./mutation-manager");
 const json_parser_1 = require("./core/parsers/json-parser");
 const bos_parser_1 = require("./core/parsers/bos-parser");
+const mweb_parser_1 = require("./core/parsers/mweb-parser");
 const pure_context_node_1 = require("./core/tree/pure-tree/pure-context-node");
 const repository_1 = require("./storage/repository");
 const json_storage_1 = require("./storage/json-storage");
 const local_storage_1 = require("./storage/local-storage");
 const overlay_1 = require("./bos/overlay");
-var AdapterType;
-(function (AdapterType) {
-    AdapterType["Bos"] = "bos";
-    AdapterType["Microdata"] = "microdata";
-    AdapterType["Json"] = "json";
-})(AdapterType || (exports.AdapterType = AdapterType = {}));
 class Engine {
     constructor(config) {
         var _a;
@@ -110,6 +105,12 @@ class Engine {
             overlay_1.shadowRoot.appendChild(externalStyleLink);
         }
     }
+    createMWebAdapter() {
+        if (!this.treeBuilder) {
+            throw new Error('Tree builder is not inited');
+        }
+        return new dynamic_html_adapter_1.DynamicHtmlAdapter(document.body, this.treeBuilder, 'mweb', new mweb_parser_1.MutableWebParser());
+    }
     handleContextStarted(context) {
         return __awaiter(this, void 0, void 0, function* () {
             // if (!this.started) return;
@@ -132,7 +133,9 @@ class Engine {
             const contextManager = new context_manager_1.ContextManager(context, adapter, __classPrivateFieldGet(this, _Engine_bosWidgetFactory, "f"), __classPrivateFieldGet(this, _Engine_mutationManager, "f"), __classPrivateFieldGet(this, _Engine_nearConfig, "f").defaultLayoutManager);
             __classPrivateFieldGet(this, _Engine_contextManagers, "f").set(context, contextManager);
             const links = yield __classPrivateFieldGet(this, _Engine_mutationManager, "f").getLinksForContext(context);
+            console.log('links', links);
             const apps = __classPrivateFieldGet(this, _Engine_mutationManager, "f").filterSuitableApps(context);
+            console.log('apps', apps);
             links.forEach((link) => contextManager.addUserLink(link));
             apps.forEach((app) => contextManager.addAppMetadata(app));
             contextManager.setRedirectMap(__classPrivateFieldGet(this, _Engine_redirectMap, "f"));
@@ -180,6 +183,9 @@ class Engine {
             this.treeBuilder = new pure_tree_builder_1.PureTreeBuilder(this);
             this.started = true;
             this._updateRootContext();
+            const adapter = this.createMWebAdapter();
+            this.registerAdapter(adapter);
+            console.log(`[MutableWeb] Loaded new adapter: MWeb`);
             console.log('Mutable Web Engine started!', {
                 engine: this,
                 provider: __classPrivateFieldGet(this, _Engine_provider, "f"),

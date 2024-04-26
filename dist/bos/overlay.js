@@ -43,7 +43,7 @@ overlay.style.fontFamily =
     '-apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif';
 overlay.style.zIndex = '2147483647';
 overlay.style.visibility = 'visible';
-const shadowRoot = overlay.attachShadow({ mode: 'closed' });
+const shadowRoot = overlay.attachShadow({ mode: 'open' });
 exports.shadowRoot = shadowRoot;
 const stylesMountPoint = document.createElement('div');
 const container = document.createElement('div');

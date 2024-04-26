@@ -18,18 +18,13 @@ import { ContextManager } from './context-manager'
 import { MutationManager } from './mutation-manager'
 import { JsonParser } from './core/parsers/json-parser'
 import { BosParser } from './core/parsers/bos-parser'
+import { MutableWebParser } from './core/parsers/mweb-parser'
 import { PureContextNode } from './core/tree/pure-tree/pure-context-node'
 import { IStorage } from './storage/storage'
 import { Repository } from './storage/repository'
 import { JsonStorage } from './storage/json-storage'
 import { LocalStorage } from './storage/local-storage'
 import { shadowRoot as overlayShadowRoot } from './bos/overlay'
-
-export enum AdapterType {
-  Bos = 'bos',
-  Microdata = 'microdata',
-  Json = 'json',
-}
 
 export type EngineConfig = {
   networkId: string
@@ -82,6 +77,14 @@ export class Engine implements IContextListener {
     }
   }
 
+  createMWebAdapter(): IAdapter {
+    if (!this.treeBuilder) {
+      throw new Error('Tree builder is not inited')
+    }
+
+    return new DynamicHtmlAdapter(document.body, this.treeBuilder, 'mweb', new MutableWebParser())
+  }
+
   async handleContextStarted(context: IContextNode): Promise<void> {
     // if (!this.started) return;
     if (!context.id) return
@@ -114,7 +117,9 @@ export class Engine implements IContextListener {
     this.#contextManagers.set(context, contextManager)
 
     const links = await this.#mutationManager.getLinksForContext(context)
+    console.log('links', links)
     const apps = this.#mutationManager.filterSuitableApps(context)
+    console.log('apps', apps)
 
     links.forEach((link) => contextManager.addUserLink(link))
     apps.forEach((app) => contextManager.addAppMetadata(app))
@@ -198,6 +203,10 @@ export class Engine implements IContextListener {
     this.started = true
 
     this._updateRootContext()
+
+    const adapter = this.createMWebAdapter()
+    this.registerAdapter(adapter)
+    console.log(`[MutableWeb] Loaded new adapter: MWeb`)
 
     console.log('Mutable Web Engine started!', {
       engine: this,

@@ -3,11 +3,6 @@ import { AppMetadata, Mutation, MutationWithSettings, ParserConfig } from './pro
 import { WalletSelector } from '@near-wallet-selector/core';
 import { IContextListener, IContextNode, ITreeBuilder } from './core/tree/types';
 import { IStorage } from './storage/storage';
-export declare enum AdapterType {
-    Bos = "bos",
-    Microdata = "microdata",
-    Json = "json"
-}
 export type EngineConfig = {
     networkId: string;
     gatewayId: string;
@@ -23,6 +18,7 @@ export declare class Engine implements IContextListener {
     treeBuilder: ITreeBuilder | null;
     started: boolean;
     constructor(config: EngineConfig);
+    createMWebAdapter(): IAdapter;
     handleContextStarted(context: IContextNode): Promise<void>;
     handleContextChanged(context: IContextNode, oldParsedContext: any): void;
     handleContextFinished(context: IContextNode): void;

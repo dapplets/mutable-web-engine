@@ -50,6 +50,7 @@ export class SocialDbProvider implements IProvider {
   // #region Read methods
 
   async getParserConfig(globalParserId: string): Promise<ParserConfig | null> {
+    if (globalParserId === 'mweb') return null
     const { accountId, parserLocalId } = this._extractParserIdFromNamespace(globalParserId)
 
     const queryResult = await this.client.get([

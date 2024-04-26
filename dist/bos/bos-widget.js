@@ -44,7 +44,7 @@ const EventsToStopPropagation = ['click', 'keydown', 'keyup', 'keypress'];
 class BosComponent extends HTMLElement {
     constructor() {
         super(...arguments);
-        this._shadowRoot = this.attachShadow({ mode: 'closed' });
+        this._shadowRoot = this.attachShadow({ mode: 'open' });
         this._styleLibraryMountPoint = document.createElement('link');
         this._adapterStylesMountPoint = document.createElement('style');
         this._stylesMountPoint = document.createElement('div');
@@ -98,6 +98,7 @@ class BosComponent extends HTMLElement {
         EventsToStopPropagation.forEach((eventName) => {
             this.addEventListener(eventName, (e) => e.stopPropagation());
         });
+        this.setAttribute('data-mweb-shadow-host', '');
         this._shadowRoot.appendChild(this._componentMountPoint);
         this._shadowRoot.appendChild(this._stylesMountPoint);
         // It will prevent inheritance without affecting other CSS defined within the ShadowDOM.

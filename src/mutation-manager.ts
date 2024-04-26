@@ -94,6 +94,7 @@ export class MutationManager {
       const suitableTargets = app.targets.filter((target) =>
         MutationManager._isTargetMet(target, context)
       )
+      console.log('suitableTargets', suitableTargets)
 
       // ToDo: batch requests
       suitableTargets.forEach((target) => {
@@ -223,7 +224,6 @@ export class MutationManager {
     if (!this.mutation) throw new Error('Mutation is not loaded')
 
     const indexObject = MutationManager._buildLinkIndex(appId, this.mutation.id, target, context)
-
     const indexedLinks = await this.#provider.getLinksByIndex(indexObject)
 
     return indexedLinks.map((link) => ({

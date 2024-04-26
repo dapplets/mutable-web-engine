@@ -70,6 +70,7 @@ class MutationManager {
             const promises = [];
             for (const app of __classPrivateFieldGet(this, _MutationManager_activeApps, "f")) {
                 const suitableTargets = app.targets.filter((target) => MutationManager._isTargetMet(target, context));
+                console.log('suitableTargets', suitableTargets);
                 // ToDo: batch requests
                 suitableTargets.forEach((target) => {
                     promises.push(this._getUserLinksForTarget(app.id, target, context));

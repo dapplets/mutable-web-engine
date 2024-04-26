@@ -52,6 +52,8 @@ class SocialDbProvider {
     getParserConfig(globalParserId) {
         return __awaiter(this, void 0, void 0, function* () {
             var _a, _b, _c, _d, _e;
+            if (globalParserId === 'mweb')
+                return null;
             const { accountId, parserLocalId } = this._extractParserIdFromNamespace(globalParserId);
             const queryResult = yield this.client.get([
                 `*/${SettingsKey}/${ProjectIdKey}/${ParserKey}/${parserLocalId}/**`,

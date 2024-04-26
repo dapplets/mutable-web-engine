@@ -102,9 +102,15 @@ class DynamicHtmlAdapter {
         return context;
     }
     _handleMutations(element, context) {
+        this.namespace === 'mweb' && console.log('--- _handleMutations:');
+        this.namespace === 'mweb' && console.log('element', element);
+        this.namespace === 'mweb' && console.log('context', context);
         const parsedContext = this.parser.parseContext(element, context.contextType);
+        this.namespace === 'mweb' && console.log('parsedContext', parsedContext);
         const pairs = this.parser.findChildElements(element, context.contextType);
+        this.namespace === 'mweb' && console.log('pairs', pairs);
         const insPoints = this._findAvailableInsPoints(element, context.contextType);
+        this.namespace === 'mweb' && console.log('insPoints', insPoints);
         this.treeBuilder.updateParsedContext(context, parsedContext);
         this.treeBuilder.updateInsertionPoints(context, insPoints);
         this._appendNewChildContexts(pairs, context);
