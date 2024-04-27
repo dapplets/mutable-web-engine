@@ -4,6 +4,7 @@ import { BosWidgetFactory } from './bos/bos-widget-factory'
 import {
   AppMetadata,
   IProvider,
+  InjectableTarget,
   Mutation,
   MutationWithSettings,
   ParserConfig,
@@ -45,6 +46,9 @@ export type EngineConfig = {
   bosElementStyleSrc?: string
 }
 
+// ToDo: dirty hack
+export let engineSingleton: Engine | null = null
+
 export class Engine implements IContextListener {
   #provider: IProvider
   #bosWidgetFactory: BosWidgetFactory
@@ -78,6 +82,8 @@ export class Engine implements IContextListener {
     const nearSigner = new NearSigner(this.#selector, jsonStorage, nearConfig)
     this.#provider = new SocialDbProvider(nearSigner, nearConfig.contractName)
     this.#mutationManager = new MutationManager(this.#provider)
+
+    engineSingleton = this
   }
 
   async handleContextStarted(context: IContextNode): Promise<void> {
@@ -251,7 +257,7 @@ export class Engine implements IContextListener {
     switch (config?.parserType) {
       case 'json':
         return new DynamicHtmlAdapter(
-          document.body,
+          document.documentElement,
           this.treeBuilder,
           config.id,
           new JsonParser(config as any) // ToDo: add try catch because config can be invalid
@@ -259,7 +265,7 @@ export class Engine implements IContextListener {
 
       case 'bos':
         return new DynamicHtmlAdapter(
-          document.body,
+          document.documentElement,
           this.treeBuilder,
           config.id,
           new BosParser(config as any)
@@ -314,6 +320,22 @@ export class Engine implements IContextListener {
     }
 
     return this._populateMutationSettings(mutation)
+  }
+
+  injectComponent<T>(target: InjectableTarget, cmp: React.FC<T>) {
+    this.#contextManagers.forEach((contextManager, context) => {
+      if (MutationManager._isTargetMet(target, context)) {
+        contextManager.injectComponent(target, cmp)
+      }
+    })
+  }
+
+  unjectComponent<T>(target: InjectableTarget, cmp: React.FC<T>) {
+    this.#contextManagers.forEach((contextManager, context) => {
+      if (MutationManager._isTargetMet(target, context)) {
+        contextManager.unjectComponent(target, cmp)
+      }
+    })
   }
 
   private async _tryFetchAndUpdateRedirects(polling: boolean) {
@@ -407,6 +429,7 @@ export class Engine implements IContextListener {
   private _detachViewport() {
     if (this.#viewport) {
       document.body.removeChild(this.#viewport)
+      this.#viewport = null
     }
   }
 }

@@ -1,11 +1,10 @@
 import { BosComponent } from './bos/bos-widget'
 import { ContextManager } from './context-manager'
 import { IContextNode } from './core/tree/types'
-import { AppId, AppMetadata, BosUserLink, UserLinkId } from './providers/provider'
+import { AppId, AppMetadata, BosUserLink, InjectableTarget, UserLinkId } from './providers/provider'
 
 export interface LayoutManagerProps {
-  context: any
-  contextType: string
+  context: ContextTreeProps
   apps: {
     id: string
     metadata?: {
@@ -28,6 +27,7 @@ export interface LayoutManagerProps {
       }
     }
   }[]
+  components: { target: InjectableTarget; component: React.FC<unknown> }[]
   isEditMode: boolean
   createUserLink: (bosWidgetId: string) => Promise<void>
   deleteUserLink: (userLinkId: UserLinkId) => Promise<void>
@@ -38,6 +38,7 @@ export interface LayoutManagerProps {
 interface ContextTreeProps {
   namespace: string | null
   type: string
+  id: string | null
   parsed: any
   parent: ContextTreeProps | null
 }
@@ -48,6 +49,7 @@ export class LayoutManager {
   #userLinks: Map<UserLinkId, BosUserLink & { isSuitable: boolean }> = new Map()
   #apps: Map<AppId, AppMetadata> = new Map()
   #isEditMode: boolean
+  #components = new Map<React.FC<unknown>, InjectableTarget>()
 
   constructor(layoutManager: BosComponent, contextManager: ContextManager) {
     this.#layoutManager = layoutManager
@@ -95,11 +97,14 @@ export class LayoutManager {
     const links = Array.from(this.#userLinks.values())
     const apps = Array.from(this.#apps.values())
     const pureContextTree = LayoutManager._buildContextTree(context)
+    const components = Array.from(this.#components.entries()).map(([component, target]) => ({
+      component,
+      target,
+    }))
 
     this._setProps({
       // ToDo: unify context forwarding
-      context: context.parsedContext, // ToDo: remove?
-      contextType: context.contextType, // ToDo: remove?
+      context: pureContextTree,
       apps: apps.map((app) => ({
         id: app.id,
         metadata: app.metadata,
@@ -117,6 +122,7 @@ export class LayoutManager {
         }, // ToDo: add props
         isSuitable: link.isSuitable, // ToDo: LM know about widgets from other LM
       })),
+      components: components,
       isEditMode: this.#isEditMode,
 
       // ToDo: move functions to separate api namespace?
@@ -125,6 +131,16 @@ export class LayoutManager {
       enableEditMode: this._enableEditMode.bind(this),
       disableEditMode: this._disableEditMode.bind(this),
     })
+  }
+
+  injectComponent<T>(target: InjectableTarget, cmp: React.FC<T>) {
+    this.#components.set(cmp as React.FC<unknown>, target)
+    this.forceUpdate()
+  }
+
+  unjectComponent<T>(_: InjectableTarget, cmp: React.FC<T>) {
+    this.#components.delete(cmp as React.FC<unknown>)
+    this.forceUpdate()
   }
 
   destroy() {
@@ -164,6 +180,7 @@ export class LayoutManager {
     return {
       namespace: context.namespace,
       type: context.contextType,
+      id: context.id,
       parsed: context.parsedContext,
       parent: context.parentNode ? this._buildContextTree(context.parentNode) : null,
     }

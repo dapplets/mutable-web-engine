@@ -8,6 +8,7 @@ import {
   AppMetadata,
   AppMetadataTarget,
   BosUserLink,
+  InjectableTarget,
   UserLinkId,
 } from './providers/provider'
 
@@ -145,6 +146,14 @@ export class ContextManager {
   destroy() {
     this.#layoutManagers.forEach((lm) => lm.destroy())
     this.#layoutManagers.clear()
+  }
+  
+  injectComponent<T>(target: InjectableTarget, cmp: React.FC<T>) {
+    this.#layoutManagers.get(target.injectTo)?.injectComponent(target, cmp)
+  }
+  
+  unjectComponent<T>(target: InjectableTarget, cmp: React.FC<T>) {
+    this.#layoutManagers.get(target.injectTo)?.unjectComponent(target, cmp)
   }
 
   private _isTargetInjectable(target: AppMetadataTarget, appId: string) {
