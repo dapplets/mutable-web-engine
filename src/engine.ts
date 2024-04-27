@@ -117,9 +117,7 @@ export class Engine implements IContextListener {
     this.#contextManagers.set(context, contextManager)
 
     const links = await this.#mutationManager.getLinksForContext(context)
-    console.log('links', links)
     const apps = this.#mutationManager.filterSuitableApps(context)
-    console.log('apps', apps)
 
     links.forEach((link) => contextManager.addUserLink(link))
     apps.forEach((app) => contextManager.addAppMetadata(app))

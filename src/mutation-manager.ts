@@ -94,7 +94,6 @@ export class MutationManager {
       const suitableTargets = app.targets.filter((target) =>
         MutationManager._isTargetMet(target, context)
       )
-      console.log('suitableTargets', suitableTargets)
 
       // ToDo: batch requests
       suitableTargets.forEach((target) => {
