@@ -133,9 +133,7 @@ class Engine {
             const contextManager = new context_manager_1.ContextManager(context, adapter, __classPrivateFieldGet(this, _Engine_bosWidgetFactory, "f"), __classPrivateFieldGet(this, _Engine_mutationManager, "f"), __classPrivateFieldGet(this, _Engine_nearConfig, "f").defaultLayoutManager);
             __classPrivateFieldGet(this, _Engine_contextManagers, "f").set(context, contextManager);
             const links = yield __classPrivateFieldGet(this, _Engine_mutationManager, "f").getLinksForContext(context);
-            console.log('links', links);
             const apps = __classPrivateFieldGet(this, _Engine_mutationManager, "f").filterSuitableApps(context);
-            console.log('apps', apps);
             links.forEach((link) => contextManager.addUserLink(link));
             apps.forEach((app) => contextManager.addAppMetadata(app));
             contextManager.setRedirectMap(__classPrivateFieldGet(this, _Engine_redirectMap, "f"));
