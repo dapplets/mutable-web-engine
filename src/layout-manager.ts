@@ -29,10 +29,14 @@ export interface LayoutManagerProps {
   }[]
   components: { target: InjectableTarget; component: React.FC<unknown> }[]
   isEditMode: boolean
+
   createUserLink: (bosWidgetId: string) => Promise<void>
   deleteUserLink: (userLinkId: UserLinkId) => Promise<void>
   enableEditMode: () => void
   disableEditMode: () => void
+
+  attachContextRef: (callback: (r: React.Component | Element | null | undefined) => void) => void
+  attachInsPointRef: (callback: (r: React.Component | Element | null | undefined) => void) => void
 }
 
 interface ContextTreeProps {
@@ -46,13 +50,22 @@ interface ContextTreeProps {
 export class LayoutManager {
   #contextManager: ContextManager
   #layoutManager: BosComponent
+  #contextElement: Element
+  #insPointElement: Element
   #userLinks: Map<UserLinkId, BosUserLink & { isSuitable: boolean }> = new Map()
   #apps: Map<AppId, AppMetadata> = new Map()
   #isEditMode: boolean
   #components = new Map<React.FC<unknown>, InjectableTarget>()
 
-  constructor(layoutManager: BosComponent, contextManager: ContextManager) {
+  constructor(
+    layoutManager: BosComponent,
+    contextElement: Element,
+    insPointElement: Element,
+    contextManager: ContextManager
+  ) {
     this.#layoutManager = layoutManager
+    this.#contextElement = contextElement
+    this.#insPointElement = insPointElement
     this.#contextManager = contextManager
     this.#isEditMode = false
     this.forceUpdate()
@@ -130,6 +143,10 @@ export class LayoutManager {
       deleteUserLink: this._deleteUserLink.bind(this),
       enableEditMode: this._enableEditMode.bind(this),
       disableEditMode: this._disableEditMode.bind(this),
+
+      // For OverlayTrigger
+      attachContextRef: this._attachContextRef.bind(this),
+      attachInsPointRef: this._attachInsPointRef.bind(this),
     })
   }
 
@@ -171,6 +188,14 @@ export class LayoutManager {
 
   _disableEditMode() {
     return this.#contextManager.disableEditMode()
+  }
+
+  _attachContextRef(callback: (r: React.Component | Element | null | undefined) => void) {
+    callback(this.#contextElement)
+  }
+
+  _attachInsPointRef(callback: (r: React.Component | Element | null | undefined) => void) {
+    callback(this.#insPointElement)
   }
 
   // Utils

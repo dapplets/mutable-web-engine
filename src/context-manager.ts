@@ -116,7 +116,23 @@ export class ContextManager {
     const bosWidgetId = insPoint.bosLayoutManager ?? this.#defaultLayoutManager
     const layoutManagerElement = this.#widgetFactory.createWidget(bosWidgetId)
 
-    const layoutManager = new LayoutManager(layoutManagerElement, this)
+    const contextElement = this.#adapter.getContextElement(this.context)
+    const insPointElement = this.#adapter.getInsertionPointElement(this.context, insPointName)
+
+    if (!contextElement) {
+      throw new Error('No context element found')
+    }
+
+    if (!insPointElement) {
+      throw new Error('No insertion point element found')
+    }
+
+    const layoutManager = new LayoutManager(
+      layoutManagerElement,
+      contextElement,
+      insPointElement,
+      this
+    )
 
     try {
       // Inject layout manager
@@ -147,11 +163,11 @@ export class ContextManager {
     this.#layoutManagers.forEach((lm) => lm.destroy())
     this.#layoutManagers.clear()
   }
-  
+
   injectComponent<T>(target: InjectableTarget, cmp: React.FC<T>) {
     this.#layoutManagers.get(target.injectTo)?.injectComponent(target, cmp)
   }
-  
+
   unjectComponent<T>(target: InjectableTarget, cmp: React.FC<T>) {
     this.#layoutManagers.get(target.injectTo)?.unjectComponent(target, cmp)
   }
