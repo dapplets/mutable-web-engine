@@ -57,6 +57,9 @@ export class Engine implements IContextListener {
   #repository: Repository
   #viewport: HTMLDivElement | null = null
 
+  // ToDo: duplcated in ContextManager and LayoutManager
+  #refComponents = new Map<React.FC<unknown>, InjectableTarget>()
+
   adapters: Set<IAdapter> = new Set()
   treeBuilder: ITreeBuilder | null = null
   started: boolean = false
@@ -117,6 +120,13 @@ export class Engine implements IContextListener {
     links.forEach((link) => contextManager.addUserLink(link))
     apps.forEach((app) => contextManager.addAppMetadata(app))
     contextManager.setRedirectMap(this.#redirectMap)
+
+    // Add existing React component refereneces from portals
+    this.#refComponents.forEach((target, cmp) => {
+      if (MutationManager._isTargetMet(target, context)) {
+        contextManager.injectComponent(target, cmp)
+      }
+    })
   }
 
   handleContextChanged(context: IContextNode, oldParsedContext: any): void {
@@ -202,6 +212,8 @@ export class Engine implements IContextListener {
       engine: this,
       provider: this.#provider,
     })
+
+    this.enableDevMode({ polling: true })
   }
 
   stop() {
@@ -351,6 +363,9 @@ export class Engine implements IContextListener {
   }
 
   injectComponent<T>(target: InjectableTarget, cmp: React.FC<T>) {
+    // save refs for future contexts
+    this.#refComponents.set(cmp as React.FC<unknown>, target)
+
     this.#contextManagers.forEach((contextManager, context) => {
       if (MutationManager._isTargetMet(target, context)) {
         contextManager.injectComponent(target, cmp)
@@ -359,6 +374,8 @@ export class Engine implements IContextListener {
   }
 
   unjectComponent<T>(target: InjectableTarget, cmp: React.FC<T>) {
+    this.#refComponents.delete(cmp as React.FC<unknown>)
+
     this.#contextManagers.forEach((contextManager, context) => {
       if (MutationManager._isTargetMet(target, context)) {
         contextManager.unjectComponent(target, cmp)

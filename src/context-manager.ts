@@ -26,6 +26,9 @@ export class ContextManager {
   #defaultLayoutManager: string
   #redirectMap: any = null
 
+  // ToDo: duplcated in ContextManager and LayoutManager
+  #refComponents = new Map<React.FC<unknown>, InjectableTarget>()
+
   constructor(
     context: IContextNode,
     adapter: IAdapter,
@@ -149,6 +152,13 @@ export class ContextManager {
       this.#apps.forEach((app) => layoutManager.addAppMetadata(app))
 
       layoutManager.setRedirectMap(this.#redirectMap)
+
+      // Add existing React component refereneces from portals
+      this.#refComponents.forEach((target, cmp) => {
+        if (target.injectTo === insPoint.name) {
+          layoutManager.injectComponent(target, cmp)
+        }
+      })
     } catch (err) {
       console.error(err)
     }
@@ -165,10 +175,13 @@ export class ContextManager {
   }
 
   injectComponent<T>(target: InjectableTarget, cmp: React.FC<T>) {
+    // save refs for future contexts
+    this.#refComponents.set(cmp as React.FC<unknown>, target)
     this.#layoutManagers.get(target.injectTo)?.injectComponent(target, cmp)
   }
 
   unjectComponent<T>(target: InjectableTarget, cmp: React.FC<T>) {
+    this.#refComponents.delete(cmp as React.FC<unknown>)
     this.#layoutManagers.get(target.injectTo)?.unjectComponent(target, cmp)
   }
 
