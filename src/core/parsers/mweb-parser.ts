@@ -1,46 +1,58 @@
 import { getChildContextElements } from './utils'
 import { IParser, InsertionPoint } from './interface'
 
-const PROPS_ATTR = 'data-mweb-context-parsed'
-const TYPE_ATTR = 'data-mweb-context-type'
-const INS_ATTR = 'data-mweb-insertion-point'
-const SHADOW_HOST = 'data-mweb-shadow-host'
+const ParsedContextAttr = 'data-mweb-context-parsed'
+const ContextTypeAttr = 'data-mweb-context-type'
+const InsPointAttr = 'data-mweb-insertion-point'
+const ShadowHostAttr = 'data-mweb-shadow-host'
 
 export class MutableWebParser implements IParser {
-  parseContext(element: Element) {
-    const dataStr = element.getAttribute(PROPS_ATTR)
-    return dataStr && JSON.parse(dataStr)
+  parseContext(element: Element, contextName: string) {
+    const json = element.getAttribute(ParsedContextAttr)
+    if (!json) return {}
+    return JSON.parse(json)
   }
 
   findChildElements(element: Element) {
-    return getChildContextElements(element, TYPE_ATTR).map((element) => ({
+    return getChildContextElements(element, ContextTypeAttr).map((element) => ({
       element,
-      contextName: element.getAttribute(TYPE_ATTR)!,
+      contextName: element.getAttribute(ContextTypeAttr)!,
     }))
   }
 
-  findInsertionPoint(element: Element, _: string, insertionPoint: string): Element | null {
-    const resEl = element.querySelector(`[${INS_ATTR}="${insertionPoint}"]`)
-    if (resEl) return resEl
-    if (element.hasAttribute(SHADOW_HOST) && element.shadowRoot)
-      return (
-        Array.from(element.shadowRoot.children)
-          .map((child) => this.findInsertionPoint(child, '', insertionPoint))
-          .find((el) => el) || null
+  findInsertionPoint(
+    element: Element | ShadowRoot,
+    contextName: string,
+    insertionPoint: string
+  ): Element | null {
+    // ToDo: use getChildContextElements
+
+    const insPointElement = element.querySelector(`[${InsPointAttr}="${insertionPoint}"]`)
+    if (insPointElement) return insPointElement
+
+    if (element instanceof Element && element.hasAttribute(ShadowHostAttr) && element.shadowRoot) {
+      return this.findInsertionPoint(element.shadowRoot, contextName, insertionPoint)
+    }
+
+    const shadowHosts = element.querySelectorAll(`[${ShadowHostAttr}]`)
+    for (const shadowHost of shadowHosts) {
+      if (!shadowHost.shadowRoot) continue
+
+      const insPointElement = this.findInsertionPoint(
+        shadowHost.shadowRoot,
+        contextName,
+        insertionPoint
       )
-    const els = element.querySelectorAll(`[${SHADOW_HOST}]`)
-    if (els && els.length)
-      return (
-        Array.from(els)
-          .map((el) => this.findInsertionPoint(el, '', insertionPoint))
-          .find((el) => el) || null
-      )
+
+      if (insPointElement) return insPointElement
+    }
+
     return null
   }
 
   getInsertionPoints(element: Element): InsertionPoint[] {
-    return getChildContextElements(element, INS_ATTR, [TYPE_ATTR]).map((el) => ({
-      name: el.getAttribute(INS_ATTR)!,
+    return getChildContextElements(element, InsPointAttr, ContextTypeAttr).map((el) => ({
+      name: el.getAttribute(InsPointAttr)!,
     }))
   }
 }

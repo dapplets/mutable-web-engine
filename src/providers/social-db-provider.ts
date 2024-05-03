@@ -278,7 +278,7 @@ export class SocialDbProvider implements IProvider {
       [SelfKey]: JSON.stringify({
         parserType: config.parserType,
         targets: config.targets,
-        contexts: config.contexts,
+        contexts: (config as any).contexts, // ToDo: types
       }),
     }
 

@@ -70,6 +70,7 @@ export class BosComponent extends HTMLElement {
       this.addEventListener(eventName, (e) => e.stopPropagation())
     })
 
+    // For mweb parser that looks for contexts in shadow dom
     this.setAttribute('data-mweb-shadow-host', '')
 
     this._shadowRoot.appendChild(this._componentMountPoint)

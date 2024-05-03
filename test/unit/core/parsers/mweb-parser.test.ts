@@ -43,7 +43,6 @@ describe('mutable web parser', () => {
         contextName: 'article',
       },
     ]
-    console.log('expected', expected)
 
     // Act
     const actual = mwebParser.findChildElements(element, 'root')
@@ -55,7 +54,6 @@ describe('mutable web parser', () => {
   it('should find insertionPoint northPanel', () => {
     // Arrange
     const expected = element.querySelector('#ins-point-1')
-    console.log('expected', expected)
 
     // Act
     const actual = mwebParser.findInsertionPoint(element, 'root', 'northPanel')
@@ -67,7 +65,6 @@ describe('mutable web parser', () => {
   it('should find insertionPoint southPanel', () => {
     // Arrange
     const expected = element.querySelector('#ins-point-2')
-    console.log('expected', expected)
 
     // Act
     const actual = mwebParser.findInsertionPoint(element, 'root', 'southPanel')
@@ -81,7 +78,6 @@ describe('mutable web parser', () => {
     const expected = element
       .querySelector('[data-mweb-shadow-host]')!
       .shadowRoot!.querySelector('#ins-point-3')
-    console.log('expected', expected)
 
     // Act
     const actual = mwebParser.findInsertionPoint(element, 'root', 'shadowPanel')

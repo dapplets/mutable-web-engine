@@ -1,5 +1,6 @@
 import { IContextNode } from './core/tree/types'
 import {
+  AdapterType,
   AppId,
   AppMetadata,
   AppMetadataTarget,
@@ -154,6 +155,19 @@ export class MutationManager {
     this.#activeApps = activeApps
     this.#activeParsers = activeParsers
     this.mutation = mutation
+
+    // MWeb parser is enabled by default
+    this.#activeParsers.push({
+      parserType: AdapterType.MWeb,
+      id: 'mweb',
+      targets: [
+        {
+          namespace: 'engine',
+          contextType: 'website',
+          if: { id: { not: null } },
+        },
+      ],
+    })
 
     console.log('Active apps: ', mutation.apps)
   }
