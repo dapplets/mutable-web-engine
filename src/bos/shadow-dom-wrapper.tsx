@@ -51,6 +51,13 @@ export const ShadowDomWrapper = React.forwardRef<HTMLDivElement, ShadowDomWrappe
           container.setAttribute('data-bs-theme', 'light')
         }
 
+        // For mweb parser that looks for contexts in shadow dom
+        myRef.current.setAttribute('data-mweb-shadow-host', '')
+
+        // Context cannot be a shadow root node because mutation observer doesn't work there
+        // So we need to select a child node for context
+        container.setAttribute('data-mweb-context-type', 'shadow-dom')
+
         shadowRoot.appendChild(container)
 
         // Prevent event propagation from BOS-component to parent
