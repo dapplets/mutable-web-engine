@@ -212,8 +212,6 @@ export class Engine implements IContextListener {
       engine: this,
       provider: this.#provider,
     })
-
-    this.enableDevMode({ polling: true })
   }
 
   stop() {
