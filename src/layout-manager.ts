@@ -161,6 +161,8 @@ export class LayoutManager {
   }
 
   destroy() {
+    this.#components.clear()
+    this.#layoutManager.disconnectedCallback?.() // ToDo: it should be called automatically
     this.#layoutManager.remove()
   }
 

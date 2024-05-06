@@ -172,6 +172,7 @@ export class ContextManager {
   destroy() {
     this.#layoutManagers.forEach((lm) => lm.destroy())
     this.#layoutManagers.clear()
+    this.#refComponents.clear()
   }
 
   injectComponent<T>(target: InjectableTarget, cmp: React.FC<T>) {
