@@ -403,7 +403,7 @@ export class Engine implements IContextListener {
       this.#contextManagers.forEach((cm) => cm.setRedirectMap(this.#redirectMap))
     } catch (err) {
       console.error(err)
-      this.disableDevMode()
+      // this.disableDevMode()
     }
   }
 
