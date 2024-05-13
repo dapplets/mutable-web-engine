@@ -113,12 +113,7 @@ export class BosComponent extends HTMLElement {
   _render() {
     this._root.render(
       <StyleSheetManager target={this._stylesMountPoint}>
-        <Widget
-          src={this.#src}
-          props={this.#props}
-          config={{ redirectMap: this.#redirectMap }}
-          loading={<></>}
-        />
+        <Widget src={this.#src} props={this.#props} config={{ redirectMap: this.#redirectMap }} />
       </StyleSheetManager>
     )
   }
