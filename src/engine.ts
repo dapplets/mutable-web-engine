@@ -441,6 +441,7 @@ export class Engine implements IContextListener {
 
     const viewport = document.createElement('div')
     viewport.id = ViewportElementId
+    viewport.setAttribute('data-mweb-shadow-host', '')
     const shadowRoot = viewport.attachShadow({ mode: 'open' })
 
     // It will prevent inheritance without affecting other CSS defined within the ShadowDOM.
