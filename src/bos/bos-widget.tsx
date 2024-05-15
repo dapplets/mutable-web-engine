@@ -86,7 +86,6 @@ export class BosComponent extends HTMLElement {
         justify-content: center;
         position: relative;
         visibility: visible !important;
-        z-index: 999999;
       }
     `
     this._adapterStylesMountPoint.innerHTML = resetCssRules
