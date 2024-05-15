@@ -460,6 +460,11 @@ export class Engine implements IContextListener {
     const viewportInner = document.createElement('div')
     viewportInner.id = ViewportInnerElementId
     viewportInner.setAttribute('data-bs-theme', 'light') // ToDo: parametrize
+
+    // Context cannot be a shadow root node because mutation observer doesn't work there
+    // So we need to select a child node for context
+    viewportInner.setAttribute('data-mweb-context-type', 'shadow-dom')
+
     shadowRoot.appendChild(viewportInner)
 
     // Prevent event propagation from BOS-component to parent

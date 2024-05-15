@@ -97,6 +97,10 @@ export class BosComponent extends HTMLElement {
     this._shadowRoot.appendChild(this._styleLibraryMountPoint)
     this._componentMountPoint.setAttribute('data-bs-theme', 'light')
 
+    // Context cannot be a shadow root node because mutation observer doesn't work there
+    // So we need to select a child node for context
+    this._componentMountPoint.setAttribute('data-mweb-context-type', 'shadow-dom')
+
     // For full-width components
     this._componentMountPoint.style.flex = '1'
 
