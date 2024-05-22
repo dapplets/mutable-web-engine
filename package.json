@@ -36,7 +36,8 @@
     "styled-components": "^6.1.8",
     "ts-jest": "^29.1.2",
     "typescript": "^5.3.3",
-    "react-bootstrap": "^2.5.0"
+    "react-bootstrap": "^2.5.0",
+    "@bos-web-engine/application": "file:../../near/react-on-chain/packages/application"
   },
   "peerDependencies": {
     "near-api-js": "^2.1.3",
@@ -44,12 +45,25 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "styled-components": "^5.3.6",
-    "react-bootstrap": "^2.5.0"
+    "react-bootstrap": "^2.5.0",
+    "@bos-web-engine/application": "file:../../near/react-on-chain/packages/application"
   },
   "dependencies": {
     "big.js": "^6.2.1",
     "caching-decorator": "^1.0.3",
     "js-sha256": "^0.11.0",
     "json-stringify-deterministic": "^1.0.12"
+  },
+  "resolutions": {
+    "@bos-web-engine/application": "file:../../near/react-on-chain/packages/application",
+    "@bos-web-engine/social-db": "file:../../near/react-on-chain/packages/social-db",
+    "@bos-web-engine/wallet-selector-control": "file:../../near/react-on-chain/packages/wallet-selector-control",
+    "@bos-web-engine/ui": "file:../../near/react-on-chain/packages/ui",
+    "@bos-web-engine/container": "file:../../near/react-on-chain/packages/container",
+    "@bos-web-engine/compiler": "file:../../near/react-on-chain/packages/compiler",
+    "@bos-web-engine/social-db-plugin": "file:../../near/react-on-chain/packages/social-db-plugin",
+    "@bos-web-engine/wallet-selector-plugin": "file:../../near/react-on-chain/packages/wallet-selector-plugin",
+    "@bos-web-engine/container-storage-plugin": "file:../../near/react-on-chain/packages/container-storage-plugin",
+    "@bos-web-engine/common": "file:../../near/react-on-chain/packages/common"
   }
 }

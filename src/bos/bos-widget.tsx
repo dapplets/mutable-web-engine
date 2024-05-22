@@ -1,9 +1,14 @@
 import * as React from 'react'
-import { Widget } from 'near-social-vm'
-import { StyleSheetManager } from 'styled-components'
 import { createRoot } from 'react-dom/client'
+import { ComponentTree, useWebEngine } from '@bos-web-engine/application'
 
 const EventsToStopPropagation = ['click', 'keydown', 'keyup', 'keypress']
+
+const Widget: React.FC<{ src: string }> = ({ src }) => {
+  const { components } = useWebEngine({ rootComponentPath: src })
+
+  return <ComponentTree rootComponentPath={src} components={components} />
+}
 
 export class BosComponent extends HTMLElement {
   private _shadowRoot = this.attachShadow({ mode: 'open' })
@@ -114,15 +119,6 @@ export class BosComponent extends HTMLElement {
   }
 
   _render() {
-    this._root.render(
-      <StyleSheetManager target={this._stylesMountPoint}>
-        <Widget
-          src={this.#src}
-          props={this.#props}
-          config={{ redirectMap: this.#redirectMap }}
-          loading={<></>}
-        />
-      </StyleSheetManager>
-    )
+    this._root.render(<Widget src={'nosql.near/Hello'} />)
   }
 }
