@@ -187,8 +187,18 @@ export class Engine implements IContextListener {
       const mutation = mutations.find((mutation) => mutation.id === mutationId) ?? null
 
       if (mutation) {
-        // load mutation and apps
+        // load mutation
         await this.#mutationManager.switchMutation(mutation)
+
+        // load non-disabled apps only
+        // await Promise.all(
+        //   mutation.apps.map(async (appId) => {
+        //     const isAppEnabled = await this.#repository.getAppEnabledStatus(mutation.id, appId)
+        //     if (!isAppEnabled) return
+
+        //     return this.#mutationManager.loadApp(appId)
+        //   })
+        // )
 
         // save last usage
         const currentDate = new Date().toISOString()
@@ -379,6 +389,30 @@ export class Engine implements IContextListener {
         contextManager.unjectComponent(target, cmp)
       }
     })
+  }
+
+  async enableApp(appId: string): Promise<void> {
+    const currentMutationId = this.#mutationManager.mutation?.id
+
+    if (!currentMutationId) {
+      throw new Error('Mutation is not active')
+    }
+
+    await this.#repository.setAppEnabledStatus(currentMutationId, appId, true)
+
+    await this.#mutationManager.loadApp(appId)
+  }
+
+  async disableApp(appId: string): Promise<void> {
+    const currentMutationId = this.#mutationManager.mutation?.id
+
+    if (!currentMutationId) {
+      throw new Error('Mutation is not active')
+    }
+
+    await this.#repository.setAppEnabledStatus(currentMutationId, appId, false)
+
+    await this.#mutationManager.unloadApp(appId)
   }
 
   private async _tryFetchAndUpdateRedirects(polling: boolean) {

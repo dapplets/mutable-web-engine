@@ -128,32 +128,12 @@ export class MutationManager {
   // #region Write methods
 
   async switchMutation(mutation: Mutation | null): Promise<void> {
-    if (!mutation) {
-      this.#activeApps = []
-      this.#activeParsers = []
-      this.mutation = null
+    this.#activeApps = []
+    this.#activeParsers = []
+    this.mutation = null
 
-      return
-    }
+    if (!mutation) return
 
-    const apps = await Promise.all(mutation.apps.map((app) => this.#provider.getApplication(app)))
-    const activeApps = apps.flatMap((app) => (app ? [app] : [])) // filter empty apps
-
-    // get parser ids from target namespaces
-    const parserIds = [
-      ...new Set(
-        activeApps
-          .map((app) => app.targets)
-          .flat()
-          .map((target) => target.namespace)
-      ),
-    ]
-
-    const parsers = await Promise.all(parserIds.map((id) => this.#provider.getParserConfig(id)))
-    const activeParsers = parsers.flatMap((parser) => (parser ? [parser] : [])) // filter empty parsers
-
-    this.#activeApps = activeApps
-    this.#activeParsers = activeParsers
     this.mutation = mutation
 
     // MWeb parser is enabled by default
@@ -168,8 +148,6 @@ export class MutationManager {
         },
       ],
     })
-
-    console.log('Active apps: ', mutation.apps)
   }
 
   async createLink(appGlobalId: AppId, context: IContextNode): Promise<BosUserLink> {
@@ -223,6 +201,52 @@ export class MutationManager {
 
   async deleteUserLink(userLinkId: UserLinkId): Promise<void> {
     return this.#provider.deleteUserLink(userLinkId)
+  }
+
+  public async loadApp(appId: string): Promise<void> {
+    const app = await this.#provider.getApplication(appId)
+
+    if (!app) {
+      throw new Error(`App doesn't exist: ${appId}`)
+    }
+
+    // get parser ids from target namespaces
+    const parserIds = [...new Set(app.targets.flat().map((target) => target.namespace))]
+    const parsers = await Promise.all(
+      parserIds.map(async (parserId) => {
+        const parser = await this.#provider.getParserConfig(parserId)
+
+        if (!parser) {
+          throw new Error(`Parser doesn't exist: ${parserId}. App will not be started: ${appId}`)
+        }
+
+        return parser
+      })
+    )
+
+    const isAppStarted = !!this.#activeApps.find((app) => app.id === appId)
+
+    if (isAppStarted) {
+      console.error(`App is started already: ${appId}`)
+      return
+    }
+
+    // ToDo: prevent parallel start/stop?
+    this.#activeApps.push(app)
+
+    const parsersToActivate = parsers.filter(
+      (parser) => !this.#activeParsers.find((_parser) => _parser.id === parser.id)
+    )
+    this.#activeParsers.push(...parsersToActivate)
+
+    console.log(`App loaded: ${appId}`)
+  }
+
+  public async unloadApp(appId: string): Promise<void> {
+    this.#activeApps = this.#activeApps.filter((app) => app.id !== appId)
+    // ToDo: remove related parsers
+
+    console.log(`App unloaded: ${appId}`)
   }
 
   // #endregion
