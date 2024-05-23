@@ -61,7 +61,7 @@ export class Engine implements IContextListener {
   // ToDo: duplcated in ContextManager and LayoutManager
   #refComponents = new Map<React.FC<unknown>, InjectableTarget>()
 
-  adapters: Set<IAdapter> = new Set()
+  adapters = new Map<string, IAdapter>()
   treeBuilder: ITreeBuilder | null = null
   started: boolean = false
 
@@ -91,17 +91,13 @@ export class Engine implements IContextListener {
     if (!context.id) return
 
     // We don't wait adapters here
-    // Find and load adapters for the given context
     const parserConfigs = this.#mutationManager.filterSuitableParsers(context)
     for (const config of parserConfigs) {
       const adapter = this.createAdapter(config)
       this.registerAdapter(adapter)
     }
 
-    // ToDo: do not iterate over all adapters
-    const adapter = Array.from(this.adapters).find((adapter) => {
-      return adapter.getInsertionPoints(context).length > 0
-    })
+    const adapter = this.adapters.get(context.namespace)
 
     if (!adapter) return
 
@@ -115,11 +111,8 @@ export class Engine implements IContextListener {
 
     this.#contextManagers.set(context, contextManager)
 
-    const links = await this.#mutationManager.getLinksForContext(context)
-    const apps = this.#mutationManager.filterSuitableApps(context)
+    await this._addAppsAndLinks(context)
 
-    links.forEach((link) => contextManager.addUserLink(link))
-    apps.forEach((app) => contextManager.addAppMetadata(app))
     contextManager.setRedirectMap(this.#redirectMap)
 
     // Add existing React component refereneces from portals
@@ -192,14 +185,14 @@ export class Engine implements IContextListener {
         await this.#mutationManager.switchMutation(mutation)
 
         // load non-disabled apps only
-        // await Promise.all(
-        //   mutation.apps.map(async (appId) => {
-        //     const isAppEnabled = await this.#repository.getAppEnabledStatus(mutation.id, appId)
-        //     if (!isAppEnabled) return
+        await Promise.all(
+          mutation.apps.map(async (appId) => {
+            const isAppEnabled = await this.#repository.getAppEnabledStatus(mutation.id, appId)
+            if (!isAppEnabled) return
 
-        //     return this.#mutationManager.loadApp(appId)
-        //   })
-        // )
+            return this.#mutationManager.loadApp(appId)
+          })
+        )
 
         // save last usage
         const currentDate = new Date().toISOString()
@@ -284,7 +277,7 @@ export class Engine implements IContextListener {
   registerAdapter(adapter: IAdapter) {
     if (!this.treeBuilder) throw new Error('Tree builder is not inited')
     this.treeBuilder.appendChild(this.treeBuilder.root, adapter.context)
-    this.adapters.add(adapter)
+    this.adapters.set(adapter.namespace, adapter)
     adapter.start()
     console.log(`[MutableWeb] Loaded new adapter: ${adapter.namespace}`)
   }
@@ -293,7 +286,7 @@ export class Engine implements IContextListener {
     if (!this.treeBuilder) throw new Error('Tree builder is not inited')
     adapter.stop()
     this.treeBuilder.removeChild(this.treeBuilder.root, adapter.context)
-    this.adapters.delete(adapter)
+    this.adapters.delete(adapter.namespace)
   }
 
   createAdapter(config: ParserConfig): IAdapter {
@@ -418,7 +411,7 @@ export class Engine implements IContextListener {
 
     await this.#repository.setAppEnabledStatus(currentMutationId, appId, true)
 
-    await this.#mutationManager.loadApp(appId)
+    await this._startApp(appId)
   }
 
   async disableApp(appId: string): Promise<void> {
@@ -430,7 +423,7 @@ export class Engine implements IContextListener {
 
     await this.#repository.setAppEnabledStatus(currentMutationId, appId, false)
 
-    await this.#mutationManager.unloadApp(appId)
+    await this._stopApp(appId)
   }
 
   private async _tryFetchAndUpdateRedirects(polling: boolean) {
@@ -548,5 +541,60 @@ export class Engine implements IContextListener {
       document.body.removeChild(this.#viewport)
       this.#viewport = null
     }
+  }
+
+  private async _startApp(appId: string): Promise<void> {
+    if (!this.treeBuilder) throw new Error('Engine is not started')
+
+    await this.#mutationManager.loadApp(appId)
+
+    await this._traverseContextTree(
+      (context) => this._addAppsAndLinks(context, [appId]),
+      this.treeBuilder.root
+    )
+  }
+
+  private async _stopApp(appId: string): Promise<void> {
+    if (!this.treeBuilder) throw new Error('Engine is not started')
+
+    await this._traverseContextTree(
+      (context) => this._removeAppsAndLinks(context, [appId]),
+      this.treeBuilder.root
+    )
+
+    await this.#mutationManager.unloadApp(appId)
+  }
+
+  private async _addAppsAndLinks(context: IContextNode, includedApps?: string[]) {
+    const contextManager = this.#contextManagers.get(context)
+
+    if (!contextManager) return
+
+    const links = await this.#mutationManager.getLinksForContext(context, includedApps)
+    const apps = this.#mutationManager.filterSuitableApps(context, includedApps)
+
+    links.forEach((link) => contextManager.addUserLink(link))
+    apps.forEach((app) => contextManager.addAppMetadata(app))
+  }
+
+  private async _removeAppsAndLinks(context: IContextNode, includedApps: string[]) {
+    const contextManager = this.#contextManagers.get(context)
+
+    if (!contextManager) return
+
+    const links = await this.#mutationManager.getLinksForContext(context, includedApps)
+
+    links.forEach((link) => contextManager.removeUserLink(link))
+    includedApps.forEach((appId) => contextManager.removeAppMetadata(appId))
+  }
+
+  private async _traverseContextTree(
+    callback: (context: IContextNode) => Promise<void>,
+    parent: IContextNode
+  ): Promise<void> {
+    await Promise.all([
+      callback(parent),
+      ...parent.children.map((child) => this._traverseContextTree(callback, child)),
+    ])
   }
 }

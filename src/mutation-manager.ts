@@ -15,6 +15,18 @@ import {
   UserLinkId,
 } from './providers/provider'
 
+const MWebParserConfig: ParserConfig = {
+  parserType: AdapterType.MWeb,
+  id: 'mweb',
+  targets: [
+    {
+      namespace: 'engine',
+      contextType: 'website',
+      if: { id: { not: null } },
+    },
+  ],
+}
+
 export type AppWithTargetLinks = AppMetadata & {
   targets: { links: BosUserLink[] }[]
 }
@@ -23,8 +35,8 @@ export class MutationManager {
   public mutation: Mutation | null = null
 
   #provider: IProvider
-  #activeApps: AppMetadata[] = []
-  #activeParsers: ParserConfig[] = []
+  #activeApps = new Map<string, AppMetadata>()
+  #activeParsers = new Map<string, ParserConfig>()
 
   constructor(provider: IProvider) {
     this.#provider = provider
@@ -35,7 +47,7 @@ export class MutationManager {
   async getAppsAndLinksForContext(context: IContextNode): Promise<AppWithTargetLinks[]> {
     const promises: Promise<AppWithTargetLinks>[] = []
 
-    for (const app of this.#activeApps) {
+    for (const app of this.#activeApps.values()) {
       const suitableTargets = app.targets.filter((target) =>
         MutationManager._isTargetMet(target, context)
       )
@@ -71,10 +83,14 @@ export class MutationManager {
   }
 
   // ToDo: replace with getAppsAndLinksForContext
-  filterSuitableApps(context: IContextNode): AppMetadata[] {
+  filterSuitableApps(context: IContextNode, includedApps?: string[]): AppMetadata[] {
     const suitableApps: AppMetadata[] = []
 
-    for (const app of this.#activeApps) {
+    const appsToCheck = includedApps
+      ? Array.from(this.#activeApps.values()).filter((app) => includedApps.includes(app.id))
+      : Array.from(this.#activeApps.values())
+
+    for (const app of appsToCheck) {
       const suitableTargets = app.targets.filter((target) =>
         MutationManager._isTargetMet(target, context)
       )
@@ -88,10 +104,14 @@ export class MutationManager {
   }
 
   // ToDo: replace with getAppsAndLinksForContext
-  async getLinksForContext(context: IContextNode): Promise<BosUserLink[]> {
+  async getLinksForContext(context: IContextNode, includedApps?: string[]): Promise<BosUserLink[]> {
     const promises: Promise<BosUserLink[]>[] = []
 
-    for (const app of this.#activeApps) {
+    const appsToCheck = includedApps
+      ? Array.from(this.#activeApps.values()).filter((app) => includedApps.includes(app.id))
+      : Array.from(this.#activeApps.values())
+
+    for (const app of appsToCheck) {
       const suitableTargets = app.targets.filter((target) =>
         MutationManager._isTargetMet(target, context)
       )
@@ -110,7 +130,7 @@ export class MutationManager {
   filterSuitableParsers(context: IContextNode): ParserConfig[] {
     const suitableParsers: ParserConfig[] = []
 
-    for (const parser of this.#activeParsers) {
+    for (const parser of this.#activeParsers.values()) {
       const suitableTargets = parser.targets.filter((target) =>
         MutationManager._isTargetMet(target, context)
       )
@@ -128,8 +148,8 @@ export class MutationManager {
   // #region Write methods
 
   async switchMutation(mutation: Mutation | null): Promise<void> {
-    this.#activeApps = []
-    this.#activeParsers = []
+    this.#activeApps.clear()
+    this.#activeParsers.clear()
     this.mutation = null
 
     if (!mutation) return
@@ -137,17 +157,18 @@ export class MutationManager {
     this.mutation = mutation
 
     // MWeb parser is enabled by default
-    this.#activeParsers.push({
-      parserType: AdapterType.MWeb,
-      id: 'mweb',
-      targets: [
-        {
-          namespace: 'engine',
-          contextType: 'website',
-          if: { id: { not: null } },
-        },
-      ],
-    })
+    this.#activeParsers.set(MWebParserConfig.id, MWebParserConfig)
+
+    // ToDo: it loads all parsers, need to optimize
+    await Promise.all(
+      this.mutation.apps.map((appId) =>
+        this.#provider
+          .getApplication(appId)
+          .then((app) =>
+            Promise.all((app?.targets ?? []).map((target) => this.loadParser(target.namespace)))
+          )
+      )
+    )
   }
 
   async createLink(appGlobalId: AppId, context: IContextNode): Promise<BosUserLink> {
@@ -155,7 +176,7 @@ export class MutationManager {
       throw new Error('Mutation is not loaded')
     }
 
-    const app = this.#activeApps.find((app) => app.id === appGlobalId)
+    const app = this.#activeApps.get(appGlobalId)
 
     if (!app) {
       throw new Error('App is not active')
@@ -203,50 +224,60 @@ export class MutationManager {
     return this.#provider.deleteUserLink(userLinkId)
   }
 
-  public async loadApp(appId: string): Promise<void> {
+  public async loadApp(appId: string): Promise<AppMetadata> {
+    // prevents racing
+    if (this.#activeApps.has(appId)) {
+      return this.#activeApps.get(appId)!
+    }
+
     const app = await this.#provider.getApplication(appId)
 
     if (!app) {
       throw new Error(`App doesn't exist: ${appId}`)
     }
 
-    // get parser ids from target namespaces
-    const parserIds = [...new Set(app.targets.flat().map((target) => target.namespace))]
-    const parsers = await Promise.all(
-      parserIds.map(async (parserId) => {
-        const parser = await this.#provider.getParserConfig(parserId)
-
-        if (!parser) {
-          throw new Error(`Parser doesn't exist: ${parserId}. App will not be started: ${appId}`)
-        }
-
-        return parser
-      })
-    )
-
-    const isAppStarted = !!this.#activeApps.find((app) => app.id === appId)
-
-    if (isAppStarted) {
-      console.error(`App is started already: ${appId}`)
-      return
+    // prevents racing
+    if (this.#activeApps.has(appId)) {
+      return this.#activeApps.get(appId)!
     }
 
-    // ToDo: prevent parallel start/stop?
-    this.#activeApps.push(app)
-
-    const parsersToActivate = parsers.filter(
-      (parser) => !this.#activeParsers.find((_parser) => _parser.id === parser.id)
-    )
-    this.#activeParsers.push(...parsersToActivate)
-
+    this.#activeApps.set(app.id, app)
     console.log(`App loaded: ${appId}`)
+
+    return app
   }
 
   public async unloadApp(appId: string): Promise<void> {
-    this.#activeApps = this.#activeApps.filter((app) => app.id !== appId)
-    // ToDo: remove related parsers
-
+    this.#activeApps.delete(appId)
     console.log(`App unloaded: ${appId}`)
+  }
+
+  public async loadParser(parserId: string): Promise<ParserConfig> {
+    // prevents racing
+    if (this.#activeParsers.has(parserId)) {
+      return this.#activeParsers.get(parserId)!
+    }
+
+    const parser = await this.#provider.getParserConfig(parserId)
+
+    if (!parser) {
+      throw new Error(`Parser doesn't exist: ${parserId}`)
+    }
+
+    // prevents racing
+    if (this.#activeParsers.has(parserId)) {
+      return this.#activeParsers.get(parserId)!
+    }
+
+    this.#activeParsers.set(parser.id, parser)
+    // console.log(`Parser loaded: ${parser.id}`)
+
+    return parser
+  }
+
+  public async unloadParser(parserId: string): Promise<void> {
+    this.#activeParsers.delete(parserId)
+    console.log(`Parser unloaded: ${parserId}`)
   }
 
   // #endregion
