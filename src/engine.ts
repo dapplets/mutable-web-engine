@@ -4,6 +4,7 @@ import { BosWidgetFactory } from './bos/bos-widget-factory'
 import {
   AdapterType,
   AppMetadata,
+  AppWithSettings,
   IProvider,
   InjectableTarget,
   Mutation,
@@ -241,7 +242,7 @@ export class Engine implements IContextListener {
 
     const mutations = await this.#mutationManager.getMutationsForContext(context)
 
-    return Promise.all(mutations.map((mut) => this._populateMutationSettings(mut)))
+    return Promise.all(mutations.map((mut) => this._populateMutationWithSettings(mut)))
   }
 
   async switchMutation(mutationId: string): Promise<void> {
@@ -256,7 +257,7 @@ export class Engine implements IContextListener {
     const mutation = this.#mutationManager?.mutation
     if (!mutation) return null
 
-    return this._populateMutationSettings(mutation)
+    return this._populateMutationWithSettings(mutation)
   }
 
   async enableDevMode(options?: { polling: boolean }) {
@@ -355,7 +356,7 @@ export class Engine implements IContextListener {
 
     await this.#provider.saveMutation(mutation)
 
-    return this._populateMutationSettings(mutation)
+    return this._populateMutationWithSettings(mutation)
   }
 
   async editMutation(mutation: Mutation): Promise<MutationWithSettings> {
@@ -367,7 +368,7 @@ export class Engine implements IContextListener {
       await this.start(mutation.id)
     }
 
-    return this._populateMutationSettings(mutation)
+    return this._populateMutationWithSettings(mutation)
   }
 
   injectComponent<T>(target: InjectableTarget, cmp: React.FC<T>) {
@@ -389,6 +390,23 @@ export class Engine implements IContextListener {
         contextManager.unjectComponent(target, cmp)
       }
     })
+  }
+
+  async getAppsFromCurrentMutation(): Promise<AppWithSettings[]> {
+    const { mutation } = this.#mutationManager
+
+    if (!mutation) {
+      throw new Error('Mutation is not active')
+    }
+
+    // ToDo: improve readability
+    return Promise.all(
+      mutation.apps.map((appId) =>
+        this.#provider
+          .getApplication(appId)
+          .then((appMetadata) => (appMetadata ? this._populateAppWithSettings(appMetadata) : null))
+      )
+    ).then((apps) => apps.filter((app) => app !== null) as AppWithSettings[])
   }
 
   async enableApp(appId: string): Promise<void> {
@@ -454,7 +472,7 @@ export class Engine implements IContextListener {
     })
   }
 
-  private async _populateMutationSettings(mutation: Mutation): Promise<MutationWithSettings> {
+  private async _populateMutationWithSettings(mutation: Mutation): Promise<MutationWithSettings> {
     const isFavorite = (await this.getFavoriteMutation()) === mutation.id
     const lastUsage = await this.#repository.getMutationLastUsage(
       mutation.id,
@@ -466,6 +484,19 @@ export class Engine implements IContextListener {
       settings: {
         isFavorite,
         lastUsage,
+      },
+    }
+  }
+
+  private async _populateAppWithSettings(app: AppMetadata): Promise<AppWithSettings> {
+    const currentMutationId = this.#mutationManager.mutation?.id
+
+    if (!currentMutationId) throw new Error('Mutation is not active')
+
+    return {
+      ...app,
+      settings: {
+        isEnabled: await this.#repository.getAppEnabledStatus(currentMutationId, app.id),
       },
     }
   }
