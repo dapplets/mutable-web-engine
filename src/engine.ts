@@ -385,11 +385,17 @@ export class Engine implements IContextListener {
     })
   }
 
-  async getAppsFromCurrentMutation(): Promise<AppWithSettings[]> {
-    const { mutation } = this.#mutationManager
+  async getAppsFromMutation(mutationId: string): Promise<AppWithSettings[]> {
+    const { mutation: currentMutation } = this.#mutationManager
+
+    // don't fetch mutation if fetched already
+    const mutation =
+      currentMutation?.id === mutationId
+        ? currentMutation
+        : await this.#provider.getMutation(mutationId)
 
     if (!mutation) {
-      throw new Error('Mutation is not active')
+      throw new Error(`Mutation doesn't exist: ${mutationId}`)
     }
 
     // ToDo: improve readability
