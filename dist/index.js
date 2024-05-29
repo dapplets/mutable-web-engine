@@ -26,10 +26,11 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MiniOverlay = exports.LocalStorage = exports.customElements = void 0;
+exports.AppSwitcher = exports.MiniOverlay = exports.LocalStorage = exports.customElements = void 0;
 __exportStar(require("./engine"), exports);
 exports.customElements = __importStar(require("./custom-elements"));
 var local_storage_1 = require("./storage/local-storage");
 Object.defineProperty(exports, "LocalStorage", { enumerable: true, get: function () { return local_storage_1.LocalStorage; } });
 var mini_overlay_1 = require("./shared-components/mini-overlay");
 Object.defineProperty(exports, "MiniOverlay", { enumerable: true, get: function () { return mini_overlay_1.MiniOverlay; } });
+Object.defineProperty(exports, "AppSwitcher", { enumerable: true, get: function () { return mini_overlay_1.AppSwitcher; } });

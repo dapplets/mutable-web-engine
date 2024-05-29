@@ -26,7 +26,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MiniOverlay = void 0;
+exports.MiniOverlay = exports.AppSwitcher = void 0;
 const near_social_vm_1 = require("near-social-vm");
 const react_1 = __importStar(require("react"));
 const Spinner_1 = __importDefault(require("react-bootstrap/Spinner"));
@@ -76,6 +76,7 @@ const MutationIconWrapper = styled_components_1.default.button `
   transition: all 0.15s ease-in-out;
   position: relative;
   box-shadow: 0 4px 5px 0 rgba(45, 52, 60, 0.2);
+  cursor: ${(props) => (props.$isButton ? 'pointer' : 'default !important')};
 
   .labelAppCenter {
     opacity: 0;
@@ -92,22 +93,18 @@ const MutationIconWrapper = styled_components_1.default.button `
   }
 
   &:hover {
-    box-shadow:
-      0px 4px 20px 0px #0b576f26,
-      0px 4px 5px 0px #2d343c1a;
+    box-shadow: ${(props) => props.$isButton ? '0px 4px 20px 0px #0b576f26, 0px 4px 5px 0px #2d343c1a' : 'initial'};
 
     img {
-      filter: brightness(115%);
+      filter: ${(props) => (props.$isButton ? 'brightness(115%)' : 'none')};
     }
   }
 
   &:active {
-    box-shadow:
-      0px 4px 20px 0px #0b576f26,
-      0px 4px 5px 0px #2d343c1a;
+    box-shadow: ${(props) => props.$isButton ? '0px 4px 20px 0px #0b576f26, 0px 4px 5px 0px #2d343c1a' : 'initial'};
 
     img {
-      filter: brightness(125%);
+      filter: ${(props) => (props.$isButton ? 'brightness(125%)' : 'none')};
     }
   }
 
@@ -267,14 +264,20 @@ const StopCenterIcon = () => (react_1.default.createElement("svg", { width: "24"
         react_1.default.createElement("clipPath", { id: "clip0_194_487" },
             react_1.default.createElement("rect", { width: "24", height: "24", fill: "white" })))));
 const AppSwitcher = ({ app, enableApp, disableApp, isLoading }) => (react_1.default.createElement(react_1.default.Fragment, null, isLoading ? (react_1.default.createElement(Loading, null,
-    react_1.default.createElement(Spinner_1.default, { animation: "border", variant: "primary" }))) : (react_1.default.createElement(MutationIconWrapper, { title: app.appLocalId, "$isStopped": !app.settings.isEnabled },
+    react_1.default.createElement(Spinner_1.default, { animation: "border", variant: "primary" }))) : (react_1.default.createElement(MutationIconWrapper, { title: app.appLocalId, "$isStopped": !app.settings.isEnabled, "$isButton": true },
     (app === null || app === void 0 ? void 0 : app.metadata.image) ? react_1.default.createElement(Image_1.Image, { image: app === null || app === void 0 ? void 0 : app.metadata.image }) : react_1.default.createElement(MutationFallbackIcon, null),
     !app.settings.isEnabled ? (react_1.default.createElement(LabelAppTop, { className: "labelAppTop" },
         react_1.default.createElement(StopTopIcon, null))) : null,
-    app.settings.isEnabled ? (react_1.default.createElement(LabelAppCenter, { className: "labelAppCenter", onClick: () => disableApp(app.id) },
-        react_1.default.createElement(StopCenterIcon, null))) : (react_1.default.createElement(LabelAppCenter, { className: "labelAppCenter", onClick: () => enableApp(app.id) },
+    app.settings.isEnabled ? (react_1.default.createElement(LabelAppCenter, { className: "labelAppCenter", onClick: disableApp },
+        react_1.default.createElement(StopCenterIcon, null))) : (react_1.default.createElement(LabelAppCenter, { className: "labelAppCenter", onClick: enableApp },
         react_1.default.createElement(PlayCenterIcon, null)))))));
-const MiniOverlay = ({ baseMutation, mutationApps, enableApp, disableApp, isLoading, connectWallet, disconnectWallet, nearNetwork, }) => {
+exports.AppSwitcher = AppSwitcher;
+const MiniOverlay = ({ baseMutation, mutationApps, connectWallet, disconnectWallet, nearNetwork, children, }) => {
+    console.log('baseMutation', baseMutation);
+    console.log('mutationApps', mutationApps);
+    console.log('connectWallet', connectWallet);
+    console.log('disconnectWallet', disconnectWallet);
+    console.log('nearNetwork', nearNetwork);
     const [isOpen, setIsOpen] = (0, react_1.useState)(false);
     const [isProfileOpen, setProfileOpen] = (0, react_1.useState)(false);
     const loggedInAccountId = (0, near_social_vm_1.useAccountId)();
@@ -283,13 +286,12 @@ const MiniOverlay = ({ baseMutation, mutationApps, enableApp, disableApp, isLoad
     };
     return (react_1.default.createElement(SidePanelWrapper, { "$isApps": mutationApps.length > 0, "data-mweb-context-type": "mweb-overlay", "data-mweb-context-parsed": JSON.stringify({ id: 'mweb-overlay' }) },
         react_1.default.createElement(TopBlock, { "$open": isOpen || mutationApps.length > 0, "$noMutations": !mutationApps.length },
-            react_1.default.createElement(MutationIconWrapper, { onClick: handleMutationIconClick }, (baseMutation === null || baseMutation === void 0 ? void 0 : baseMutation.metadata.image) ? (react_1.default.createElement(Image_1.Image, { image: baseMutation === null || baseMutation === void 0 ? void 0 : baseMutation.metadata.image })) : (react_1.default.createElement(MutationFallbackIcon, null)))),
+            react_1.default.createElement(MutationIconWrapper, { "$isButton": !!connectWallet && !!disconnectWallet && !!nearNetwork, title: baseMutation === null || baseMutation === void 0 ? void 0 : baseMutation.metadata.name, onClick: handleMutationIconClick }, (baseMutation === null || baseMutation === void 0 ? void 0 : baseMutation.metadata.image) ? (react_1.default.createElement(Image_1.Image, { image: baseMutation === null || baseMutation === void 0 ? void 0 : baseMutation.metadata.image })) : (react_1.default.createElement(MutationFallbackIcon, null)))),
         isOpen || !mutationApps.length ? null : (react_1.default.createElement(ButtonWrapper, { "data-mweb-insertion-point": "mweb-actions-panel", "data-mweb-layout-manager": "bos.dapplets.near/widget/VerticalLayoutManager" })),
-        isOpen ? (react_1.default.createElement(AppsWrapper, null, mutationApps.map((app) => (react_1.default.createElement(AppSwitcher, { key: app.id, app: app, enableApp: enableApp, disableApp: disableApp, isLoading: isLoading }))))) : null,
+        isOpen ? react_1.default.createElement(AppsWrapper, null, children) : null,
         mutationApps.length > 0 ? (react_1.default.createElement(ButtonOpenWrapper, { "$open": isOpen || mutationApps.length > 0 },
             react_1.default.createElement(ButtonOpen, { "$open": isOpen, className: isOpen ? 'svgTransform' : '', onClick: () => setIsOpen(!isOpen) },
                 react_1.default.createElement(ArrowSvg, null)))) : null,
-        isProfileOpen ? (react_1.default.createElement(Profile_1.default, { accountId: loggedInAccountId, closeProfile: () => setProfileOpen(false), connectWallet: connectWallet, disconnectWallet: disconnectWallet, nearNetwork: nearNetwork })) : null));
+        isProfileOpen && connectWallet && disconnectWallet && nearNetwork ? (react_1.default.createElement(Profile_1.default, { accountId: loggedInAccountId, closeProfile: () => setProfileOpen(false), connectWallet: connectWallet, disconnectWallet: disconnectWallet, nearNetwork: nearNetwork })) : null));
 };
 exports.MiniOverlay = MiniOverlay;
-exports.default = exports.MiniOverlay;

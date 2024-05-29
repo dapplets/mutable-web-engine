@@ -1,6 +1,6 @@
 import { AppWithSettings, Mutation } from '../../providers/provider'
 import { useAccountId } from 'near-social-vm'
-import React, { FC, useState } from 'react'
+import React, { FC, ReactElement, useState } from 'react'
 import Spinner from 'react-bootstrap/Spinner'
 import styled from 'styled-components'
 import { Image } from '../common/Image'
@@ -36,7 +36,7 @@ const TopBlock = styled.div<{ $open?: boolean; $noMutations: boolean }>`
   border-radius: ${(props) => (props.$noMutations ? '4px 0 0 4px' : '4px 0 0 0')};
 `
 
-const MutationIconWrapper = styled.button<{ $isStopped?: boolean }>`
+const MutationIconWrapper = styled.button<{ $isStopped?: boolean; $isButton: boolean }>`
   display: flex;
   box-sizing: border-box;
   justify-content: center;
@@ -51,6 +51,7 @@ const MutationIconWrapper = styled.button<{ $isStopped?: boolean }>`
   transition: all 0.15s ease-in-out;
   position: relative;
   box-shadow: 0 4px 5px 0 rgba(45, 52, 60, 0.2);
+  cursor: ${(props) => (props.$isButton ? 'pointer' : 'default !important')};
 
   .labelAppCenter {
     opacity: 0;
@@ -67,22 +68,20 @@ const MutationIconWrapper = styled.button<{ $isStopped?: boolean }>`
   }
 
   &:hover {
-    box-shadow:
-      0px 4px 20px 0px #0b576f26,
-      0px 4px 5px 0px #2d343c1a;
+    box-shadow: ${(props) =>
+      props.$isButton ? '0px 4px 20px 0px #0b576f26, 0px 4px 5px 0px #2d343c1a' : 'initial'};
 
     img {
-      filter: brightness(115%);
+      filter: ${(props) => (props.$isButton ? 'brightness(115%)' : 'none')};
     }
   }
 
   &:active {
-    box-shadow:
-      0px 4px 20px 0px #0b576f26,
-      0px 4px 5px 0px #2d343c1a;
+    box-shadow: ${(props) =>
+      props.$isButton ? '0px 4px 20px 0px #0b576f26, 0px 4px 5px 0px #2d343c1a' : 'initial'};
 
     img {
-      filter: brightness(125%);
+      filter: ${(props) => (props.$isButton ? 'brightness(125%)' : 'none')};
     }
   }
 
@@ -329,8 +328,8 @@ const StopCenterIcon = () => (
 )
 
 interface IMutationAppsControl {
-  enableApp: (appId: string) => Promise<void>
-  disableApp: (appId: string) => Promise<void>
+  enableApp: () => Promise<void>
+  disableApp: () => Promise<void>
   isLoading: boolean
 }
 
@@ -338,19 +337,24 @@ interface IAppSwitcherProps extends IMutationAppsControl {
   app: AppWithSettings
 }
 
-interface SidePanelProps extends IMutationAppsControl, IWalletConnect {
+interface IMiniOverlayProps extends Partial<IWalletConnect> {
   baseMutation: Mutation | null
   mutationApps: AppWithSettings[]
+  children: ReactElement
 }
 
-const AppSwitcher: FC<IAppSwitcherProps> = ({ app, enableApp, disableApp, isLoading }) => (
+export const AppSwitcher: FC<IAppSwitcherProps> = ({ app, enableApp, disableApp, isLoading }) => (
   <>
     {isLoading ? (
       <Loading>
         <Spinner animation="border" variant="primary"></Spinner>
       </Loading>
     ) : (
-      <MutationIconWrapper title={app.appLocalId} $isStopped={!app.settings.isEnabled}>
+      <MutationIconWrapper
+        title={app.appLocalId}
+        $isStopped={!app.settings.isEnabled}
+        $isButton={true}
+      >
         {app?.metadata.image ? <Image image={app?.metadata.image} /> : <MutationFallbackIcon />}
 
         {!app.settings.isEnabled ? (
@@ -360,11 +364,11 @@ const AppSwitcher: FC<IAppSwitcherProps> = ({ app, enableApp, disableApp, isLoad
         ) : null}
 
         {app.settings.isEnabled ? (
-          <LabelAppCenter className="labelAppCenter" onClick={() => disableApp(app.id)}>
+          <LabelAppCenter className="labelAppCenter" onClick={disableApp}>
             <StopCenterIcon />
           </LabelAppCenter>
         ) : (
-          <LabelAppCenter className="labelAppCenter" onClick={() => enableApp(app.id)}>
+          <LabelAppCenter className="labelAppCenter" onClick={enableApp}>
             <PlayCenterIcon />
           </LabelAppCenter>
         )}
@@ -373,16 +377,20 @@ const AppSwitcher: FC<IAppSwitcherProps> = ({ app, enableApp, disableApp, isLoad
   </>
 )
 
-export const MiniOverlay: FC<SidePanelProps> = ({
+export const MiniOverlay: FC<IMiniOverlayProps> = ({
   baseMutation,
   mutationApps,
-  enableApp,
-  disableApp,
-  isLoading,
   connectWallet,
   disconnectWallet,
   nearNetwork,
+  children,
 }) => {
+  console.log('baseMutation', baseMutation)
+  console.log('mutationApps', mutationApps)
+  console.log('connectWallet', connectWallet)
+  console.log('disconnectWallet', disconnectWallet)
+  console.log('nearNetwork', nearNetwork)
+
   const [isOpen, setIsOpen] = useState(false)
   const [isProfileOpen, setProfileOpen] = useState(false)
   const loggedInAccountId = useAccountId()
@@ -398,7 +406,11 @@ export const MiniOverlay: FC<SidePanelProps> = ({
       data-mweb-context-parsed={JSON.stringify({ id: 'mweb-overlay' })}
     >
       <TopBlock $open={isOpen || mutationApps.length > 0} $noMutations={!mutationApps.length}>
-        <MutationIconWrapper onClick={handleMutationIconClick}>
+        <MutationIconWrapper
+          $isButton={!!connectWallet && !!disconnectWallet && !!nearNetwork}
+          title={baseMutation?.metadata.name}
+          onClick={handleMutationIconClick}
+        >
           {baseMutation?.metadata.image ? (
             <Image image={baseMutation?.metadata.image} />
           ) : (
@@ -414,19 +426,7 @@ export const MiniOverlay: FC<SidePanelProps> = ({
         />
       )}
 
-      {isOpen ? (
-        <AppsWrapper>
-          {mutationApps.map((app) => (
-            <AppSwitcher
-              key={app.id}
-              app={app}
-              enableApp={enableApp}
-              disableApp={disableApp}
-              isLoading={isLoading}
-            />
-          ))}
-        </AppsWrapper>
-      ) : null}
+      {isOpen ? <AppsWrapper>{children}</AppsWrapper> : null}
 
       {mutationApps.length > 0 ? (
         <ButtonOpenWrapper $open={isOpen || mutationApps.length > 0}>
@@ -440,7 +440,7 @@ export const MiniOverlay: FC<SidePanelProps> = ({
         </ButtonOpenWrapper>
       ) : null}
 
-      {isProfileOpen ? (
+      {isProfileOpen && connectWallet && disconnectWallet && nearNetwork ? (
         <Profile
           accountId={loggedInAccountId}
           closeProfile={() => setProfileOpen(false)}
@@ -452,5 +452,3 @@ export const MiniOverlay: FC<SidePanelProps> = ({
     </SidePanelWrapper>
   )
 }
-
-export default MiniOverlay

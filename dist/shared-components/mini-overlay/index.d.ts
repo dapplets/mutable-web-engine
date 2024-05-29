@@ -1,15 +1,20 @@
 import { AppWithSettings, Mutation } from '../../providers/provider';
-import { FC } from 'react';
+import { FC, ReactElement } from 'react';
 import { IWalletConnect } from './Profile';
 interface IMutationAppsControl {
-    enableApp: (appId: string) => Promise<void>;
-    disableApp: (appId: string) => Promise<void>;
+    enableApp: () => Promise<void>;
+    disableApp: () => Promise<void>;
     isLoading: boolean;
 }
-interface SidePanelProps extends IMutationAppsControl, IWalletConnect {
+interface IAppSwitcherProps extends IMutationAppsControl {
+    app: AppWithSettings;
+}
+interface IMiniOverlayProps extends Partial<IWalletConnect> {
     baseMutation: Mutation | null;
     mutationApps: AppWithSettings[];
+    children: ReactElement;
 }
-export declare const MiniOverlay: FC<SidePanelProps>;
-export default MiniOverlay;
+export declare const AppSwitcher: FC<IAppSwitcherProps>;
+export declare const MiniOverlay: FC<IMiniOverlayProps>;
+export {};
 //# sourceMappingURL=index.d.ts.map
