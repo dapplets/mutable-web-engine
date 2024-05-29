@@ -385,12 +385,6 @@ export const MiniOverlay: FC<IMiniOverlayProps> = ({
   nearNetwork,
   children,
 }) => {
-  console.log('baseMutation', baseMutation)
-  console.log('mutationApps', mutationApps)
-  console.log('connectWallet', connectWallet)
-  console.log('disconnectWallet', disconnectWallet)
-  console.log('nearNetwork', nearNetwork)
-
   const [isOpen, setIsOpen] = useState(false)
   const [isProfileOpen, setProfileOpen] = useState(false)
   const loggedInAccountId = useAccountId()
