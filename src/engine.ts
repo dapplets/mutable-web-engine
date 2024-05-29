@@ -33,6 +33,12 @@ import { IStorage } from './storage/storage'
 import { Repository } from './storage/repository'
 import { JsonStorage } from './storage/json-storage'
 import { LocalStorage } from './storage/local-storage'
+import { App } from './app'
+import { ContextStartedEvent } from './events/context-started'
+import { ContextFinishedEvent } from './events/context-finished'
+import { InsertionPointStartedEvent } from './events/insertion-point-started'
+import { InsertionPointFinishedEvent } from './events/insertion-point-finished'
+import { ContextChangedEvent } from './events/context-changed'
 
 export type EngineConfig = {
   networkId: string
@@ -64,6 +70,10 @@ export class Engine implements IContextListener {
   adapters = new Map<string, IAdapter>()
   treeBuilder: ITreeBuilder | null = null
   started: boolean = false
+
+  app = new App(this)
+
+  eventTarget = new EventTarget()
 
   constructor(private config: EngineConfig) {
     if (!this.config.storage) {
@@ -101,6 +111,12 @@ export class Engine implements IContextListener {
 
     if (!adapter) return
 
+    const element = adapter.getContextElement(context)
+
+    if (element) {
+      this.eventTarget.dispatchEvent(new ContextStartedEvent(context, element))
+    }
+
     const contextManager = new ContextManager(
       context,
       adapter,
@@ -124,12 +140,16 @@ export class Engine implements IContextListener {
   }
 
   handleContextChanged(context: IContextNode, oldParsedContext: any): void {
+    this.eventTarget.dispatchEvent(new ContextChangedEvent(context))
+
     if (!this.started) return
 
     this.#contextManagers.get(context)?.forceUpdate()
   }
 
   handleContextFinished(context: IContextNode): void {
+    this.eventTarget.dispatchEvent(new ContextFinishedEvent(context))
+
     if (!this.started) return
 
     this.#contextManagers.get(context)?.destroy()
@@ -137,10 +157,12 @@ export class Engine implements IContextListener {
   }
 
   handleInsPointStarted(context: IContextNode, newInsPoint: string): void {
+    this.eventTarget.dispatchEvent(new InsertionPointStartedEvent(context, newInsPoint))
     this.#contextManagers.get(context)?.injectLayoutManager(newInsPoint)
   }
 
   handleInsPointFinished(context: IContextNode, oldInsPoint: string): void {
+    this.eventTarget.dispatchEvent(new InsertionPointFinishedEvent(context, oldInsPoint))
     this.#contextManagers.get(context)?.destroyLayoutManager(oldInsPoint)
   }
 
