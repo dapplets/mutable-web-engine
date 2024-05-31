@@ -9,13 +9,7 @@ import {
   MutationWithSettings,
 } from './providers/provider'
 import { WalletSelector } from '@near-wallet-selector/core'
-import {
-  NearConfig,
-  ViewportElementId,
-  ViewportInnerElementId,
-  bosLoaderUrl,
-  getNearConfig,
-} from './constants'
+import { NearConfig, bosLoaderUrl, getNearConfig } from './constants'
 import { NearSigner } from './providers/near-signer'
 import { SocialDbProvider } from './providers/social-db-provider'
 import { ContextManager } from './context-manager'
@@ -24,6 +18,10 @@ import { IStorage } from './storage/storage'
 import { Repository } from './storage/repository'
 import { JsonStorage } from './storage/json-storage'
 import { LocalStorage } from './storage/local-storage'
+import { App } from './app/app'
+import { Viewport } from './viewport'
+import { Root, createRoot } from 'react-dom/client'
+import React from 'react'
 
 export type EngineConfig = {
   networkId: string
@@ -47,7 +45,8 @@ export class Engine {
   #redirectMap: any = null
   #devModePollingTimer: number | null = null
   #repository: Repository
-  #viewport: HTMLDivElement | null = null
+  #viewport: Viewport | null = null
+  #reactRoot: Root | null = null
 
   // ToDo: duplcated in ContextManager and LayoutManager
   #refComponents = new Map<React.FC<unknown>, InjectableTarget>()
@@ -219,6 +218,7 @@ export class Engine {
     this.started = true
 
     this._attachViewport()
+    this._mountReactApp()
     this._updateRootContext()
 
     console.log('Mutable Web Engine started!', {
@@ -233,6 +233,7 @@ export class Engine {
     this.core.clear()
     this.#contextManagers.clear()
     this._detachViewport()
+    this._unmountReactApp()
   }
 
   async getMutations(): Promise<MutationWithSettings[]> {
@@ -454,50 +455,17 @@ export class Engine {
   }
 
   private _attachViewport() {
-    if (this.#viewport) throw new Error('Already attached')
-
-    const viewport = document.createElement('div')
-    viewport.id = ViewportElementId
-    viewport.setAttribute('data-mweb-shadow-host', '')
-    const shadowRoot = viewport.attachShadow({ mode: 'open' })
-
-    // It will prevent inheritance without affecting other CSS defined within the ShadowDOM.
-    // https://stackoverflow.com/a/68062098
-    const disableCssInheritanceStyle = document.createElement('style')
-    disableCssInheritanceStyle.innerHTML = ':host { all: initial; }'
-    shadowRoot.appendChild(disableCssInheritanceStyle)
-
-    if (this.config.bosElementStyleSrc) {
-      const externalStyleLink = document.createElement('link')
-      externalStyleLink.rel = 'stylesheet'
-      externalStyleLink.href = this.config.bosElementStyleSrc
-      shadowRoot.appendChild(externalStyleLink)
+    if (this.#viewport) {
+      throw new Error('Already attached')
     }
 
-    const viewportInner = document.createElement('div')
-    viewportInner.id = ViewportInnerElementId
-    viewportInner.setAttribute('data-bs-theme', 'light') // ToDo: parametrize
-
-    // Context cannot be a shadow root node because mutation observer doesn't work there
-    // So we need to select a child node for context
-    viewportInner.setAttribute('data-mweb-context-type', 'shadow-dom')
-
-    shadowRoot.appendChild(viewportInner)
-
-    // Prevent event propagation from BOS-component to parent
-    const EventsToStopPropagation = ['click', 'keydown', 'keyup', 'keypress']
-    EventsToStopPropagation.forEach((eventName) => {
-      viewport.addEventListener(eventName, (e) => e.stopPropagation())
-    })
-
-    document.body.appendChild(viewport)
-
-    this.#viewport = viewport
+    this.#viewport = new Viewport({ bosElementStyleSrc: this.config.bosElementStyleSrc })
+    document.body.appendChild(this.#viewport.outer)
   }
 
   private _detachViewport() {
     if (this.#viewport) {
-      document.body.removeChild(this.#viewport)
+      document.body.removeChild(this.#viewport.outer)
       this.#viewport = null
     }
   }
@@ -551,5 +519,29 @@ export class Engine {
       callback(parent),
       ...parent.children.map((child) => this._traverseContextTree(callback, child)),
     ])
+  }
+
+  private _mountReactApp() {
+    if (!this.#viewport) {
+      throw new Error('Viewport is not attached')
+    }
+
+    const container = document.createElement('div')
+    this.#viewport.inner.appendChild(container)
+
+    const stylesMountPoint = document.createElement('div')
+    container.appendChild(stylesMountPoint)
+
+    const appMountPoint = document.createElement('div')
+    container.appendChild(appMountPoint)
+
+    this.#reactRoot = createRoot(appMountPoint)
+    this.#reactRoot.render(<App core={this.core} stylesMountPoint={stylesMountPoint} />)
+  }
+
+  private _unmountReactApp() {
+    if (this.#reactRoot) {
+      this.#reactRoot.unmount()
+    }
   }
 }
