@@ -1,8 +1,8 @@
-/// <reference types="react" />
 import { IContextNode, Core } from '../core';
 import { AppMetadata, AppWithSettings, InjectableTarget, Mutation, MutationWithSettings } from './providers/provider';
 import { WalletSelector } from '@near-wallet-selector/core';
 import { IStorage } from './storage/storage';
+import React from 'react';
 export type EngineConfig = {
     networkId: string;
     gatewayId: string;
@@ -67,5 +67,7 @@ export declare class Engine {
     private _addAppsAndLinks;
     private _removeAppsAndLinks;
     private _traverseContextTree;
+    private _mountReactApp;
+    private _unmountReactApp;
 }
 //# sourceMappingURL=engine.d.ts.map

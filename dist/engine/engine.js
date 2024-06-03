@@ -19,7 +19,10 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _Engine_provider, _Engine_bosWidgetFactory, _Engine_selector, _Engine_contextManagers, _Engine_mutationManager, _Engine_nearConfig, _Engine_redirectMap, _Engine_devModePollingTimer, _Engine_repository, _Engine_viewport, _Engine_refComponents;
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+var _Engine_provider, _Engine_bosWidgetFactory, _Engine_selector, _Engine_contextManagers, _Engine_mutationManager, _Engine_nearConfig, _Engine_redirectMap, _Engine_devModePollingTimer, _Engine_repository, _Engine_viewport, _Engine_reactRoot, _Engine_refComponents;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Engine = exports.engineSingleton = void 0;
 const core_1 = require("../core");
@@ -32,6 +35,10 @@ const mutation_manager_1 = require("./mutation-manager");
 const repository_1 = require("./storage/repository");
 const json_storage_1 = require("./storage/json-storage");
 const local_storage_1 = require("./storage/local-storage");
+const app_1 = require("./app/app");
+const viewport_1 = require("./viewport");
+const client_1 = require("react-dom/client");
+const react_1 = __importDefault(require("react"));
 // ToDo: dirty hack
 exports.engineSingleton = null;
 class Engine {
@@ -47,7 +54,8 @@ class Engine {
         _Engine_redirectMap.set(this, null);
         _Engine_devModePollingTimer.set(this, null);
         _Engine_repository.set(this, void 0);
-        _Engine_viewport.set(this, null
+        _Engine_viewport.set(this, null);
+        _Engine_reactRoot.set(this, null
         // ToDo: duplcated in ContextManager and LayoutManager
         );
         // ToDo: duplcated in ContextManager and LayoutManager
@@ -179,6 +187,7 @@ class Engine {
             }
             this.started = true;
             this._attachViewport();
+            this._mountReactApp();
             this._updateRootContext();
             console.log('Mutable Web Engine started!', {
                 engine: this,
@@ -192,6 +201,7 @@ class Engine {
         this.core.clear();
         __classPrivateFieldGet(this, _Engine_contextManagers, "f").clear();
         this._detachViewport();
+        this._unmountReactApp();
     }
     getMutations() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -392,41 +402,15 @@ class Engine {
         });
     }
     _attachViewport() {
-        if (__classPrivateFieldGet(this, _Engine_viewport, "f"))
+        if (__classPrivateFieldGet(this, _Engine_viewport, "f")) {
             throw new Error('Already attached');
-        const viewport = document.createElement('div');
-        viewport.id = constants_1.ViewportElementId;
-        viewport.setAttribute('data-mweb-shadow-host', '');
-        const shadowRoot = viewport.attachShadow({ mode: 'open' });
-        // It will prevent inheritance without affecting other CSS defined within the ShadowDOM.
-        // https://stackoverflow.com/a/68062098
-        const disableCssInheritanceStyle = document.createElement('style');
-        disableCssInheritanceStyle.innerHTML = ':host { all: initial; }';
-        shadowRoot.appendChild(disableCssInheritanceStyle);
-        if (this.config.bosElementStyleSrc) {
-            const externalStyleLink = document.createElement('link');
-            externalStyleLink.rel = 'stylesheet';
-            externalStyleLink.href = this.config.bosElementStyleSrc;
-            shadowRoot.appendChild(externalStyleLink);
         }
-        const viewportInner = document.createElement('div');
-        viewportInner.id = constants_1.ViewportInnerElementId;
-        viewportInner.setAttribute('data-bs-theme', 'light'); // ToDo: parametrize
-        // Context cannot be a shadow root node because mutation observer doesn't work there
-        // So we need to select a child node for context
-        viewportInner.setAttribute('data-mweb-context-type', 'shadow-dom');
-        shadowRoot.appendChild(viewportInner);
-        // Prevent event propagation from BOS-component to parent
-        const EventsToStopPropagation = ['click', 'keydown', 'keyup', 'keypress'];
-        EventsToStopPropagation.forEach((eventName) => {
-            viewport.addEventListener(eventName, (e) => e.stopPropagation());
-        });
-        document.body.appendChild(viewport);
-        __classPrivateFieldSet(this, _Engine_viewport, viewport, "f");
+        __classPrivateFieldSet(this, _Engine_viewport, new viewport_1.Viewport({ bosElementStyleSrc: this.config.bosElementStyleSrc }), "f");
+        document.body.appendChild(__classPrivateFieldGet(this, _Engine_viewport, "f").outer);
     }
     _detachViewport() {
         if (__classPrivateFieldGet(this, _Engine_viewport, "f")) {
-            document.body.removeChild(__classPrivateFieldGet(this, _Engine_viewport, "f"));
+            document.body.removeChild(__classPrivateFieldGet(this, _Engine_viewport, "f").outer);
             __classPrivateFieldSet(this, _Engine_viewport, null, "f");
         }
     }
@@ -471,6 +455,24 @@ class Engine {
             ]);
         });
     }
+    _mountReactApp() {
+        if (!__classPrivateFieldGet(this, _Engine_viewport, "f")) {
+            throw new Error('Viewport is not attached');
+        }
+        const container = document.createElement('div');
+        __classPrivateFieldGet(this, _Engine_viewport, "f").inner.appendChild(container);
+        const stylesMountPoint = document.createElement('div');
+        container.appendChild(stylesMountPoint);
+        const appMountPoint = document.createElement('div');
+        container.appendChild(appMountPoint);
+        __classPrivateFieldSet(this, _Engine_reactRoot, (0, client_1.createRoot)(appMountPoint), "f");
+        __classPrivateFieldGet(this, _Engine_reactRoot, "f").render(react_1.default.createElement(app_1.App, { core: this.core, stylesMountPoint: stylesMountPoint }));
+    }
+    _unmountReactApp() {
+        if (__classPrivateFieldGet(this, _Engine_reactRoot, "f")) {
+            __classPrivateFieldGet(this, _Engine_reactRoot, "f").unmount();
+        }
+    }
 }
 exports.Engine = Engine;
-_Engine_provider = new WeakMap(), _Engine_bosWidgetFactory = new WeakMap(), _Engine_selector = new WeakMap(), _Engine_contextManagers = new WeakMap(), _Engine_mutationManager = new WeakMap(), _Engine_nearConfig = new WeakMap(), _Engine_redirectMap = new WeakMap(), _Engine_devModePollingTimer = new WeakMap(), _Engine_repository = new WeakMap(), _Engine_viewport = new WeakMap(), _Engine_refComponents = new WeakMap();
+_Engine_provider = new WeakMap(), _Engine_bosWidgetFactory = new WeakMap(), _Engine_selector = new WeakMap(), _Engine_contextManagers = new WeakMap(), _Engine_mutationManager = new WeakMap(), _Engine_nearConfig = new WeakMap(), _Engine_redirectMap = new WeakMap(), _Engine_devModePollingTimer = new WeakMap(), _Engine_repository = new WeakMap(), _Engine_viewport = new WeakMap(), _Engine_reactRoot = new WeakMap(), _Engine_refComponents = new WeakMap();
