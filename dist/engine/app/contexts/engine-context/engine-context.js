@@ -7,7 +7,7 @@ exports.contextDefaultValues = {
     portals: new Map(),
     addPortal: () => undefined,
     removePortal: () => undefined,
-    pickerCallback: null,
-    setPickerCallback: () => undefined,
+    pickerTask: null,
+    setPickerTask: () => undefined,
 };
 exports.EngineContext = (0, react_1.createContext)(exports.contextDefaultValues);

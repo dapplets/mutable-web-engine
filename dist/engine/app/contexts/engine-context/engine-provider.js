@@ -28,7 +28,7 @@ const react_1 = __importStar(require("react"));
 const engine_context_1 = require("./engine-context");
 const EngineProvider = ({ engine, children }) => {
     const [portals, setPortals] = (0, react_1.useState)(new Map());
-    const [pickerCallback, setPickerCallback] = (0, react_1.useState)(null);
+    const [pickerTask, setPickerTask] = (0, react_1.useState)(null);
     const addPortal = (0, react_1.useCallback)((target, cmp) => {
         setPortals((prev) => new Map(prev.set(cmp, target)));
     }, []);
@@ -43,8 +43,8 @@ const EngineProvider = ({ engine, children }) => {
         portals,
         addPortal,
         removePortal,
-        pickerCallback,
-        setPickerCallback,
+        pickerTask,
+        setPickerTask,
     };
     return react_1.default.createElement(engine_context_1.EngineContext.Provider, { value: state }, children);
 };

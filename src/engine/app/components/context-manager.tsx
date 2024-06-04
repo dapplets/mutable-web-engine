@@ -58,23 +58,27 @@ const InsPointHandler: FC<{
   transferableContext: TransferableContext
   allUserLinks: BosUserLink[]
 }> = ({ insPointName, bosLayoutManager, context, transferableContext, allUserLinks }) => {
-  const { pickerCallback, setPickerCallback } = useEngine()
+  const { pickerTask, setPickerTask } = useEngine()
   const { components } = usePortals(context, insPointName)
 
   const pickContext = useCallback((target: ContextTarget) => {
     return new Promise<TransferableContext | null>((resolve, reject) => {
-      if (pickerCallback) {
+      if (pickerTask) {
         return reject('The picker is busy')
       }
 
       const callback = (context: IContextNode | null) => {
         resolve(context ? buildTransferableContext(context) : null)
-        setPickerCallback(null)
+        setPickerTask(null)
       }
 
-      setPickerCallback(callback)
+      setPickerTask({ callback, target })
     })
   }, [])
+
+  useEffect(() => {
+    console.log({ pickContext })
+  }, [pickContext])
 
   const defaultLayoutManager = 'bos.dapplets.near/widget/DefaultLayoutManager'
   const props = {

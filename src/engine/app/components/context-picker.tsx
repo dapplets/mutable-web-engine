@@ -1,6 +1,8 @@
 import React, { FC, useEffect, useState } from 'react'
 import { useMutableWeb } from '../../../react'
 import { IContextNode } from '../../../core'
+import { useEngine } from '../contexts/engine-context'
+import { MutationManager } from '../../mutation-manager'
 
 const BORDER_RADIUS = 6 // px
 const BORDER_COLOR = '#384BFF' //blue
@@ -12,31 +14,49 @@ const styledBorder = `${BORDER_WIDTH}px ${BORDER_STYLE} ${BORDER_COLOR}`
 
 export const ContextPicker: FC = () => {
   const { tree } = useMutableWeb()
+  const { pickerTask } = useEngine()
 
-  if (!tree) return null
+  if (!tree || !pickerTask) return null
 
-  return <ContextTraverser node={tree} />
+  return (
+    <ContextTraverser node={tree}>
+      {({ node }) => {
+        const isSuitable = pickerTask.target
+          ? MutationManager._isTargetMet(pickerTask.target, node)
+          : true
+
+        if (!isSuitable) return null
+
+        return <ContextReactangle context={node} onClick={() => pickerTask.callback?.(node)} />
+      }}
+    </ContextTraverser>
+  )
 }
 
-const ContextTraverser: FC<{ node: IContextNode }> = ({ node }) => {
+const ContextTraverser: FC<{ node: IContextNode; children: React.FC<{ node: IContextNode }> }> = ({
+  node,
+  children: ChildrenComponent,
+}) => {
   return (
     <>
-      {node.element ? <ContextReactangle context={node} target={node.element} /> : null}
+      {node.element ? <ChildrenComponent node={node} /> : null}
       {node.children.map((child, i) => (
-        <ContextTraverser key={i} node={child} />
+        <ContextTraverser key={i} node={child} children={ChildrenComponent} />
       ))}
     </>
   )
 }
 
-const ContextReactangle: FC<{ context: IContextNode; target: HTMLElement }> = ({
-  context,
-  target,
-}) => {
+const ContextReactangle: FC<{
+  context: IContextNode
+  onClick: () => void
+}> = ({ context, onClick }) => {
   const [isEntered, setIsEntered] = useState(false)
   const [isDisplayed, setIsDisplayed] = useState(false)
 
   useEffect(() => {
+    if (!context.element) return
+
     const mouseEnterHandler = () => {
       setIsEntered(true)
       setTimeout(() => setIsDisplayed(true))
@@ -45,19 +65,22 @@ const ContextReactangle: FC<{ context: IContextNode; target: HTMLElement }> = ({
       setIsEntered(false)
       setTimeout(() => setIsDisplayed(false))
     }
-    target.addEventListener('mouseenter', mouseEnterHandler)
-    target.addEventListener('mouseleave', mouseLeaveHandler)
+    context.element.addEventListener('mouseenter', mouseEnterHandler)
+    context.element.addEventListener('mouseleave', mouseLeaveHandler)
 
     return () => {
-      target.removeEventListener('mouseenter', mouseEnterHandler)
-      target.removeEventListener('mouseleave', mouseLeaveHandler)
+      if (!context.element) return
+
+      context.element.removeEventListener('mouseenter', mouseEnterHandler)
+      context.element.removeEventListener('mouseleave', mouseLeaveHandler)
     }
-  }, [target])
+  }, [context])
 
   if (!isEntered) return null
+  if (!context.element) return null
 
   const bodyOffset = document.documentElement.getBoundingClientRect()
-  const targetOffset = target.getBoundingClientRect()
+  const targetOffset = context.element.getBoundingClientRect()
   const targetHeight = targetOffset.height
   const targetWidth = targetOffset.width
 
@@ -76,5 +99,11 @@ const ContextReactangle: FC<{ context: IContextNode; target: HTMLElement }> = ({
     opacity: isDisplayed ? 1 : 0,
   }
 
-  return <div style={wrapperStyle} className="mweb-picker" />
+  return (
+    <div
+      style={wrapperStyle}
+      className="mweb-picker"
+      onClick={onClick} // ToDo: doesn't work beacuse of pointerEvents: 'none'
+    />
+  )
 }

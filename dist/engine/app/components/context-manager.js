@@ -52,20 +52,23 @@ const ContextHandler = ({ context }) => {
     });
 };
 const InsPointHandler = ({ insPointName, bosLayoutManager, context, transferableContext, allUserLinks }) => {
-    const { pickerCallback, setPickerCallback } = (0, engine_context_1.useEngine)();
+    const { pickerTask, setPickerTask } = (0, engine_context_1.useEngine)();
     const { components } = (0, use_portals_1.usePortals)(context, insPointName);
     const pickContext = (0, react_1.useCallback)((target) => {
         return new Promise((resolve, reject) => {
-            if (pickerCallback) {
+            if (pickerTask) {
                 return reject('The picker is busy');
             }
             const callback = (context) => {
                 resolve(context ? buildTransferableContext(context) : null);
-                setPickerCallback(null);
+                setPickerTask(null);
             };
-            setPickerCallback(callback);
+            setPickerTask({ callback, target });
         });
     }, []);
+    (0, react_1.useEffect)(() => {
+        console.log({ pickContext });
+    }, [pickContext]);
     const defaultLayoutManager = 'bos.dapplets.near/widget/DefaultLayoutManager';
     const props = {
         // ToDo: unify context forwarding

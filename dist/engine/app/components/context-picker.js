@@ -26,6 +26,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ContextPicker = void 0;
 const react_1 = __importStar(require("react"));
 const react_2 = require("../../../react");
+const engine_context_1 = require("../contexts/engine-context");
+const mutation_manager_1 = require("../../mutation-manager");
 const BORDER_RADIUS = 6; // px
 const BORDER_COLOR = '#384BFF'; //blue
 const BORDER_STYLE = 'dashed';
@@ -34,20 +36,30 @@ const BACKGROUND_COLOR = 'rgb(56 188 255 / 5%)'; // light blue
 const styledBorder = `${BORDER_WIDTH}px ${BORDER_STYLE} ${BORDER_COLOR}`;
 const ContextPicker = () => {
     const { tree } = (0, react_2.useMutableWeb)();
-    if (!tree)
+    const { pickerTask } = (0, engine_context_1.useEngine)();
+    if (!tree || !pickerTask)
         return null;
-    return react_1.default.createElement(ContextTraverser, { node: tree });
+    return (react_1.default.createElement(ContextTraverser, { node: tree }, ({ node }) => {
+        const isSuitable = pickerTask.target
+            ? mutation_manager_1.MutationManager._isTargetMet(pickerTask.target, node)
+            : true;
+        if (!isSuitable)
+            return null;
+        return react_1.default.createElement(ContextReactangle, { context: node, onClick: () => { var _a; return (_a = pickerTask.callback) === null || _a === void 0 ? void 0 : _a.call(pickerTask, node); } });
+    }));
 };
 exports.ContextPicker = ContextPicker;
-const ContextTraverser = ({ node }) => {
+const ContextTraverser = ({ node, children: ChildrenComponent, }) => {
     return (react_1.default.createElement(react_1.default.Fragment, null,
-        node.element ? react_1.default.createElement(ContextReactangle, { context: node, target: node.element }) : null,
-        node.children.map((child, i) => (react_1.default.createElement(ContextTraverser, { key: i, node: child })))));
+        node.element ? react_1.default.createElement(ChildrenComponent, { node: node }) : null,
+        node.children.map((child, i) => (react_1.default.createElement(ContextTraverser, { key: i, node: child, children: ChildrenComponent })))));
 };
-const ContextReactangle = ({ context, target, }) => {
+const ContextReactangle = ({ context, onClick }) => {
     const [isEntered, setIsEntered] = (0, react_1.useState)(false);
     const [isDisplayed, setIsDisplayed] = (0, react_1.useState)(false);
     (0, react_1.useEffect)(() => {
+        if (!context.element)
+            return;
         const mouseEnterHandler = () => {
             setIsEntered(true);
             setTimeout(() => setIsDisplayed(true));
@@ -56,17 +68,21 @@ const ContextReactangle = ({ context, target, }) => {
             setIsEntered(false);
             setTimeout(() => setIsDisplayed(false));
         };
-        target.addEventListener('mouseenter', mouseEnterHandler);
-        target.addEventListener('mouseleave', mouseLeaveHandler);
+        context.element.addEventListener('mouseenter', mouseEnterHandler);
+        context.element.addEventListener('mouseleave', mouseLeaveHandler);
         return () => {
-            target.removeEventListener('mouseenter', mouseEnterHandler);
-            target.removeEventListener('mouseleave', mouseLeaveHandler);
+            if (!context.element)
+                return;
+            context.element.removeEventListener('mouseenter', mouseEnterHandler);
+            context.element.removeEventListener('mouseleave', mouseLeaveHandler);
         };
-    }, [target]);
+    }, [context]);
     if (!isEntered)
         return null;
+    if (!context.element)
+        return null;
     const bodyOffset = document.documentElement.getBoundingClientRect();
-    const targetOffset = target.getBoundingClientRect();
+    const targetOffset = context.element.getBoundingClientRect();
     const targetHeight = targetOffset.height;
     const targetWidth = targetOffset.width;
     const wrapperStyle = {
@@ -83,5 +99,5 @@ const ContextReactangle = ({ context, target, }) => {
         transition: 'all .2s ease-in-out',
         opacity: isDisplayed ? 1 : 0,
     };
-    return react_1.default.createElement("div", { style: wrapperStyle, className: "mweb-picker" });
+    return (react_1.default.createElement("div", { style: wrapperStyle, className: "mweb-picker", onClick: onClick }));
 };
