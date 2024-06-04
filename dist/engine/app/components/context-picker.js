@@ -30,6 +30,7 @@ const BORDER_RADIUS = 6; // px
 const BORDER_COLOR = '#384BFF'; //blue
 const BORDER_STYLE = 'dashed';
 const BORDER_WIDTH = 2; //px
+const BACKGROUND_COLOR = 'rgb(56 188 255 / 5%)'; // light blue
 const styledBorder = `${BORDER_WIDTH}px ${BORDER_STYLE} ${BORDER_COLOR}`;
 const ContextPicker = () => {
     const { tree } = (0, react_2.useMutableWeb)();
@@ -69,54 +70,18 @@ const ContextReactangle = ({ context, target, }) => {
     const targetHeight = targetOffset.height;
     const targetWidth = targetOffset.width;
     const wrapperStyle = {
+        left: targetOffset.left - bodyOffset.left,
+        top: targetOffset.top - bodyOffset.top,
+        width: targetWidth,
+        height: targetHeight,
+        backgroundColor: BACKGROUND_COLOR,
+        borderRadius: BORDER_RADIUS,
+        border: styledBorder,
+        position: 'absolute',
+        zIndex: 99999999,
+        pointerEvents: 'none',
         transition: 'all .2s ease-in-out',
         opacity: isDisplayed ? 1 : 0,
     };
-    const topStyle = {
-        left: targetOffset.left + 4 - bodyOffset.left,
-        top: targetOffset.top - 1 - bodyOffset.top,
-        width: targetWidth - BORDER_RADIUS,
-        height: 2,
-        position: 'absolute',
-        zIndex: 9999999,
-        borderTop: styledBorder,
-    };
-    const bottomStyle = {
-        left: targetOffset.left + 4 - bodyOffset.left,
-        top: targetOffset.top + targetHeight - 1 - bodyOffset.top,
-        width: targetWidth - BORDER_RADIUS,
-        height: 2,
-        position: 'absolute',
-        zIndex: 9999999,
-        borderBottom: styledBorder,
-    };
-    const leftStyle = {
-        left: targetOffset.left - 2 - bodyOffset.left,
-        top: targetOffset.top - 1 - bodyOffset.top,
-        height: targetHeight + 2,
-        width: BORDER_RADIUS,
-        position: 'absolute',
-        zIndex: 9999999,
-        borderLeft: styledBorder,
-        borderTop: styledBorder,
-        borderBottom: styledBorder,
-        borderRadius: `${BORDER_RADIUS}px 0 0 ${BORDER_RADIUS}px`,
-    };
-    const rightStyle = {
-        left: targetOffset.left + targetWidth - 2 - bodyOffset.left,
-        top: targetOffset.top - 1 - bodyOffset.top,
-        height: targetHeight + 2,
-        width: BORDER_RADIUS,
-        position: 'absolute',
-        zIndex: 9999999,
-        borderRight: styledBorder,
-        borderTop: styledBorder,
-        borderBottom: styledBorder,
-        borderRadius: `0 ${BORDER_RADIUS}px ${BORDER_RADIUS}px 0`,
-    };
-    return (react_1.default.createElement("div", { style: wrapperStyle, className: "mweb-picker" },
-        react_1.default.createElement("div", { style: topStyle }),
-        react_1.default.createElement("div", { style: leftStyle }),
-        react_1.default.createElement("div", { style: rightStyle }),
-        react_1.default.createElement("div", { style: bottomStyle })));
+    return react_1.default.createElement("div", { style: wrapperStyle, className: "mweb-picker" });
 };

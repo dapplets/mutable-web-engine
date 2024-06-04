@@ -6,6 +6,7 @@ const BORDER_RADIUS = 6 // px
 const BORDER_COLOR = '#384BFF' //blue
 const BORDER_STYLE = 'dashed'
 const BORDER_WIDTH = 2 //px
+const BACKGROUND_COLOR = 'rgb(56 188 255 / 5%)' // light blue
 
 const styledBorder = `${BORDER_WIDTH}px ${BORDER_STYLE} ${BORDER_COLOR}`
 
@@ -61,62 +62,19 @@ const ContextReactangle: FC<{ context: IContextNode; target: HTMLElement }> = ({
   const targetWidth = targetOffset.width
 
   const wrapperStyle: React.CSSProperties = {
+    left: targetOffset.left - bodyOffset.left,
+    top: targetOffset.top - bodyOffset.top,
+    width: targetWidth,
+    height: targetHeight,
+    backgroundColor: BACKGROUND_COLOR,
+    borderRadius: BORDER_RADIUS,
+    border: styledBorder,
+    position: 'absolute',
+    zIndex: 99999999,
+    pointerEvents: 'none',
     transition: 'all .2s ease-in-out',
     opacity: isDisplayed ? 1 : 0,
   }
 
-  const topStyle: React.CSSProperties = {
-    left: targetOffset.left + 4 - bodyOffset.left,
-    top: targetOffset.top - 1 - bodyOffset.top,
-    width: targetWidth - BORDER_RADIUS,
-    height: 2,
-    position: 'absolute',
-    zIndex: 9999999,
-    borderTop: styledBorder,
-  }
-
-  const bottomStyle: React.CSSProperties = {
-    left: targetOffset.left + 4 - bodyOffset.left,
-    top: targetOffset.top + targetHeight - 1 - bodyOffset.top,
-    width: targetWidth - BORDER_RADIUS,
-    height: 2,
-    position: 'absolute',
-    zIndex: 9999999,
-    borderBottom: styledBorder,
-  }
-
-  const leftStyle: React.CSSProperties = {
-    left: targetOffset.left - 2 - bodyOffset.left,
-    top: targetOffset.top - 1 - bodyOffset.top,
-    height: targetHeight + 2,
-    width: BORDER_RADIUS,
-    position: 'absolute',
-    zIndex: 9999999,
-    borderLeft: styledBorder,
-    borderTop: styledBorder,
-    borderBottom: styledBorder,
-    borderRadius: `${BORDER_RADIUS}px 0 0 ${BORDER_RADIUS}px`,
-  }
-
-  const rightStyle: React.CSSProperties = {
-    left: targetOffset.left + targetWidth - 2 - bodyOffset.left,
-    top: targetOffset.top - 1 - bodyOffset.top,
-    height: targetHeight + 2,
-    width: BORDER_RADIUS,
-    position: 'absolute',
-    zIndex: 9999999,
-    borderRight: styledBorder,
-    borderTop: styledBorder,
-    borderBottom: styledBorder,
-    borderRadius: `0 ${BORDER_RADIUS}px ${BORDER_RADIUS}px 0`,
-  }
-
-  return (
-    <div style={wrapperStyle} className="mweb-picker">
-      <div style={topStyle}></div>
-      <div style={leftStyle}></div>
-      <div style={rightStyle}></div>
-      <div style={bottomStyle}></div>
-    </div>
-  )
+  return <div style={wrapperStyle} className="mweb-picker" />
 }
