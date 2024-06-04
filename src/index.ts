@@ -1,4 +1,4 @@
-export { customElements, LocalStorage, engineSingleton, Engine } from './engine'
+export { customElements, LocalStorage, engineSingleton, Engine, App, useEngine } from './engine'
 
 export type {
   Mutation,

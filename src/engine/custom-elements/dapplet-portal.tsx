@@ -1,18 +1,17 @@
 import * as React from 'react'
-import { engineSingleton } from '../engine'
 import { InjectableTarget } from '../providers/provider'
+import { useEngine } from '../app/contexts/engine-context'
 
 const _DappletPortal: React.FC<{ component: React.FC; target: InjectableTarget }> = ({
   component: Component,
   target,
 }) => {
+  const { addPortal, removePortal } = useEngine()
+
   // ToDo: remove singleton
   React.useEffect(() => {
-    engineSingleton?.injectComponent(target, Component)
-
-    return () => {
-      engineSingleton?.unjectComponent(target, Component)
-    }
+    addPortal(target, Component)
+    return () => removePortal(Component)
   }, [target, Component])
 
   return null

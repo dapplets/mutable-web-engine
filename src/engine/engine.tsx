@@ -22,6 +22,7 @@ import { App } from './app/app'
 import { Viewport } from './viewport'
 import { Root, createRoot } from 'react-dom/client'
 import React from 'react'
+import { InsertionPointWithElement } from '../core/tree/pure-tree/pure-context-node'
 
 export type EngineConfig = {
   networkId: string
@@ -40,7 +41,7 @@ export class Engine {
   #bosWidgetFactory: BosWidgetFactory
   #selector: WalletSelector
   #contextManagers: Map<IContextNode, ContextManager> = new Map()
-  #mutationManager: MutationManager
+  mutationManager: MutationManager
   #nearConfig: NearConfig
   #redirectMap: any = null
   #devModePollingTimer: number | null = null
@@ -70,7 +71,7 @@ export class Engine {
     this.#repository = new Repository(jsonStorage)
     const nearSigner = new NearSigner(this.#selector, jsonStorage, nearConfig)
     this.#provider = new SocialDbProvider(nearSigner, nearConfig.contractName)
-    this.#mutationManager = new MutationManager(this.#provider)
+    this.mutationManager = new MutationManager(this.#provider)
 
     this.core = new Core()
 
@@ -88,7 +89,7 @@ export class Engine {
     if (!context.id) return
 
     // We don't wait adapters here
-    const parserConfigs = this.#mutationManager.filterSuitableParsers(context)
+    const parserConfigs = this.mutationManager.filterSuitableParsers(context)
     for (const config of parserConfigs) {
       this.core.attachParserConfig(config)
     }
@@ -97,26 +98,26 @@ export class Engine {
 
     if (!adapter) return
 
-    const contextManager = new ContextManager(
-      context,
-      adapter,
-      this.#bosWidgetFactory,
-      this.#mutationManager,
-      this.#nearConfig.defaultLayoutManager
-    )
+    // const contextManager = new ContextManager(
+    //   context,
+    //   adapter,
+    //   this.#bosWidgetFactory,
+    //   this.mutationManager,
+    //   this.#nearConfig.defaultLayoutManager
+    // )
 
-    this.#contextManagers.set(context, contextManager)
+    // this.#contextManagers.set(context, contextManager)
 
-    await this._addAppsAndLinks(context)
+    // await this._addAppsAndLinks(context)
 
-    contextManager.setRedirectMap(this.#redirectMap)
+    // contextManager.setRedirectMap(this.#redirectMap)
 
     // Add existing React component refereneces from portals
-    this.#refComponents.forEach((target, cmp) => {
-      if (MutationManager._isTargetMet(target, context)) {
-        contextManager.injectComponent(target, cmp)
-      }
-    })
+    // this.#refComponents.forEach((target, cmp) => {
+    //   if (MutationManager._isTargetMet(target, context)) {
+    //     contextManager.injectComponent(target, cmp)
+    //   }
+    // })
   }
 
   handleContextChanged({ context }: { context: IContextNode }): void {
@@ -137,9 +138,9 @@ export class Engine {
     insertionPoint,
   }: {
     context: IContextNode
-    insertionPoint: string
+    insertionPoint: InsertionPointWithElement
   }): void {
-    this.#contextManagers.get(context)?.injectLayoutManager(insertionPoint)
+    this.#contextManagers.get(context)?.injectLayoutManager(insertionPoint.name)
   }
 
   handleInsPointFinished({
@@ -147,9 +148,9 @@ export class Engine {
     insertionPoint,
   }: {
     context: IContextNode
-    insertionPoint: string
+    insertionPoint: InsertionPointWithElement
   }): void {
-    this.#contextManagers.get(context)?.destroyLayoutManager(insertionPoint)
+    this.#contextManagers.get(context)?.destroyLayoutManager(insertionPoint.name)
   }
 
   getLastUsedMutation = async (): Promise<string | null> => {
@@ -191,7 +192,7 @@ export class Engine {
 
       if (mutation) {
         // load mutation
-        await this.#mutationManager.switchMutation(mutation)
+        await this.mutationManager.switchMutation(mutation)
 
         // load non-disabled apps only
         await Promise.all(
@@ -199,7 +200,7 @@ export class Engine {
             const isAppEnabled = await this.#repository.getAppEnabledStatus(mutation.id, appId)
             if (!isAppEnabled) return
 
-            return this.#mutationManager.loadApp(appId)
+            return this.mutationManager.loadApp(appId)
           })
         )
 
@@ -218,7 +219,6 @@ export class Engine {
     this.started = true
 
     this._attachViewport()
-    this._mountReactApp()
     this._updateRootContext()
 
     console.log('Mutable Web Engine started!', {
@@ -233,7 +233,6 @@ export class Engine {
     this.core.clear()
     this.#contextManagers.clear()
     this._detachViewport()
-    this._unmountReactApp()
   }
 
   async getMutations(): Promise<MutationWithSettings[]> {
@@ -241,7 +240,7 @@ export class Engine {
     const context = new PureContextNode('engine', 'website')
     context.parsedContext = { id: window.location.hostname }
 
-    const mutations = await this.#mutationManager.getMutationsForContext(context)
+    const mutations = await this.mutationManager.getMutationsForContext(context)
 
     return Promise.all(mutations.map((mut) => this._populateMutationWithSettings(mut)))
   }
@@ -255,7 +254,7 @@ export class Engine {
   }
 
   async getCurrentMutation(): Promise<MutationWithSettings | null> {
-    const mutation = this.#mutationManager?.mutation
+    const mutation = this.mutationManager?.mutation
     if (!mutation) return null
 
     return this._populateMutationWithSettings(mutation)
@@ -314,7 +313,7 @@ export class Engine {
     await this.#provider.saveMutation(mutation)
 
     // If the current mutation is edited, reload it
-    if (mutation.id === this.#mutationManager?.mutation?.id) {
+    if (mutation.id === this.mutationManager?.mutation?.id) {
       this.stop()
       await this.start(mutation.id)
     }
@@ -344,7 +343,7 @@ export class Engine {
   }
 
   async getAppsFromMutation(mutationId: string): Promise<AppWithSettings[]> {
-    const { mutation: currentMutation } = this.#mutationManager
+    const { mutation: currentMutation } = this.mutationManager
 
     // don't fetch mutation if fetched already
     const mutation =
@@ -367,7 +366,7 @@ export class Engine {
   }
 
   async enableApp(appId: string): Promise<void> {
-    const currentMutationId = this.#mutationManager.mutation?.id
+    const currentMutationId = this.mutationManager.mutation?.id
 
     if (!currentMutationId) {
       throw new Error('Mutation is not active')
@@ -379,7 +378,7 @@ export class Engine {
   }
 
   async disableApp(appId: string): Promise<void> {
-    const currentMutationId = this.#mutationManager.mutation?.id
+    const currentMutationId = this.mutationManager.mutation?.id
 
     if (!currentMutationId) {
       throw new Error('Mutation is not active')
@@ -420,7 +419,7 @@ export class Engine {
     // ToDo: instantiate root context with data initially
     // ToDo: looks like circular dependency
     this.core.updateRootContext({
-      mutationId: this.#mutationManager.mutation?.id ?? null,
+      mutationId: this.mutationManager.mutation?.id ?? null,
       gatewayId: this.config.gatewayId,
     })
   }
@@ -442,7 +441,7 @@ export class Engine {
   }
 
   private async _populateAppWithSettings(app: AppMetadata): Promise<AppWithSettings> {
-    const currentMutationId = this.#mutationManager.mutation?.id
+    const currentMutationId = this.mutationManager.mutation?.id
 
     if (!currentMutationId) throw new Error('Mutation is not active')
 
@@ -471,7 +470,7 @@ export class Engine {
   }
 
   private async _startApp(appId: string): Promise<void> {
-    await this.#mutationManager.loadApp(appId)
+    await this.mutationManager.loadApp(appId)
 
     await this._traverseContextTree(
       (context) => this._addAppsAndLinks(context, [appId]),
@@ -485,7 +484,7 @@ export class Engine {
       this.core.tree
     )
 
-    await this.#mutationManager.unloadApp(appId)
+    await this.mutationManager.unloadApp(appId)
   }
 
   private async _addAppsAndLinks(context: IContextNode, includedApps?: string[]) {
@@ -493,8 +492,8 @@ export class Engine {
 
     if (!contextManager) return
 
-    const links = await this.#mutationManager.getLinksForContext(context, includedApps)
-    const apps = this.#mutationManager.filterSuitableApps(context, includedApps)
+    const links = await this.mutationManager.getLinksForContext(context, includedApps)
+    const apps = this.mutationManager.filterSuitableApps(context, includedApps)
 
     links.forEach((link) => contextManager.addUserLink(link))
     apps.forEach((app) => contextManager.addAppMetadata(app))
@@ -505,7 +504,7 @@ export class Engine {
 
     if (!contextManager) return
 
-    const links = await this.#mutationManager.getLinksForContext(context, includedApps)
+    const links = await this.mutationManager.getLinksForContext(context, includedApps)
 
     links.forEach((link) => contextManager.removeUserLink(link))
     includedApps.forEach((appId) => contextManager.removeAppMetadata(appId))
@@ -519,29 +518,5 @@ export class Engine {
       callback(parent),
       ...parent.children.map((child) => this._traverseContextTree(callback, child)),
     ])
-  }
-
-  private _mountReactApp() {
-    if (!this.#viewport) {
-      throw new Error('Viewport is not attached')
-    }
-
-    const container = document.createElement('div')
-    this.#viewport.inner.appendChild(container)
-
-    const stylesMountPoint = document.createElement('div')
-    container.appendChild(stylesMountPoint)
-
-    const appMountPoint = document.createElement('div')
-    container.appendChild(appMountPoint)
-
-    this.#reactRoot = createRoot(appMountPoint)
-    this.#reactRoot.render(<App core={this.core} stylesMountPoint={stylesMountPoint} />)
-  }
-
-  private _unmountReactApp() {
-    if (this.#reactRoot) {
-      this.#reactRoot.unmount()
-    }
   }
 }
