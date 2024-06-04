@@ -1,4 +1,8 @@
+import { InsertionPoint } from '../../parsers/interface';
 import { IContextNode } from '../types';
+export type InsertionPointWithElement = InsertionPoint & {
+    element: HTMLElement;
+};
 export declare class PureContextNode implements IContextNode {
     id: string | null;
     contextType: string;
@@ -6,9 +10,9 @@ export declare class PureContextNode implements IContextNode {
     parentNode: IContextNode | null;
     parsedContext: any;
     children: IContextNode[];
-    insPoints: string[];
+    insPoints: InsertionPointWithElement[];
     element: HTMLElement | null;
-    constructor(namespace: string, contextType: string, parsedContext?: any, insPoints?: string[], element?: HTMLElement | null);
+    constructor(namespace: string, contextType: string, parsedContext?: any, insPoints?: InsertionPointWithElement[], element?: HTMLElement | null);
     removeChild(child: IContextNode): void;
     appendChild(child: IContextNode): void;
 }

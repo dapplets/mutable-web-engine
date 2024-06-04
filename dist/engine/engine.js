@@ -19,10 +19,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-var _Engine_provider, _Engine_bosWidgetFactory, _Engine_selector, _Engine_contextManagers, _Engine_mutationManager, _Engine_nearConfig, _Engine_redirectMap, _Engine_devModePollingTimer, _Engine_repository, _Engine_viewport, _Engine_reactRoot, _Engine_refComponents;
+var _Engine_provider, _Engine_bosWidgetFactory, _Engine_selector, _Engine_contextManagers, _Engine_nearConfig, _Engine_redirectMap, _Engine_devModePollingTimer, _Engine_repository, _Engine_viewport, _Engine_reactRoot, _Engine_refComponents;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Engine = exports.engineSingleton = void 0;
 const core_1 = require("../core");
@@ -30,15 +27,11 @@ const bos_widget_factory_1 = require("./bos/bos-widget-factory");
 const constants_1 = require("./constants");
 const near_signer_1 = require("./providers/near-signer");
 const social_db_provider_1 = require("./providers/social-db-provider");
-const context_manager_1 = require("./context-manager");
 const mutation_manager_1 = require("./mutation-manager");
 const repository_1 = require("./storage/repository");
 const json_storage_1 = require("./storage/json-storage");
 const local_storage_1 = require("./storage/local-storage");
-const app_1 = require("./app/app");
 const viewport_1 = require("./viewport");
-const client_1 = require("react-dom/client");
-const react_1 = __importDefault(require("react"));
 // ToDo: dirty hack
 exports.engineSingleton = null;
 class Engine {
@@ -49,7 +42,6 @@ class Engine {
         _Engine_bosWidgetFactory.set(this, void 0);
         _Engine_selector.set(this, void 0);
         _Engine_contextManagers.set(this, new Map());
-        _Engine_mutationManager.set(this, void 0);
         _Engine_nearConfig.set(this, void 0);
         _Engine_redirectMap.set(this, null);
         _Engine_devModePollingTimer.set(this, null);
@@ -103,7 +95,7 @@ class Engine {
         __classPrivateFieldSet(this, _Engine_repository, new repository_1.Repository(jsonStorage), "f");
         const nearSigner = new near_signer_1.NearSigner(__classPrivateFieldGet(this, _Engine_selector, "f"), jsonStorage, nearConfig);
         __classPrivateFieldSet(this, _Engine_provider, new social_db_provider_1.SocialDbProvider(nearSigner, nearConfig.contractName), "f");
-        __classPrivateFieldSet(this, _Engine_mutationManager, new mutation_manager_1.MutationManager(__classPrivateFieldGet(this, _Engine_provider, "f")), "f");
+        this.mutationManager = new mutation_manager_1.MutationManager(__classPrivateFieldGet(this, _Engine_provider, "f"));
         this.core = new core_1.Core();
         this.core.on('contextStarted', this.handleContextStarted.bind(this));
         this.core.on('contextFinished', this.handleContextFinished.bind(this));
@@ -118,23 +110,29 @@ class Engine {
             if (!context.id)
                 return;
             // We don't wait adapters here
-            const parserConfigs = __classPrivateFieldGet(this, _Engine_mutationManager, "f").filterSuitableParsers(context);
+            const parserConfigs = this.mutationManager.filterSuitableParsers(context);
             for (const config of parserConfigs) {
                 this.core.attachParserConfig(config);
             }
             const adapter = this.core.adapters.get(context.namespace);
             if (!adapter)
                 return;
-            const contextManager = new context_manager_1.ContextManager(context, adapter, __classPrivateFieldGet(this, _Engine_bosWidgetFactory, "f"), __classPrivateFieldGet(this, _Engine_mutationManager, "f"), __classPrivateFieldGet(this, _Engine_nearConfig, "f").defaultLayoutManager);
-            __classPrivateFieldGet(this, _Engine_contextManagers, "f").set(context, contextManager);
-            yield this._addAppsAndLinks(context);
-            contextManager.setRedirectMap(__classPrivateFieldGet(this, _Engine_redirectMap, "f"));
+            // const contextManager = new ContextManager(
+            //   context,
+            //   adapter,
+            //   this.#bosWidgetFactory,
+            //   this.mutationManager,
+            //   this.#nearConfig.defaultLayoutManager
+            // )
+            // this.#contextManagers.set(context, contextManager)
+            // await this._addAppsAndLinks(context)
+            // contextManager.setRedirectMap(this.#redirectMap)
             // Add existing React component refereneces from portals
-            __classPrivateFieldGet(this, _Engine_refComponents, "f").forEach((target, cmp) => {
-                if (mutation_manager_1.MutationManager._isTargetMet(target, context)) {
-                    contextManager.injectComponent(target, cmp);
-                }
-            });
+            // this.#refComponents.forEach((target, cmp) => {
+            //   if (MutationManager._isTargetMet(target, context)) {
+            //     contextManager.injectComponent(target, cmp)
+            //   }
+            // })
         });
     }
     handleContextChanged({ context }) {
@@ -152,11 +150,11 @@ class Engine {
     }
     handleInsPointStarted({ context, insertionPoint, }) {
         var _a;
-        (_a = __classPrivateFieldGet(this, _Engine_contextManagers, "f").get(context)) === null || _a === void 0 ? void 0 : _a.injectLayoutManager(insertionPoint);
+        (_a = __classPrivateFieldGet(this, _Engine_contextManagers, "f").get(context)) === null || _a === void 0 ? void 0 : _a.injectLayoutManager(insertionPoint.name);
     }
     handleInsPointFinished({ context, insertionPoint, }) {
         var _a;
-        (_a = __classPrivateFieldGet(this, _Engine_contextManagers, "f").get(context)) === null || _a === void 0 ? void 0 : _a.destroyLayoutManager(insertionPoint);
+        (_a = __classPrivateFieldGet(this, _Engine_contextManagers, "f").get(context)) === null || _a === void 0 ? void 0 : _a.destroyLayoutManager(insertionPoint.name);
     }
     start(mutationId) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -169,13 +167,13 @@ class Engine {
                 const mutation = (_a = mutations.find((mutation) => mutation.id === mutationId)) !== null && _a !== void 0 ? _a : null;
                 if (mutation) {
                     // load mutation
-                    yield __classPrivateFieldGet(this, _Engine_mutationManager, "f").switchMutation(mutation);
+                    yield this.mutationManager.switchMutation(mutation);
                     // load non-disabled apps only
                     yield Promise.all(mutation.apps.map((appId) => __awaiter(this, void 0, void 0, function* () {
                         const isAppEnabled = yield __classPrivateFieldGet(this, _Engine_repository, "f").getAppEnabledStatus(mutation.id, appId);
                         if (!isAppEnabled)
                             return;
-                        return __classPrivateFieldGet(this, _Engine_mutationManager, "f").loadApp(appId);
+                        return this.mutationManager.loadApp(appId);
                     })));
                     // save last usage
                     const currentDate = new Date().toISOString();
@@ -187,7 +185,6 @@ class Engine {
             }
             this.started = true;
             this._attachViewport();
-            this._mountReactApp();
             this._updateRootContext();
             console.log('Mutable Web Engine started!', {
                 engine: this,
@@ -201,14 +198,13 @@ class Engine {
         this.core.clear();
         __classPrivateFieldGet(this, _Engine_contextManagers, "f").clear();
         this._detachViewport();
-        this._unmountReactApp();
     }
     getMutations() {
         return __awaiter(this, void 0, void 0, function* () {
             // ToDo: use real context from the PureTreeBuilder
             const context = new core_1.PureContextNode('engine', 'website');
             context.parsedContext = { id: window.location.hostname };
-            const mutations = yield __classPrivateFieldGet(this, _Engine_mutationManager, "f").getMutationsForContext(context);
+            const mutations = yield this.mutationManager.getMutationsForContext(context);
             return Promise.all(mutations.map((mut) => this._populateMutationWithSettings(mut)));
         });
     }
@@ -224,7 +220,7 @@ class Engine {
     getCurrentMutation() {
         return __awaiter(this, void 0, void 0, function* () {
             var _a;
-            const mutation = (_a = __classPrivateFieldGet(this, _Engine_mutationManager, "f")) === null || _a === void 0 ? void 0 : _a.mutation;
+            const mutation = (_a = this.mutationManager) === null || _a === void 0 ? void 0 : _a.mutation;
             if (!mutation)
                 return null;
             return this._populateMutationWithSettings(mutation);
@@ -284,7 +280,7 @@ class Engine {
             var _a, _b;
             yield __classPrivateFieldGet(this, _Engine_provider, "f").saveMutation(mutation);
             // If the current mutation is edited, reload it
-            if (mutation.id === ((_b = (_a = __classPrivateFieldGet(this, _Engine_mutationManager, "f")) === null || _a === void 0 ? void 0 : _a.mutation) === null || _b === void 0 ? void 0 : _b.id)) {
+            if (mutation.id === ((_b = (_a = this.mutationManager) === null || _a === void 0 ? void 0 : _a.mutation) === null || _b === void 0 ? void 0 : _b.id)) {
                 this.stop();
                 yield this.start(mutation.id);
             }
@@ -310,7 +306,7 @@ class Engine {
     }
     getAppsFromMutation(mutationId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const { mutation: currentMutation } = __classPrivateFieldGet(this, _Engine_mutationManager, "f");
+            const { mutation: currentMutation } = this.mutationManager;
             // don't fetch mutation if fetched already
             const mutation = (currentMutation === null || currentMutation === void 0 ? void 0 : currentMutation.id) === mutationId
                 ? currentMutation
@@ -327,7 +323,7 @@ class Engine {
     enableApp(appId) {
         return __awaiter(this, void 0, void 0, function* () {
             var _a;
-            const currentMutationId = (_a = __classPrivateFieldGet(this, _Engine_mutationManager, "f").mutation) === null || _a === void 0 ? void 0 : _a.id;
+            const currentMutationId = (_a = this.mutationManager.mutation) === null || _a === void 0 ? void 0 : _a.id;
             if (!currentMutationId) {
                 throw new Error('Mutation is not active');
             }
@@ -338,7 +334,7 @@ class Engine {
     disableApp(appId) {
         return __awaiter(this, void 0, void 0, function* () {
             var _a;
-            const currentMutationId = (_a = __classPrivateFieldGet(this, _Engine_mutationManager, "f").mutation) === null || _a === void 0 ? void 0 : _a.id;
+            const currentMutationId = (_a = this.mutationManager.mutation) === null || _a === void 0 ? void 0 : _a.id;
             if (!currentMutationId) {
                 throw new Error('Mutation is not active');
             }
@@ -376,7 +372,7 @@ class Engine {
         // ToDo: instantiate root context with data initially
         // ToDo: looks like circular dependency
         this.core.updateRootContext({
-            mutationId: (_b = (_a = __classPrivateFieldGet(this, _Engine_mutationManager, "f").mutation) === null || _a === void 0 ? void 0 : _a.id) !== null && _b !== void 0 ? _b : null,
+            mutationId: (_b = (_a = this.mutationManager.mutation) === null || _a === void 0 ? void 0 : _a.id) !== null && _b !== void 0 ? _b : null,
             gatewayId: this.config.gatewayId,
         });
     }
@@ -393,7 +389,7 @@ class Engine {
     _populateAppWithSettings(app) {
         return __awaiter(this, void 0, void 0, function* () {
             var _a;
-            const currentMutationId = (_a = __classPrivateFieldGet(this, _Engine_mutationManager, "f").mutation) === null || _a === void 0 ? void 0 : _a.id;
+            const currentMutationId = (_a = this.mutationManager.mutation) === null || _a === void 0 ? void 0 : _a.id;
             if (!currentMutationId)
                 throw new Error('Mutation is not active');
             return Object.assign(Object.assign({}, app), { settings: {
@@ -416,14 +412,14 @@ class Engine {
     }
     _startApp(appId) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield __classPrivateFieldGet(this, _Engine_mutationManager, "f").loadApp(appId);
+            yield this.mutationManager.loadApp(appId);
             yield this._traverseContextTree((context) => this._addAppsAndLinks(context, [appId]), this.core.tree);
         });
     }
     _stopApp(appId) {
         return __awaiter(this, void 0, void 0, function* () {
             yield this._traverseContextTree((context) => this._removeAppsAndLinks(context, [appId]), this.core.tree);
-            yield __classPrivateFieldGet(this, _Engine_mutationManager, "f").unloadApp(appId);
+            yield this.mutationManager.unloadApp(appId);
         });
     }
     _addAppsAndLinks(context, includedApps) {
@@ -431,8 +427,8 @@ class Engine {
             const contextManager = __classPrivateFieldGet(this, _Engine_contextManagers, "f").get(context);
             if (!contextManager)
                 return;
-            const links = yield __classPrivateFieldGet(this, _Engine_mutationManager, "f").getLinksForContext(context, includedApps);
-            const apps = __classPrivateFieldGet(this, _Engine_mutationManager, "f").filterSuitableApps(context, includedApps);
+            const links = yield this.mutationManager.getLinksForContext(context, includedApps);
+            const apps = this.mutationManager.filterSuitableApps(context, includedApps);
             links.forEach((link) => contextManager.addUserLink(link));
             apps.forEach((app) => contextManager.addAppMetadata(app));
         });
@@ -442,7 +438,7 @@ class Engine {
             const contextManager = __classPrivateFieldGet(this, _Engine_contextManagers, "f").get(context);
             if (!contextManager)
                 return;
-            const links = yield __classPrivateFieldGet(this, _Engine_mutationManager, "f").getLinksForContext(context, includedApps);
+            const links = yield this.mutationManager.getLinksForContext(context, includedApps);
             links.forEach((link) => contextManager.removeUserLink(link));
             includedApps.forEach((appId) => contextManager.removeAppMetadata(appId));
         });
@@ -455,24 +451,6 @@ class Engine {
             ]);
         });
     }
-    _mountReactApp() {
-        if (!__classPrivateFieldGet(this, _Engine_viewport, "f")) {
-            throw new Error('Viewport is not attached');
-        }
-        const container = document.createElement('div');
-        __classPrivateFieldGet(this, _Engine_viewport, "f").inner.appendChild(container);
-        const stylesMountPoint = document.createElement('div');
-        container.appendChild(stylesMountPoint);
-        const appMountPoint = document.createElement('div');
-        container.appendChild(appMountPoint);
-        __classPrivateFieldSet(this, _Engine_reactRoot, (0, client_1.createRoot)(appMountPoint), "f");
-        __classPrivateFieldGet(this, _Engine_reactRoot, "f").render(react_1.default.createElement(app_1.App, { core: this.core, stylesMountPoint: stylesMountPoint }));
-    }
-    _unmountReactApp() {
-        if (__classPrivateFieldGet(this, _Engine_reactRoot, "f")) {
-            __classPrivateFieldGet(this, _Engine_reactRoot, "f").unmount();
-        }
-    }
 }
 exports.Engine = Engine;
-_Engine_provider = new WeakMap(), _Engine_bosWidgetFactory = new WeakMap(), _Engine_selector = new WeakMap(), _Engine_contextManagers = new WeakMap(), _Engine_mutationManager = new WeakMap(), _Engine_nearConfig = new WeakMap(), _Engine_redirectMap = new WeakMap(), _Engine_devModePollingTimer = new WeakMap(), _Engine_repository = new WeakMap(), _Engine_viewport = new WeakMap(), _Engine_reactRoot = new WeakMap(), _Engine_refComponents = new WeakMap();
+_Engine_provider = new WeakMap(), _Engine_bosWidgetFactory = new WeakMap(), _Engine_selector = new WeakMap(), _Engine_contextManagers = new WeakMap(), _Engine_nearConfig = new WeakMap(), _Engine_redirectMap = new WeakMap(), _Engine_devModePollingTimer = new WeakMap(), _Engine_repository = new WeakMap(), _Engine_viewport = new WeakMap(), _Engine_reactRoot = new WeakMap(), _Engine_refComponents = new WeakMap();

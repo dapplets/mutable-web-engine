@@ -23,19 +23,29 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DappletPortal = void 0;
-const React = __importStar(require("react"));
-const engine_context_1 = require("../app/contexts/engine-context");
-const _DappletPortal = ({ component: Component, target, }) => {
-    const { addPortal, removePortal } = (0, engine_context_1.useEngine)();
-    // ToDo: remove singleton
-    React.useEffect(() => {
-        addPortal(target, Component);
-        return () => removePortal(Component);
-    }, [target, Component]);
-    return null;
+exports.EngineProvider = void 0;
+const react_1 = __importStar(require("react"));
+const engine_context_1 = require("./engine-context");
+const EngineProvider = ({ engine, children }) => {
+    const [portals, setPortals] = (0, react_1.useState)(new Map());
+    const [pickerCallback, setPickerCallback] = (0, react_1.useState)(null);
+    const addPortal = (0, react_1.useCallback)((target, cmp) => {
+        setPortals((prev) => new Map(prev.set(cmp, target)));
+    }, []);
+    const removePortal = (0, react_1.useCallback)((cmp) => {
+        setPortals((prev) => {
+            prev.delete(cmp);
+            return new Map(prev);
+        });
+    }, []);
+    const state = {
+        engine,
+        portals,
+        addPortal,
+        removePortal,
+        pickerCallback,
+        setPickerCallback,
+    };
+    return react_1.default.createElement(engine_context_1.EngineContext.Provider, { value: state }, children);
 };
-const DappletPortal = (props) => {
-    return React.createElement(_DappletPortal, Object.assign({}, props));
-};
-exports.DappletPortal = DappletPortal;
+exports.EngineProvider = EngineProvider;

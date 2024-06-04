@@ -1,0 +1,1 @@
+{"version":3,"file":"mweb-portal.d.ts","sourceRoot":"","sources":["../../../src/react/components/mweb-portal.tsx"],"names":[],"mappings":"AAAA,OAAO,EAAE,EAAE,EAAE,YAAY,EAAE,MAAM,OAAO,CAAA;AAExC,OAAO,EAAE,YAAY,EAAE,MAAM,YAAY,CAAA;AAEzC,eAAO,MAAM,UAAU,EAAE,EAAE,CAAC;IAC1B,OAAO,EAAE,YAAY,CAAA;IACrB,QAAQ,EAAE,YAAY,CAAA;IACtB,QAAQ,CAAC,EAAE,MAAM,CAAA;CAClB,CAUA,CAAA"}

@@ -1,7 +1,10 @@
+import { ReactElement } from 'react';
 import { FC } from 'react';
-import { Core } from '../../core';
+import { EngineConfig } from '../engine';
 export declare const App: FC<{
-    core: Core;
+    config: EngineConfig;
+    defaultMutationId?: string | null;
     stylesMountPoint: HTMLElement;
+    children?: ReactElement;
 }>;
 //# sourceMappingURL=app.d.ts.map

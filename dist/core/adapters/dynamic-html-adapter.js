@@ -150,8 +150,8 @@ class DynamicHtmlAdapter {
         const parser = this.parser;
         const definedInsPoints = parser.getInsertionPoints(element, contextName);
         const availableInsPoints = definedInsPoints
-            .filter((ip) => !!parser.findInsertionPoint(element, contextName, ip.name))
-            .map((ip) => ip.name);
+            .map((ip) => (Object.assign(Object.assign({}, ip), { element: parser.findInsertionPoint(element, contextName, ip.name) })))
+            .filter((ip) => !!ip.element);
         return availableInsPoints;
     }
 }

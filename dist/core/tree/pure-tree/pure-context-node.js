@@ -8,7 +8,7 @@ class PureContextNode {
         this.parentNode = null;
         this.parsedContext = {};
         this.children = [];
-        this.insPoints = [];
+        this.insPoints = []; // ToDo: replace with Map
         this.element = null;
         this.namespace = namespace;
         this.contextType = contextType;

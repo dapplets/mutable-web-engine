@@ -1,8 +1,10 @@
 import { IContextNode, Core } from '../core';
 import { AppMetadata, AppWithSettings, InjectableTarget, Mutation, MutationWithSettings } from './providers/provider';
 import { WalletSelector } from '@near-wallet-selector/core';
+import { MutationManager } from './mutation-manager';
 import { IStorage } from './storage/storage';
 import React from 'react';
+import { InsertionPointWithElement } from '../core/tree/pure-tree/pure-context-node';
 export type EngineConfig = {
     networkId: string;
     gatewayId: string;
@@ -15,6 +17,7 @@ export declare let engineSingleton: Engine | null;
 export declare class Engine {
     #private;
     private config;
+    mutationManager: MutationManager;
     started: boolean;
     core: Core;
     constructor(config: EngineConfig);
@@ -29,11 +32,11 @@ export declare class Engine {
     }): void;
     handleInsPointStarted({ context, insertionPoint, }: {
         context: IContextNode;
-        insertionPoint: string;
+        insertionPoint: InsertionPointWithElement;
     }): void;
     handleInsPointFinished({ context, insertionPoint, }: {
         context: IContextNode;
-        insertionPoint: string;
+        insertionPoint: InsertionPointWithElement;
     }): void;
     getLastUsedMutation: () => Promise<string | null>;
     start(mutationId?: string | null): Promise<void>;
@@ -67,7 +70,5 @@ export declare class Engine {
     private _addAppsAndLinks;
     private _removeAppsAndLinks;
     private _traverseContextTree;
-    private _mountReactApp;
-    private _unmountReactApp;
 }
 //# sourceMappingURL=engine.d.ts.map

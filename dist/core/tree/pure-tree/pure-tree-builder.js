@@ -43,11 +43,21 @@ class PureTreeBuilder {
         var _a;
         // IPs means insertion points
         const existingIPs = (_a = context.insPoints) !== null && _a !== void 0 ? _a : [];
-        context.insPoints = foundIPs;
-        const oldIPs = existingIPs.filter((ip) => !foundIPs.includes(ip));
-        const newIPs = foundIPs.filter((ip) => !existingIPs.includes(ip));
-        oldIPs.forEach((ip) => this._emitInsPointFinished(context, ip));
-        newIPs.forEach((ip) => this._emitInsPointStarted(context, ip));
+        const oldIPs = existingIPs.filter((ip) => !foundIPs.some((_ip) => _ip.name === ip.name));
+        const newIPs = foundIPs.filter((ip) => !existingIPs.some((_ip) => _ip.name === ip.name));
+        // Remove old IPs from context.insPoints
+        oldIPs.forEach((ip) => {
+            const index = existingIPs.findIndex((_ip) => _ip.name === ip.name);
+            if (index !== -1) {
+                existingIPs.splice(index, 1);
+            }
+            this._emitInsPointFinished(context, ip);
+        });
+        // Add new IPs to context.insPoints
+        newIPs.forEach((ip) => {
+            existingIPs.push(ip);
+            this._emitInsPointStarted(context, ip);
+        });
     }
     clear() {
         // ToDo: move to engine, it's not a core responsibility

@@ -1,5 +1,6 @@
 import { EventEmitter } from '../../event-emitter';
 import { IContextNode, ITreeBuilder, ParsedContext } from '../types';
+import { InsertionPointWithElement } from './pure-context-node';
 export type TreeBuilderEvents = {
     contextStarted: {
         context: IContextNode;
@@ -13,11 +14,11 @@ export type TreeBuilderEvents = {
     };
     insertionPointStarted: {
         context: IContextNode;
-        insertionPoint: string;
+        insertionPoint: InsertionPointWithElement;
     };
     insertionPointFinished: {
         context: IContextNode;
-        insertionPoint: string;
+        insertionPoint: InsertionPointWithElement;
     };
 };
 export declare class PureTreeBuilder implements ITreeBuilder {
@@ -26,9 +27,9 @@ export declare class PureTreeBuilder implements ITreeBuilder {
     constructor(_eventEmitter: EventEmitter<TreeBuilderEvents>);
     appendChild(parent: IContextNode, child: IContextNode): void;
     removeChild(parent: IContextNode, child: IContextNode): void;
-    createNode(namespace: string, contextType: string, parsedContext?: any, insPoints?: string[], element?: HTMLElement | null): IContextNode;
+    createNode(namespace: string, contextType: string, parsedContext?: any, insPoints?: InsertionPointWithElement[], element?: HTMLElement | null): IContextNode;
     updateParsedContext(context: IContextNode, newParsedContext: any): void;
-    updateInsertionPoints(context: IContextNode, foundIPs: string[]): void;
+    updateInsertionPoints(context: IContextNode, foundIPs: InsertionPointWithElement[]): void;
     clear(): void;
     private _emitContextStarted;
     private _emitContextChanged;
