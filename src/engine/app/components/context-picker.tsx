@@ -2,6 +2,14 @@ import React, { FC, useEffect, useState } from 'react'
 import { useMutableWeb } from '../../../react'
 import { IContextNode } from '../../../core'
 
+const BORDER_RADIUS = 6 // px
+const BORDER_COLOR = '#384BFF' //blue
+const BORDER_STYLE = 'dashed'
+const BORDER_WIDTH = 2 //px
+const BACKGROUND_COLOR = 'rgb(56 188 255 / 5%)' // light blue
+
+const styledBorder = `${BORDER_WIDTH}px ${BORDER_STYLE} ${BORDER_COLOR}`
+
 export const ContextPicker: FC = () => {
   const { tree } = useMutableWeb()
 
@@ -26,13 +34,16 @@ const ContextReactangle: FC<{ context: IContextNode; target: HTMLElement }> = ({
   target,
 }) => {
   const [isEntered, setIsEntered] = useState(false)
+  const [isDisplayed, setIsDisplayed] = useState(false)
 
   useEffect(() => {
     const mouseEnterHandler = () => {
       setIsEntered(true)
+      setTimeout(() => setIsDisplayed(true))
     }
     const mouseLeaveHandler = () => {
       setIsEntered(false)
+      setTimeout(() => setIsDisplayed(false))
     }
     target.addEventListener('mouseenter', mouseEnterHandler)
     target.addEventListener('mouseleave', mouseLeaveHandler)
@@ -50,52 +61,20 @@ const ContextReactangle: FC<{ context: IContextNode; target: HTMLElement }> = ({
   const targetHeight = targetOffset.height
   const targetWidth = targetOffset.width
 
-  const topStyle: React.CSSProperties = {
-    left: targetOffset.left - 4 - bodyOffset.left,
-    top: targetOffset.top - 4 - bodyOffset.top,
-    width: targetWidth + 5,
-    background: 'blue',
-    height: 3,
+  const wrapperStyle: React.CSSProperties = {
+    left: targetOffset.left - bodyOffset.left,
+    top: targetOffset.top - bodyOffset.top,
+    width: targetWidth,
+    height: targetHeight,
+    backgroundColor: BACKGROUND_COLOR,
+    borderRadius: BORDER_RADIUS,
+    border: styledBorder,
     position: 'absolute',
-    transition: 'all 300ms ease',
+    zIndex: 99999999,
+    pointerEvents: 'none',
+    transition: 'all .2s ease-in-out',
+    opacity: isDisplayed ? 1 : 0,
   }
 
-  const bottomStyle: React.CSSProperties = {
-    top: targetOffset.top + targetHeight + 1 - bodyOffset.top,
-    left: targetOffset.left - 3 - bodyOffset.left,
-    width: targetWidth + 4,
-    background: 'blue',
-    height: 3,
-    position: 'absolute',
-    transition: 'all 300ms ease',
-  }
-
-  const leftStyle: React.CSSProperties = {
-    left: targetOffset.left - 5 - bodyOffset.left,
-    top: targetOffset.top - 4 - bodyOffset.top,
-    height: targetHeight + 8,
-    background: 'blue',
-    width: 3,
-    position: 'absolute',
-    transition: 'all 300ms ease',
-  }
-
-  const rightStyle: React.CSSProperties = {
-    left: targetOffset.left + targetWidth + 1 - bodyOffset.left,
-    top: targetOffset.top - 4 - bodyOffset.top,
-    height: targetHeight + 8,
-    background: 'blue',
-    width: 3,
-    position: 'absolute',
-    transition: 'all 300ms ease',
-  }
-
-  return (
-    <div>
-      <div style={topStyle}></div>
-      <div style={leftStyle}></div>
-      <div style={rightStyle}></div>
-      <div style={bottomStyle}></div>
-    </div>
-  )
+  return <div style={wrapperStyle} className="mweb-picker" />
 }
