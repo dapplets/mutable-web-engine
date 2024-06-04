@@ -2,14 +2,14 @@ import { DappletsEngineNs } from '../../constants'
 import { EventEmitter } from '../../event-emitter'
 import { isDeepEqual } from '../../utils'
 import { IContextNode, ITreeBuilder, ParsedContext } from '../types'
-import { PureContextNode } from './pure-context-node'
+import { InsertionPointWithElement, PureContextNode } from './pure-context-node'
 
 export type TreeBuilderEvents = {
   contextStarted: { context: IContextNode }
   contextFinished: { context: IContextNode }
   contextChanged: { context: IContextNode; previousContext: ParsedContext }
-  insertionPointStarted: { context: IContextNode; insertionPoint: string }
-  insertionPointFinished: { context: IContextNode; insertionPoint: string }
+  insertionPointStarted: { context: IContextNode; insertionPoint: InsertionPointWithElement }
+  insertionPointFinished: { context: IContextNode; insertionPoint: InsertionPointWithElement }
 }
 
 export class PureTreeBuilder implements ITreeBuilder {
@@ -36,7 +36,7 @@ export class PureTreeBuilder implements ITreeBuilder {
     namespace: string,
     contextType: string,
     parsedContext: any = {},
-    insPoints: string[] = [],
+    insPoints: InsertionPointWithElement[] = [],
     element: HTMLElement | null = null
   ): IContextNode {
     return new PureContextNode(namespace, contextType, parsedContext, insPoints, element)
@@ -58,16 +58,27 @@ export class PureTreeBuilder implements ITreeBuilder {
     }
   }
 
-  updateInsertionPoints(context: IContextNode, foundIPs: string[]): void {
+  updateInsertionPoints(context: IContextNode, foundIPs: InsertionPointWithElement[]): void {
     // IPs means insertion points
     const existingIPs = context.insPoints ?? []
-    context.insPoints = foundIPs
 
-    const oldIPs = existingIPs.filter((ip) => !foundIPs.includes(ip))
-    const newIPs = foundIPs.filter((ip) => !existingIPs.includes(ip))
+    const oldIPs = existingIPs.filter((ip) => !foundIPs.some((_ip) => _ip.name === ip.name))
+    const newIPs = foundIPs.filter((ip) => !existingIPs.some((_ip) => _ip.name === ip.name))
 
-    oldIPs.forEach((ip) => this._emitInsPointFinished(context, ip))
-    newIPs.forEach((ip) => this._emitInsPointStarted(context, ip))
+    // Remove old IPs from context.insPoints
+    oldIPs.forEach((ip) => {
+      const index = existingIPs.findIndex((_ip) => _ip.name === ip.name)
+      if (index !== -1) {
+        existingIPs.splice(index, 1)
+      }
+      this._emitInsPointFinished(context, ip)
+    })
+
+    // Add new IPs to context.insPoints
+    newIPs.forEach((ip) => {
+      existingIPs.push(ip)
+      this._emitInsPointStarted(context, ip)
+    })
   }
 
   clear() {
@@ -87,14 +98,14 @@ export class PureTreeBuilder implements ITreeBuilder {
     this._eventEmitter.emit('contextFinished', { context })
   }
 
-  private _emitInsPointStarted(context: IContextNode, insertionPoint: string) {
+  private _emitInsPointStarted(context: IContextNode, insertionPoint: InsertionPointWithElement) {
     this._eventEmitter.emit('insertionPointStarted', {
       context,
       insertionPoint,
     })
   }
 
-  private _emitInsPointFinished(context: IContextNode, insertionPoint: string) {
+  private _emitInsPointFinished(context: IContextNode, insertionPoint: InsertionPointWithElement) {
     this._eventEmitter.emit('insertionPointFinished', {
       context,
       insertionPoint,

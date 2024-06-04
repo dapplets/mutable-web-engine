@@ -1,4 +1,5 @@
 import { IParser, InsertionPoint } from '../parsers/interface'
+import { InsertionPointWithElement } from '../tree/pure-tree/pure-context-node'
 import { IContextNode, ITreeBuilder } from '../tree/types'
 import { IAdapter, InsertionType } from './interface'
 
@@ -185,13 +186,19 @@ export class DynamicHtmlAdapter implements IAdapter {
   }
 
   // ToDo: move to parser?
-  private _findAvailableInsPoints(element: HTMLElement, contextName: string): string[] {
+  private _findAvailableInsPoints(
+    element: HTMLElement,
+    contextName: string
+  ): InsertionPointWithElement[] {
     const parser = this.parser
     const definedInsPoints = parser.getInsertionPoints(element, contextName)
 
     const availableInsPoints = definedInsPoints
-      .filter((ip) => !!parser.findInsertionPoint(element, contextName, ip.name))
-      .map((ip) => ip.name)
+      .map((ip) => ({
+        ...ip,
+        element: parser.findInsertionPoint(element, contextName, ip.name),
+      }))
+      .filter((ip) => !!ip.element) as InsertionPointWithElement[]
 
     return availableInsPoints
   }

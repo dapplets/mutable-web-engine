@@ -1,4 +1,9 @@
+import { InsertionPoint } from '../../parsers/interface'
 import { IContextNode } from '../types'
+
+export type InsertionPointWithElement = InsertionPoint & {
+  element: HTMLElement
+}
 
 export class PureContextNode implements IContextNode {
   public id: string | null = null
@@ -7,14 +12,14 @@ export class PureContextNode implements IContextNode {
   public parentNode: IContextNode | null = null
   public parsedContext: any = {}
   public children: IContextNode[] = []
-  public insPoints: string[] = []
+  public insPoints: InsertionPointWithElement[] = [] // ToDo: replace with Map
   public element: HTMLElement | null = null;
 
   constructor(
     namespace: string,
     contextType: string,
     parsedContext: any = {},
-    insPoints: string[] = [],
+    insPoints: InsertionPointWithElement[] = [],
     element: HTMLElement | null = null
   ) {
     this.namespace = namespace
