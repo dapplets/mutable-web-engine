@@ -4,10 +4,11 @@ import { IContextNode } from '../../../core'
 import { useEngine } from '../contexts/engine-context'
 import { useUserLinks } from '../contexts/engine-context/use-user-links'
 import { Widget } from 'near-social-vm'
-import { BosUserLink, ContextTarget } from '../../providers/provider'
+import { AppMetadata, BosUserLink, ContextTarget } from '../../providers/provider'
 import { usePortals } from '../contexts/engine-context/use-portals'
 import { ShadowDomWrapper } from '../../bos/shadow-dom-wrapper'
 import { ContextTree } from '../../../react/components/context-tree'
+import { useContextApps } from '../contexts/engine-context/use-context-apps'
 
 export const ContextManager: FC = () => {
   return <ContextTree children={ContextHandler} />
@@ -15,6 +16,10 @@ export const ContextManager: FC = () => {
 
 const ContextHandler: FC<{ context: IContextNode }> = ({ context }) => {
   const { userLinks: allUserLinks } = useUserLinks(context)
+  const { apps } = useContextApps(context)
+
+  const [isEditMode, setIsEditMode] = useState(false)
+
   const transferableContext = useMemo(() => buildTransferableContext(context), [context])
 
   return context.insPoints.map((ip) => {
@@ -26,6 +31,10 @@ const ContextHandler: FC<{ context: IContextNode }> = ({ context }) => {
           context={context}
           transferableContext={transferableContext}
           allUserLinks={allUserLinks}
+          apps={apps}
+          isEditMode={isEditMode}
+          onEnableEditMode={() => setIsEditMode(true)}
+          onDisableEditMode={() => setIsEditMode(false)}
         />
       </MWebPortal>
     )
@@ -38,7 +47,21 @@ const InsPointHandler: FC<{
   context: IContextNode
   transferableContext: TransferableContext
   allUserLinks: BosUserLink[]
-}> = ({ insPointName, bosLayoutManager, context, transferableContext, allUserLinks }) => {
+  apps: AppMetadata[]
+  isEditMode: boolean
+  onEnableEditMode: () => void
+  onDisableEditMode: () => void
+}> = ({
+  insPointName,
+  bosLayoutManager,
+  context,
+  transferableContext,
+  allUserLinks,
+  apps,
+  isEditMode,
+  onEnableEditMode,
+  onDisableEditMode,
+}) => {
   const { pickerTask, setPickerTask, redirectMap } = useEngine()
   const { components } = usePortals(context, insPointName)
 
@@ -57,18 +80,14 @@ const InsPointHandler: FC<{
     })
   }, [])
 
-  useEffect(() => {
-    console.log({ pickContext })
-  }, [pickContext])
-
   const defaultLayoutManager = 'bos.dapplets.near/widget/DefaultLayoutManager'
   const props = {
     // ToDo: unify context forwarding
     context: transferableContext,
-    // apps: apps.map((app) => ({
-    //   id: app.id,
-    //   metadata: app.metadata,
-    // })),
+    apps: apps.map((app) => ({
+      id: app.id,
+      metadata: app.metadata,
+    })),
     widgets: allUserLinks.map((link) => ({
       linkId: link.id,
       linkAuthorId: link.authorId,
@@ -83,15 +102,15 @@ const InsPointHandler: FC<{
       isSuitable: link.insertionPoint === insPointName, // ToDo: LM know about widgets from other LM
     })),
     components: components,
-    // isEditMode: this.#isEditMode,
+    isEditMode: isEditMode,
 
     // ToDo: move functions to separate api namespace?
     // createUserLink: this._createUserLink.bind(this),
     // deleteUserLink: this._deleteUserLink.bind(this),
-    // enableEditMode: this._enableEditMode.bind(this),
-    // disableEditMode: this._disableEditMode.bind(this),
+    enableEditMode: onEnableEditMode,
+    disableEditMode: onDisableEditMode,
 
-    // // For OverlayTrigger
+    // For OverlayTrigger
     // attachContextRef: this._attachContextRef.bind(this),
     // attachInsPointRef: this._attachInsPointRef.bind(this),
 
