@@ -20,15 +20,19 @@ const EngineProvider: FC<Props> = ({ engine, children }) => {
   useEffect(() => {
     if (!isDevMode) {
       setRedirectMap(null)
-      return;
+      return
     }
 
     let isMount = true
 
     const timer = setInterval(async () => {
-      const redirectMap = await getRedirectMap()
+      const newRedirectMap = await getRedirectMap()
       if (!isMount) return
-      setRedirectMap(redirectMap)
+
+      // prevents rerendering
+      if (JSON.stringify(redirectMap) !== JSON.stringify(newRedirectMap)) {
+        setRedirectMap(redirectMap)
+      }
     }, DevModeUpdateInterval)
 
     return () => {
