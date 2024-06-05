@@ -58,7 +58,7 @@ const InsPointHandler: FC<{
   transferableContext: TransferableContext
   allUserLinks: BosUserLink[]
 }> = ({ insPointName, bosLayoutManager, context, transferableContext, allUserLinks }) => {
-  const { pickerTask, setPickerTask } = useEngine()
+  const { pickerTask, setPickerTask, redirectMap } = useEngine()
   const { components } = usePortals(context, insPointName)
 
   const pickContext = useCallback((target: ContextTarget) => {
@@ -119,7 +119,12 @@ const InsPointHandler: FC<{
 
   return (
     <ShadowDomWrapper>
-      <Widget src={bosLayoutManager ?? defaultLayoutManager} props={props} loading={<></>} />
+      <Widget
+        src={bosLayoutManager ?? defaultLayoutManager}
+        props={props}
+        loading={<></>}
+        config={{ redirectMap }}
+      />
     </ShadowDomWrapper>
   )
 }

@@ -1,4 +1,4 @@
-import { IContextNode, PureTreeBuilder, PureContextNode, Core } from '../core'
+import { IContextNode, PureContextNode, Core } from '../core'
 import { BosWidgetFactory } from './bos/bos-widget-factory'
 import {
   AppMetadata,
@@ -18,9 +18,8 @@ import { IStorage } from './storage/storage'
 import { Repository } from './storage/repository'
 import { JsonStorage } from './storage/json-storage'
 import { LocalStorage } from './storage/local-storage'
-import { App } from './app/app'
 import { Viewport } from './viewport'
-import { Root, createRoot } from 'react-dom/client'
+import { Root } from 'react-dom/client'
 import React from 'react'
 import { InsertionPointWithElement } from '../core/tree/pure-tree/pure-context-node'
 

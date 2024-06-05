@@ -2,6 +2,7 @@ import { createContext } from 'react'
 import { Engine } from '../../../engine'
 import { ContextTarget, InjectableTarget } from '../../../providers/provider'
 import { IContextNode } from '../../../../core'
+import { BosRedirectMap } from '../../services/dev-server-service'
 
 export type PickerTask = {
   callback: ((context: IContextNode | null) => void) | null
@@ -15,6 +16,9 @@ export type EngineContextState = {
   removePortal: <T>(cmp: React.FC<T>) => void
   pickerTask: PickerTask | null
   setPickerTask: (picker: PickerTask | null) => void
+  redirectMap: BosRedirectMap | null
+  enableDevMode: () => void
+  disableDevMode: () => void
 }
 
 export const contextDefaultValues: EngineContextState = {
@@ -24,6 +28,9 @@ export const contextDefaultValues: EngineContextState = {
   removePortal: () => undefined,
   pickerTask: null,
   setPickerTask: () => undefined,
+  redirectMap: null,
+  enableDevMode: () => undefined,
+  disableDevMode: () => undefined,
 }
 
 export const EngineContext = createContext<EngineContextState>(contextDefaultValues)
