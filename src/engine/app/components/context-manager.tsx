@@ -80,6 +80,13 @@ const InsPointHandler: FC<{
     })
   }, [])
 
+  const attachContextRef = useCallback(
+    (callback: (r: React.Component | Element | null | undefined) => void) => {
+      callback(context.element)
+    },
+    [context]
+  )
+
   const defaultLayoutManager = 'bos.dapplets.near/widget/DefaultLayoutManager'
   const props = {
     // ToDo: unify context forwarding
@@ -111,8 +118,7 @@ const InsPointHandler: FC<{
     disableEditMode: onDisableEditMode,
 
     // For OverlayTrigger
-    // attachContextRef: this._attachContextRef.bind(this),
-    // attachInsPointRef: this._attachInsPointRef.bind(this),
+    attachContextRef,
 
     pickContext,
   }
