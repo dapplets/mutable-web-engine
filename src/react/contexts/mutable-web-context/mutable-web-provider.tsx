@@ -8,26 +8,20 @@ type Props = {
 }
 
 const MutableWebProvider: FC<Props> = ({ children, core }) => {
-  const [contexts, setContexts] = useState<IContextNode[]>([])
+  const [tree, setTree] = useState({ root: core.tree })
 
   useEffect(() => {
-    const ctxStartedSubscription = core.on('contextStarted', (e) => {
-      setContexts((prev) => [...prev, e.context])
-    })
-
-    const ctxFinishedSubscription = core.on('contextFinished', (e) => {
-      setContexts((prev) => prev.filter((ctx) => ctx !== e.context))
-    })
-
-    const ctxChangedSubscription = core.on('contextChanged', (e) => {
-      // ToDo: no sense
-      setContexts((prev) => prev.map((ctx) => (ctx === e.context ? e.context : ctx)))
-    })
+    // ToDo: updates whole tree, need to optimize
+    const subscriptions = [
+      core.on('contextStarted', () => setTree({ root: core.tree })),
+      core.on('contextFinished', () => setTree({ root: core.tree })),
+      core.on('contextChanged', () => setTree({ root: core.tree })),
+      core.on('insertionPointStarted', () => setTree({ root: core.tree })),
+      core.on('insertionPointFinished', () => setTree({ root: core.tree })),
+    ]
 
     return () => {
-      ctxStartedSubscription.remove()
-      ctxFinishedSubscription.remove()
-      ctxChangedSubscription.remove()
+      subscriptions.forEach((sub) => sub.remove())
     }
   }, [core])
 
@@ -47,8 +41,7 @@ const MutableWebProvider: FC<Props> = ({ children, core }) => {
 
   const state: MutableWebContextState = {
     core,
-    tree: core.tree,
-    contexts,
+    tree: tree.root,
     attachParserConfig,
     detachParserConfig,
   }

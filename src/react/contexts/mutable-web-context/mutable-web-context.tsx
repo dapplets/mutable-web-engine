@@ -4,7 +4,6 @@ import { createContext } from 'react'
 export type MutableWebContextState = {
   core: Core | null
   tree: IContextNode | null
-  contexts: IContextNode[]
   attachParserConfig: (parserConfig: ParserConfig) => void
   detachParserConfig: (parserId: string) => void
 }
@@ -12,7 +11,6 @@ export type MutableWebContextState = {
 export const contextDefaultValues: MutableWebContextState = {
   core: null,
   tree: null,
-  contexts: [],
   attachParserConfig: () => undefined,
   detachParserConfig: () => undefined,
 }

@@ -1,39 +1,20 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react'
-import { MWebPortal, useMutableWeb } from '../../../react'
+import { MWebPortal } from '../../../react'
 import { IContextNode } from '../../../core'
 import { useEngine } from '../contexts/engine-context'
 import { useUserLinks } from '../contexts/engine-context/use-user-links'
 import { Widget } from 'near-social-vm'
 import { BosUserLink, ContextTarget } from '../../providers/provider'
 import { usePortals } from '../contexts/engine-context/use-portals'
-import { StyleSheetManager } from 'styled-components'
 import { ShadowDomWrapper } from '../../bos/shadow-dom-wrapper'
+import { ContextTree } from '../../../react/components/context-tree'
 
 export const ContextManager: FC = () => {
-  const { tree } = useMutableWeb()
-
-  if (!tree) return null
-
-  return <ContextTraverser node={tree} component={ContextHandler} />
-}
-
-const ContextTraverser: FC<{
-  node: IContextNode
-  component: React.FC<{ context: IContextNode }>
-}> = ({ node, component: Component }) => {
-  return (
-    <>
-      {node.element ? <Component context={node} /> : null}
-      {node.children.map((child, i) => (
-        <ContextTraverser key={i} node={child} component={Component} />
-      ))}
-    </>
-  )
+  return <ContextTree children={ContextHandler} />
 }
 
 const ContextHandler: FC<{ context: IContextNode }> = ({ context }) => {
   const { userLinks: allUserLinks } = useUserLinks(context)
-
   const transferableContext = useMemo(() => buildTransferableContext(context), [context])
 
   return context.insPoints.map((ip) => {
