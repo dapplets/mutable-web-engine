@@ -3,6 +3,7 @@ import { EngineContext, EngineContextState, PickerTask } from './engine-context'
 import { Engine } from '../../../engine'
 import { InjectableTarget } from '../../../providers/provider'
 import { BosRedirectMap, getRedirectMap } from '../../services/dev-server-service'
+import stringify from 'json-stringify-deterministic'
 
 const DevModeUpdateInterval = 1500
 
@@ -30,9 +31,9 @@ const EngineProvider: FC<Props> = ({ engine, children }) => {
       if (!isMount) return
 
       // prevents rerendering
-      if (JSON.stringify(redirectMap) !== JSON.stringify(newRedirectMap)) {
-        setRedirectMap(redirectMap)
-      }
+      setRedirectMap((prev) =>
+        stringify(prev) !== stringify(newRedirectMap) ? newRedirectMap : prev
+      )
     }, DevModeUpdateInterval)
 
     return () => {
