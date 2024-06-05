@@ -20,6 +20,7 @@ const EngineProvider: FC<Props> = ({ engine, children }) => {
   useEffect(() => {
     if (!isDevMode) {
       setRedirectMap(null)
+      return;
     }
 
     let isMount = true
