@@ -20,8 +20,8 @@ const TreeItem: FC<{
   return (
     <>
       {node.element ? <Component context={node} /> : null}
-      {node.children.map((child, i) => (
-        <TreeItem key={child.id ?? i} node={child} component={Component} />
+      {node.children.map((child) => (
+        <TreeItem key={`${child.namespace}/${child.id}`} node={child} component={Component} />
       ))}
     </>
   )

@@ -23,7 +23,9 @@ export class DynamicHtmlAdapter implements IAdapter {
     this.treeBuilder = treeBuilder
     this.namespace = namespace
     this.parser = parser
-    this.context = this._createContextForElement(element, 'root')
+
+    // Namespace is used as ID for the root context
+    this.context = this._tryCreateContextForElement(element, 'root', this.namespace)
   }
 
   start() {
@@ -113,8 +115,27 @@ export class DynamicHtmlAdapter implements IAdapter {
     return this.parser.findInsertionPoint(contextElement, context.contextType, insPointName)
   }
 
-  _createContextForElement(element: HTMLElement, contextName: string): IContextNode {
+  _tryCreateContextForElement(element: HTMLElement, contextName: string): IContextNode | null
+  _tryCreateContextForElement(
+    element: HTMLElement,
+    contextName: string,
+    defaultContextId: string
+  ): IContextNode
+  _tryCreateContextForElement(
+    element: HTMLElement,
+    contextName: string,
+    defaultContextId?: string
+  ): IContextNode | null {
     const parsedContext = this.parser.parseContext(element, contextName)
+
+    if (!parsedContext.id) {
+      if (!defaultContextId) {
+        return null
+      } else {
+        parsedContext.id = defaultContextId
+      }
+    }
+
     const insPoints = this._findAvailableInsPoints(element, contextName)
     const context = this.treeBuilder.createNode(
       this.namespace,
@@ -160,7 +181,12 @@ export class DynamicHtmlAdapter implements IAdapter {
   ) {
     for (const { element, contextName } of childPairs) {
       if (!this.#contextByElement.has(element)) {
-        const childContext = this._createContextForElement(element, contextName)
+        const childContext = this._tryCreateContextForElement(element, contextName)
+
+        if (!childContext) {
+          continue
+        }
+
         this.#contextByElement.set(element, childContext)
         this.treeBuilder.appendChild(parentContext, childContext)
 
