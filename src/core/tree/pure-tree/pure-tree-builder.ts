@@ -1,8 +1,8 @@
 import { DappletsEngineNs } from '../../constants'
 import { EventEmitter } from '../../event-emitter'
 import { isDeepEqual } from '../../utils'
-import { IContextNode, ITreeBuilder, ParsedContext } from '../types'
-import { InsertionPointWithElement, PureContextNode } from './pure-context-node'
+import { IContextNode, ITreeBuilder, InsertionPointWithElement, ParsedContext } from '../types'
+import { PureContextNode } from './pure-context-node'
 
 export type TreeBuilderEvents = {
   contextStarted: { context: IContextNode }
@@ -48,6 +48,7 @@ export class PureTreeBuilder implements ITreeBuilder {
     // ToDo: what to do with contexts without IDs?
 
     if (oldParsedContext?.id !== newParsedContext?.id) {
+      // ToDo: remove child?
       this._emitContextFinished(context)
       context.parsedContext = newParsedContext
       context.id = newParsedContext.id

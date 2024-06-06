@@ -1,5 +1,4 @@
 import { IContextNode, PureContextNode, Core } from '../core'
-import { BosWidgetFactory } from './bos/bos-widget-factory'
 import {
   AppMetadata,
   AppWithSettings,
@@ -9,7 +8,7 @@ import {
   MutationWithSettings,
 } from './providers/provider'
 import { WalletSelector } from '@near-wallet-selector/core'
-import { NearConfig, bosLoaderUrl, getNearConfig } from './constants'
+import { NearConfig, getNearConfig } from './constants'
 import { NearSigner } from './providers/near-signer'
 import { SocialDbProvider } from './providers/social-db-provider'
 import { MutationManager } from './mutation-manager'
@@ -18,9 +17,7 @@ import { Repository } from './storage/repository'
 import { JsonStorage } from './storage/json-storage'
 import { LocalStorage } from './storage/local-storage'
 import { Viewport } from './viewport'
-import { Root } from 'react-dom/client'
 import React from 'react'
-import { InsertionPointWithElement } from '../core/tree/pure-tree/pure-context-node'
 
 export type EngineConfig = {
   networkId: string

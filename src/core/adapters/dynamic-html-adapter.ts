@@ -1,6 +1,5 @@
 import { IParser, InsertionPoint } from '../parsers/interface'
-import { InsertionPointWithElement } from '../tree/pure-tree/pure-context-node'
-import { IContextNode, ITreeBuilder } from '../tree/types'
+import { IContextNode, ITreeBuilder, InsertionPointWithElement } from '../tree/types'
 import { IAdapter, InsertionType } from './interface'
 
 const DefaultInsertionType: InsertionType = InsertionType.Before
