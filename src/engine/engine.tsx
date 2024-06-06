@@ -12,7 +12,6 @@ import { WalletSelector } from '@near-wallet-selector/core'
 import { NearConfig, bosLoaderUrl, getNearConfig } from './constants'
 import { NearSigner } from './providers/near-signer'
 import { SocialDbProvider } from './providers/social-db-provider'
-import { ContextManager } from './context-manager'
 import { MutationManager } from './mutation-manager'
 import { IStorage } from './storage/storage'
 import { Repository } from './storage/repository'
@@ -37,16 +36,13 @@ export let engineSingleton: Engine | null = null
 
 export class Engine {
   #provider: IProvider
-  #bosWidgetFactory: BosWidgetFactory
   #selector: WalletSelector
-  #contextManagers: Map<IContextNode, ContextManager> = new Map()
   mutationManager: MutationManager
   #nearConfig: NearConfig
   #redirectMap: any = null
   #devModePollingTimer: number | null = null
   #repository: Repository
   #viewport: Viewport | null = null
-  #reactRoot: Root | null = null
 
   // ToDo: duplcated in ContextManager and LayoutManager
   #refComponents = new Map<React.FC<unknown>, InjectableTarget>()
@@ -59,10 +55,6 @@ export class Engine {
       this.config.storage = new LocalStorage('mutable-web-engine')
     }
 
-    this.#bosWidgetFactory = new BosWidgetFactory({
-      tagName: this.config.bosElementName ?? 'bos-component',
-      bosElementStyleSrc: this.config.bosElementStyleSrc,
-    })
     this.#selector = this.config.selector
     const nearConfig = getNearConfig(this.config.networkId)
     const jsonStorage = new JsonStorage(this.config.storage)
@@ -75,10 +67,6 @@ export class Engine {
     this.core = new Core()
 
     this.core.on('contextStarted', this.handleContextStarted.bind(this))
-    this.core.on('contextFinished', this.handleContextFinished.bind(this))
-    this.core.on('contextChanged', this.handleContextChanged.bind(this))
-    this.core.on('insertionPointStarted', this.handleInsPointStarted.bind(this))
-    this.core.on('insertionPointFinished', this.handleInsPointFinished.bind(this))
 
     engineSingleton = this
   }
@@ -96,60 +84,6 @@ export class Engine {
     const adapter = this.core.adapters.get(context.namespace)
 
     if (!adapter) return
-
-    // const contextManager = new ContextManager(
-    //   context,
-    //   adapter,
-    //   this.#bosWidgetFactory,
-    //   this.mutationManager,
-    //   this.#nearConfig.defaultLayoutManager
-    // )
-
-    // this.#contextManagers.set(context, contextManager)
-
-    // await this._addAppsAndLinks(context)
-
-    // contextManager.setRedirectMap(this.#redirectMap)
-
-    // Add existing React component refereneces from portals
-    // this.#refComponents.forEach((target, cmp) => {
-    //   if (MutationManager._isTargetMet(target, context)) {
-    //     contextManager.injectComponent(target, cmp)
-    //   }
-    // })
-  }
-
-  handleContextChanged({ context }: { context: IContextNode }): void {
-    if (!this.started) return
-
-    this.#contextManagers.get(context)?.forceUpdate()
-  }
-
-  handleContextFinished({ context }: { context: IContextNode }): void {
-    if (!this.started) return
-
-    this.#contextManagers.get(context)?.destroy()
-    this.#contextManagers.delete(context)
-  }
-
-  handleInsPointStarted({
-    context,
-    insertionPoint,
-  }: {
-    context: IContextNode
-    insertionPoint: InsertionPointWithElement
-  }): void {
-    this.#contextManagers.get(context)?.injectLayoutManager(insertionPoint.name)
-  }
-
-  handleInsPointFinished({
-    context,
-    insertionPoint,
-  }: {
-    context: IContextNode
-    insertionPoint: InsertionPointWithElement
-  }): void {
-    this.#contextManagers.get(context)?.destroyLayoutManager(insertionPoint.name)
   }
 
   getLastUsedMutation = async (): Promise<string | null> => {
@@ -228,9 +162,7 @@ export class Engine {
 
   stop() {
     this.started = false
-    this.#contextManagers.forEach((cm) => cm.destroy())
     this.core.clear()
-    this.#contextManagers.clear()
     this._detachViewport()
   }
 
@@ -257,27 +189,6 @@ export class Engine {
     if (!mutation) return null
 
     return this._populateMutationWithSettings(mutation)
-  }
-
-  async enableDevMode(options?: { polling: boolean }) {
-    if (options?.polling) {
-      this.#devModePollingTimer = setInterval(
-        () => this._tryFetchAndUpdateRedirects(true),
-        1500
-      ) as any as number
-    } else {
-      this.#devModePollingTimer = null
-      await this._tryFetchAndUpdateRedirects(false)
-    }
-  }
-
-  disableDevMode() {
-    if (this.#devModePollingTimer !== null) {
-      clearInterval(this.#devModePollingTimer)
-    }
-
-    this.#redirectMap = null
-    this.#contextManagers.forEach((cm) => cm.setRedirectMap(null))
   }
 
   async setFavoriteMutation(mutationId: string | null): Promise<void> {
@@ -318,27 +229,6 @@ export class Engine {
     }
 
     return this._populateMutationWithSettings(mutation)
-  }
-
-  injectComponent<T>(target: InjectableTarget, cmp: React.FC<T>) {
-    // save refs for future contexts
-    this.#refComponents.set(cmp as React.FC<unknown>, target)
-
-    this.#contextManagers.forEach((contextManager, context) => {
-      if (MutationManager._isTargetMet(target, context)) {
-        contextManager.injectComponent(target, cmp)
-      }
-    })
-  }
-
-  unjectComponent<T>(target: InjectableTarget, cmp: React.FC<T>) {
-    this.#refComponents.delete(cmp as React.FC<unknown>)
-
-    this.#contextManagers.forEach((contextManager, context) => {
-      if (MutationManager._isTargetMet(target, context)) {
-        contextManager.unjectComponent(target, cmp)
-      }
-    })
   }
 
   async getAppsFromMutation(mutationId: string): Promise<AppWithSettings[]> {
@@ -386,32 +276,6 @@ export class Engine {
     await this.#repository.setAppEnabledStatus(currentMutationId, appId, false)
 
     await this._stopApp(appId)
-  }
-
-  private async _tryFetchAndUpdateRedirects(polling: boolean) {
-    try {
-      const res = await fetch(bosLoaderUrl, {
-        method: 'GET',
-        headers: { Accept: 'application/json' },
-      })
-
-      if (!res.ok) {
-        throw new Error('Network response was not OK')
-      }
-
-      const data = await res.json()
-
-      // This function is async
-      if (polling && this.#devModePollingTimer === null) {
-        return
-      }
-
-      this.#redirectMap = data?.components ?? null
-      this.#contextManagers.forEach((cm) => cm.setRedirectMap(this.#redirectMap))
-    } catch (err) {
-      console.error(err)
-      // this.disableDevMode()
-    }
   }
 
   private _updateRootContext() {
@@ -470,43 +334,10 @@ export class Engine {
 
   private async _startApp(appId: string): Promise<void> {
     await this.mutationManager.loadApp(appId)
-
-    await this._traverseContextTree(
-      (context) => this._addAppsAndLinks(context, [appId]),
-      this.core.tree
-    )
   }
 
   private async _stopApp(appId: string): Promise<void> {
-    await this._traverseContextTree(
-      (context) => this._removeAppsAndLinks(context, [appId]),
-      this.core.tree
-    )
-
     await this.mutationManager.unloadApp(appId)
-  }
-
-  private async _addAppsAndLinks(context: IContextNode, includedApps?: string[]) {
-    const contextManager = this.#contextManagers.get(context)
-
-    if (!contextManager) return
-
-    const links = await this.mutationManager.getLinksForContext(context, includedApps)
-    const apps = this.mutationManager.filterSuitableApps(context, includedApps)
-
-    links.forEach((link) => contextManager.addUserLink(link))
-    apps.forEach((app) => contextManager.addAppMetadata(app))
-  }
-
-  private async _removeAppsAndLinks(context: IContextNode, includedApps: string[]) {
-    const contextManager = this.#contextManagers.get(context)
-
-    if (!contextManager) return
-
-    const links = await this.mutationManager.getLinksForContext(context, includedApps)
-
-    links.forEach((link) => contextManager.removeUserLink(link))
-    includedApps.forEach((appId) => contextManager.removeAppMetadata(appId))
   }
 
   private async _traverseContextTree(
