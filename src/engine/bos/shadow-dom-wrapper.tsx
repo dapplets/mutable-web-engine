@@ -26,7 +26,7 @@ export const ShadowDomWrapper = React.forwardRef<HTMLDivElement, ShadowDomWrappe
       if (myRef.current) {
         const EventsToStopPropagation = ['click', 'keydown', 'keyup', 'keypress']
 
-        const shadowRoot = myRef.current.attachShadow({ mode: 'closed' })
+        const shadowRoot = myRef.current.attachShadow({ mode: 'open' })
         const stylesMountPoint = document.createElement('div')
         const container = document.createElement('div')
         shadowRoot.appendChild(stylesMountPoint)
