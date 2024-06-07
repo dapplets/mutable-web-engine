@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from 'react'
+import React, { FC, useEffect, useRef, useState } from 'react'
 import { useMutableWeb } from '../../../react'
 import { IContextNode } from '../../../core'
 import { useEngine } from '../contexts/engine-context'
@@ -52,31 +52,32 @@ const ContextReactangle: FC<{
   onClick: () => void
 }> = ({ context, onClick }) => {
   const [isEntered, setIsEntered] = useState(false)
-  const [isDisplayed, setIsDisplayed] = useState(false)
+  // const [isDisplayed, setIsDisplayed] = useState(false)
+  const pickerRef = useRef<any>(null)
 
   useEffect(() => {
-    if (!context.element) return
+    if (!pickerRef.current) return
 
     const mouseEnterHandler = () => {
       setIsEntered(true)
-      setTimeout(() => setIsDisplayed(true))
+      // setTimeout(() => setIsDisplayed(true))
     }
     const mouseLeaveHandler = () => {
       setIsEntered(false)
-      setTimeout(() => setIsDisplayed(false))
+      // setTimeout(() => setIsDisplayed(false))
     }
-    context.element.addEventListener('mouseenter', mouseEnterHandler)
-    context.element.addEventListener('mouseleave', mouseLeaveHandler)
+    pickerRef.current.addEventListener('mouseenter', mouseEnterHandler)
+    pickerRef.current.addEventListener('mouseleave', mouseLeaveHandler)
 
     return () => {
-      if (!context.element) return
+      if (!pickerRef.current) return
 
-      context.element.removeEventListener('mouseenter', mouseEnterHandler)
-      context.element.removeEventListener('mouseleave', mouseLeaveHandler)
+      pickerRef.current.removeEventListener('mouseenter', mouseEnterHandler)
+      pickerRef.current.removeEventListener('mouseleave', mouseLeaveHandler)
     }
-  }, [context])
+  }, [pickerRef.current])
 
-  if (!isEntered) return null
+  // if (!isEntered) return null
   if (!context.element) return null
 
   const bodyOffset = document.documentElement.getBoundingClientRect()
@@ -94,13 +95,14 @@ const ContextReactangle: FC<{
     border: styledBorder,
     position: 'absolute',
     zIndex: 99999999,
-    pointerEvents: 'none',
+    // pointerEvents: 'none',
     transition: 'all .2s ease-in-out',
-    opacity: isDisplayed ? 1 : 0,
+    opacity: isEntered ? 1 : 0,
   }
 
   return (
     <div
+      ref={pickerRef}
       style={wrapperStyle}
       className="mweb-picker"
       onClick={onClick} // ToDo: doesn't work beacuse of pointerEvents: 'none'
