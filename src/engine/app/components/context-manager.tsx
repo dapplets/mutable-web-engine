@@ -1,6 +1,6 @@
-import React, { FC, useCallback, useEffect, useMemo, useState } from 'react'
+import React, { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { MWebPortal } from '../../../react'
-import { IContextNode } from '../../../core'
+import { IContextNode, InsertionPointWithElement } from '../../../core'
 import { useEngine } from '../contexts/engine-context'
 import { useUserLinks } from '../contexts/engine-context/use-user-links'
 import { Widget } from 'near-social-vm'
@@ -14,7 +14,10 @@ export const ContextManager: FC = () => {
   return <ContextTree children={ContextHandler} />
 }
 
-const ContextHandler: FC<{ context: IContextNode }> = ({ context }) => {
+const ContextHandler: FC<{ context: IContextNode; insPoints: InsertionPointWithElement[] }> = ({
+  context,
+  insPoints,
+}) => {
   const { userLinks: allUserLinks } = useUserLinks(context)
   const { apps } = useContextApps(context)
 
@@ -22,7 +25,15 @@ const ContextHandler: FC<{ context: IContextNode }> = ({ context }) => {
 
   const transferableContext = useMemo(() => buildTransferableContext(context), [context])
 
-  return context.insPoints.map((ip) => {
+  // For OverlayTrigger
+  const attachContextRef = useCallback(
+    (callback: (r: React.Component | Element | null | undefined) => void) => {
+      callback(context.element)
+    },
+    [context]
+  )
+
+  return insPoints.map((ip) => {
     return (
       <MWebPortal key={ip.name} context={context} injectTo={ip.name}>
         <InsPointHandler
@@ -35,6 +46,7 @@ const ContextHandler: FC<{ context: IContextNode }> = ({ context }) => {
           isEditMode={isEditMode}
           onEnableEditMode={() => setIsEditMode(true)}
           onDisableEditMode={() => setIsEditMode(false)}
+          onAttachContextRef={attachContextRef}
         />
       </MWebPortal>
     )
@@ -51,6 +63,7 @@ const InsPointHandler: FC<{
   isEditMode: boolean
   onEnableEditMode: () => void
   onDisableEditMode: () => void
+  onAttachContextRef: (callback: (r: React.Component | Element | null | undefined) => void) => void
 }> = ({
   insPointName,
   bosLayoutManager,
@@ -61,9 +74,10 @@ const InsPointHandler: FC<{
   isEditMode,
   onEnableEditMode,
   onDisableEditMode,
+  onAttachContextRef,
 }) => {
   const { pickerTask, setPickerTask, redirectMap } = useEngine()
-  const { components } = usePortals(context, insPointName)
+  const { components } = usePortals(context, insPointName) // ToDo: extract to the separate AppManager component
 
   const pickContext = useCallback((target: ContextTarget) => {
     return new Promise<TransferableContext | null>((resolve, reject) => {
@@ -80,11 +94,16 @@ const InsPointHandler: FC<{
     })
   }, [])
 
-  const attachContextRef = useCallback(
+  const attachInsPointRef = useCallback(
     (callback: (r: React.Component | Element | null | undefined) => void) => {
-      callback(context.element)
+      // ToDo: the similar logic is used in MWebPortal
+      const targetElement = insPointName
+        ? context.insPoints.find((ip) => ip.name === insPointName)?.element
+        : context.element
+
+      callback(targetElement)
     },
-    [context]
+    [context, insPointName]
   )
 
   const defaultLayoutManager = 'bos.dapplets.near/widget/DefaultLayoutManager'
@@ -118,10 +137,20 @@ const InsPointHandler: FC<{
     disableEditMode: onDisableEditMode,
 
     // For OverlayTrigger
-    attachContextRef,
+    attachContextRef: onAttachContextRef,
+    attachInsPointRef,
 
     pickContext,
   }
+
+  // Don't render layout manager if there are no components
+  // It improves performance
+  // if (
+  //   components.length === 0 &&
+  //   !allUserLinks.some((link) => link.insertionPoint === insPointName)
+  // ) {
+  //   return null
+  // }
 
   return (
     <ShadowDomWrapper>

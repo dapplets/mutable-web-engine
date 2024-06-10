@@ -8,7 +8,6 @@ const _DappletPortal: React.FC<{ component: React.FC; target: InjectableTarget }
 }) => {
   const { addPortal, removePortal } = useEngine()
 
-  // ToDo: remove singleton
   React.useEffect(() => {
     addPortal(target, Component)
     return () => removePortal(Component)

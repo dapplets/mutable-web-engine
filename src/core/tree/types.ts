@@ -5,6 +5,8 @@ export type TreeNodeEvents = {
   contextChanged: {}
   childContextAdded: { child: IContextNode }
   childContextRemoved: { child: IContextNode }
+  insertionPointAdded: { insertionPoint: InsertionPointWithElement }
+  insertionPointRemoved: { insertionPoint: InsertionPointWithElement }
 }
 
 export type InsertionPointWithElement = InsertionPoint & {
@@ -27,6 +29,9 @@ export interface IContextNode {
   children: IContextNode[]
   removeChild(child: IContextNode): void
   appendChild(child: IContextNode): void
+
+  appendInsPoint(insPoint: InsertionPointWithElement): void
+  removeInsPoint(insPointName: string): void
 
   on<EventName extends keyof TreeNodeEvents>(
     eventName: EventName,
