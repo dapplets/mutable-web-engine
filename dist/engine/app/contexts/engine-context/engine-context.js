@@ -9,5 +9,8 @@ exports.contextDefaultValues = {
     removePortal: () => undefined,
     pickerTask: null,
     setPickerTask: () => undefined,
+    redirectMap: null,
+    enableDevMode: () => undefined,
+    disableDevMode: () => undefined,
 };
 exports.EngineContext = (0, react_1.createContext)(exports.contextDefaultValues);

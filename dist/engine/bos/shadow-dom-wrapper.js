@@ -27,6 +27,11 @@ exports.ShadowDomWrapper = void 0;
 const React = __importStar(require("react"));
 const react_dom_1 = require("react-dom");
 const styled_components_1 = require("styled-components");
+const generateGuid = () => {
+    return Array.from(crypto.getRandomValues(new Uint8Array(16)))
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join('');
+};
 exports.ShadowDomWrapper = React.forwardRef(({ children, stylesheetSrc }, ref) => {
     const myRef = React.useRef(null);
     const [root, setRoot] = React.useState(null);
@@ -34,7 +39,7 @@ exports.ShadowDomWrapper = React.forwardRef(({ children, stylesheetSrc }, ref) =
     React.useLayoutEffect(() => {
         if (myRef.current) {
             const EventsToStopPropagation = ['click', 'keydown', 'keyup', 'keypress'];
-            const shadowRoot = myRef.current.attachShadow({ mode: 'closed' });
+            const shadowRoot = myRef.current.attachShadow({ mode: 'open' });
             const stylesMountPoint = document.createElement('div');
             const container = document.createElement('div');
             shadowRoot.appendChild(stylesMountPoint);
@@ -66,6 +71,7 @@ exports.ShadowDomWrapper = React.forwardRef(({ children, stylesheetSrc }, ref) =
             // Context cannot be a shadow root node because mutation observer doesn't work there
             // So we need to select a child node for context
             container.setAttribute('data-mweb-context-type', 'shadow-dom');
+            container.setAttribute('data-mweb-context-parsed', `{"id":"${generateGuid()}"}`);
             shadowRoot.appendChild(container);
             // Prevent event propagation from BOS-component to parent
             EventsToStopPropagation.forEach((eventName) => {

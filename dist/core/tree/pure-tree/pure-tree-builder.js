@@ -29,6 +29,7 @@ class PureTreeBuilder {
         const oldParsedContext = context.parsedContext;
         // ToDo: what to do with contexts without IDs?
         if ((oldParsedContext === null || oldParsedContext === void 0 ? void 0 : oldParsedContext.id) !== (newParsedContext === null || newParsedContext === void 0 ? void 0 : newParsedContext.id)) {
+            // ToDo: remove child?
             this._emitContextFinished(context);
             context.parsedContext = newParsedContext;
             context.id = newParsedContext.id;

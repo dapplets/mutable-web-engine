@@ -15,7 +15,8 @@ export declare class DynamicHtmlAdapter implements IAdapter {
     getInsertionPoints(context: IContextNode): InsertionPoint[];
     getContextElement(context: IContextNode): HTMLElement | null;
     getInsertionPointElement(context: IContextNode, insPointName: string): HTMLElement | null;
-    _createContextForElement(element: HTMLElement, contextName: string): IContextNode;
+    _tryCreateContextForElement(element: HTMLElement, contextName: string): IContextNode | null;
+    _tryCreateContextForElement(element: HTMLElement, contextName: string, defaultContextId: string): IContextNode;
     private _handleMutations;
     private _appendNewChildContexts;
     private _removeOldChildContexts;

@@ -25,7 +25,8 @@ class DynamicHtmlAdapter {
         this.treeBuilder = treeBuilder;
         this.namespace = namespace;
         this.parser = parser;
-        this.context = this._createContextForElement(element, 'root');
+        // Namespace is used as ID for the root context
+        this.context = this._tryCreateContextForElement(element, 'root', this.namespace);
     }
     start() {
         __classPrivateFieldGet(this, _DynamicHtmlAdapter_observerByElement, "f").forEach((observer, element) => {
@@ -94,8 +95,16 @@ class DynamicHtmlAdapter {
             return null;
         return this.parser.findInsertionPoint(contextElement, context.contextType, insPointName);
     }
-    _createContextForElement(element, contextName) {
+    _tryCreateContextForElement(element, contextName, defaultContextId) {
         const parsedContext = this.parser.parseContext(element, contextName);
+        if (!parsedContext.id) {
+            if (!defaultContextId) {
+                return null;
+            }
+            else {
+                parsedContext.id = defaultContextId;
+            }
+        }
         const insPoints = this._findAvailableInsPoints(element, contextName);
         const context = this.treeBuilder.createNode(this.namespace, contextName, parsedContext, insPoints, element);
         const observer = new MutationObserver(() => this._handleMutations(element, context));
@@ -125,7 +134,10 @@ class DynamicHtmlAdapter {
     _appendNewChildContexts(childPairs, parentContext) {
         for (const { element, contextName } of childPairs) {
             if (!__classPrivateFieldGet(this, _DynamicHtmlAdapter_contextByElement, "f").has(element)) {
-                const childContext = this._createContextForElement(element, contextName);
+                const childContext = this._tryCreateContextForElement(element, contextName);
+                if (!childContext) {
+                    continue;
+                }
                 __classPrivateFieldGet(this, _DynamicHtmlAdapter_contextByElement, "f").set(element, childContext);
                 this.treeBuilder.appendChild(parentContext, childContext);
                 // initial parsing

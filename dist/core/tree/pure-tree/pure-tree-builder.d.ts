@@ -1,6 +1,5 @@
 import { EventEmitter } from '../../event-emitter';
-import { IContextNode, ITreeBuilder, ParsedContext } from '../types';
-import { InsertionPointWithElement } from './pure-context-node';
+import { IContextNode, ITreeBuilder, InsertionPointWithElement, ParsedContext } from '../types';
 export type TreeBuilderEvents = {
     contextStarted: {
         context: IContextNode;

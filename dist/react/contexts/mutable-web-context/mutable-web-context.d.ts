@@ -3,7 +3,6 @@ import { Core, IContextNode, ParserConfig } from '../../../core';
 export type MutableWebContextState = {
     core: Core | null;
     tree: IContextNode | null;
-    contexts: IContextNode[];
     attachParserConfig: (parserConfig: ParserConfig) => void;
     detachParserConfig: (parserId: string) => void;
 };
