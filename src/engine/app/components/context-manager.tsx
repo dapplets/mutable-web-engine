@@ -94,6 +94,27 @@ const InsPointHandler: FC<{
     })
   }, [])
 
+  const pickContexts = useCallback(
+    (target: ContextTarget, callback: (context: TransferableContext) => void) => {
+      if (pickerTask) {
+        throw new Error('The picker is busy')
+      }
+
+      const stop = () => setPickerTask(null)
+
+      const taskCallback = (context: IContextNode | null) => {
+        if (context) {
+          callback(buildTransferableContext(context))
+        }
+      }
+
+      setPickerTask({ callback: taskCallback, target })
+
+      return { stop }
+    },
+    [pickContext]
+  )
+
   const attachInsPointRef = useCallback(
     (callback: (r: React.Component | Element | null | undefined) => void) => {
       // ToDo: the similar logic is used in MWebPortal
@@ -141,6 +162,7 @@ const InsPointHandler: FC<{
     attachInsPointRef,
 
     pickContext,
+    pickContexts,
   }
 
   // Don't render layout manager if there are no components
