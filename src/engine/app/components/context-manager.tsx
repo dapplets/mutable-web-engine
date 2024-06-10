@@ -112,7 +112,7 @@ const InsPointHandler: FC<{
 
       return { stop }
     },
-    [pickContext]
+    []
   )
 
   const attachInsPointRef = useCallback(
