@@ -9,9 +9,12 @@ export type PickerTask = {
 };
 export type EngineContextState = {
     engine: Engine;
-    portals: Map<React.FC<unknown>, InjectableTarget>;
-    addPortal: <T>(target: InjectableTarget, cmp: React.FC<T>) => void;
-    removePortal: <T>(cmp: React.FC<T>) => void;
+    portals: Map<string, {
+        component: React.FC<unknown>;
+        target: InjectableTarget;
+    }>;
+    addPortal: <T>(key: string, target: InjectableTarget, cmp: React.FC<T>) => void;
+    removePortal: <T>(key: string) => void;
     pickerTask: PickerTask | null;
     setPickerTask: (picker: PickerTask | null) => void;
     redirectMap: BosRedirectMap | null;

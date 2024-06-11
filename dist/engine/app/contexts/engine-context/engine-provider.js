@@ -70,12 +70,12 @@ const EngineProvider = ({ engine, children }) => {
     const disableDevMode = (0, react_1.useCallback)(() => {
         setIsDevMode(false);
     }, []);
-    const addPortal = (0, react_1.useCallback)((target, cmp) => {
-        setPortals((prev) => new Map(prev.set(cmp, target)));
+    const addPortal = (0, react_1.useCallback)((key, target, component) => {
+        setPortals((prev) => new Map(prev.set(key, { component: component, target })));
     }, []);
-    const removePortal = (0, react_1.useCallback)((cmp) => {
+    const removePortal = (0, react_1.useCallback)((key) => {
         setPortals((prev) => {
-            prev.delete(cmp);
+            prev.delete(key);
             return new Map(prev);
         });
     }, []);

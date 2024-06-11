@@ -66,7 +66,7 @@ const App = ({ config, defaultMutationId, stylesMountPoint, children }) => {
     if (!engine)
         return null;
     return (react_1.default.createElement(styled_components_1.StyleSheetManager, { target: stylesMountPoint },
-        react_1.default.createElement(react_2.MutableWebProvider, { core: engine.core },
+        react_1.default.createElement(react_2.CoreProvider, { core: engine.core },
             react_1.default.createElement(engine_context_1.EngineProvider, { engine: engine },
                 react_1.default.createElement(layout_1.Layout, null, children)))));
 };

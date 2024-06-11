@@ -48,15 +48,12 @@ class PureTreeBuilder {
         const newIPs = foundIPs.filter((ip) => !existingIPs.some((_ip) => _ip.name === ip.name));
         // Remove old IPs from context.insPoints
         oldIPs.forEach((ip) => {
-            const index = existingIPs.findIndex((_ip) => _ip.name === ip.name);
-            if (index !== -1) {
-                existingIPs.splice(index, 1);
-            }
+            context.removeInsPoint(ip.name);
             this._emitInsPointFinished(context, ip);
         });
         // Add new IPs to context.insPoints
         newIPs.forEach((ip) => {
-            existingIPs.push(ip);
+            context.appendInsPoint(ip);
             this._emitInsPointStarted(context, ip);
         });
     }

@@ -13,9 +13,15 @@ interface IContextReactangle {
   context: IContextNode
   styles?: React.CSSProperties
   onClick?: () => void
+  contextDepth?: number
 }
 
-export const ContextReactangle: FC<IContextReactangle> = ({ context, styles, onClick }) => {
+export const ContextReactangle: FC<IContextReactangle> = ({
+  context,
+  styles,
+  onClick,
+  contextDepth,
+}) => {
   const [isEntered, setIsEntered] = useState(false)
   // const [isDisplayed, setIsDisplayed] = useState(false)
   const pickerRef = useRef<any>(null)
@@ -59,7 +65,7 @@ export const ContextReactangle: FC<IContextReactangle> = ({ context, styles, onC
     borderRadius: styles?.borderRadius ?? DEFAULT_BORDER_RADIUS,
     border: styles?.border ?? defaultStyledBorder,
     position: 'absolute',
-    zIndex: 99999999,
+    zIndex: 99999999 + (contextDepth ?? 0),
     pointerEvents: onClick ? 'auto' : 'none',
     transition: 'all .2s ease-in-out',
     opacity: isEntered ? 1 : 0,

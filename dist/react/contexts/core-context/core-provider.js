@@ -23,19 +23,22 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DappletPortal = void 0;
-const React = __importStar(require("react"));
-const engine_context_1 = require("../app/contexts/engine-context");
-const _DappletPortal = ({ component: Component, target, }) => {
-    const key = React.useId();
-    const { addPortal, removePortal } = (0, engine_context_1.useEngine)();
-    React.useEffect(() => {
-        addPortal(key, target, Component);
-        return () => removePortal(key);
-    }, [target, Component, key]);
-    return null;
+exports.CoreProvider = void 0;
+const react_1 = __importStar(require("react"));
+const core_context_1 = require("./core-context");
+const CoreProvider = ({ children, core }) => {
+    const attachParserConfig = (0, react_1.useCallback)((parserConfig) => {
+        core.attachParserConfig(parserConfig);
+    }, [core]);
+    const detachParserConfig = (0, react_1.useCallback)((parserId) => {
+        core.detachParserConfig(parserId);
+    }, [core]);
+    const state = {
+        core,
+        tree: core.tree,
+        attachParserConfig,
+        detachParserConfig,
+    };
+    return react_1.default.createElement(core_context_1.CoreContext.Provider, { value: state }, children);
 };
-const DappletPortal = (props) => {
-    return React.createElement(_DappletPortal, Object.assign({}, props));
-};
-exports.DappletPortal = DappletPortal;
+exports.CoreProvider = CoreProvider;

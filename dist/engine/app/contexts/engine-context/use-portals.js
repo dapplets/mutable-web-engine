@@ -9,11 +9,13 @@ const usePortals = (context, insPointName) => {
     const components = (0, react_1.useMemo)(() => {
         // ToDo: improve readability
         return Array.from(portals.entries())
-            .filter(([, target]) => mutation_manager_1.MutationManager._isTargetMet(target, context) && target.injectTo === insPointName)
-            .map(([component, target]) => ({
+            .filter(([, { target }]) => mutation_manager_1.MutationManager._isTargetMet(target, context) && target.injectTo === insPointName)
+            .map(([key, { component, target }]) => ({
+            key,
             target,
             component,
-        }));
+        }))
+            .sort((a, b) => (b.key > a.key ? 1 : -1));
     }, [portals, context, insPointName]);
     return { components };
 };

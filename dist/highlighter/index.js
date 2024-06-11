@@ -31,7 +31,7 @@ const DEFAULT_BORDER_STYLE = 'dashed';
 const DEFAULT_BORDER_WIDTH = 2; //px
 const DEFAULT_BACKGROUND_COLOR = 'rgb(56 188 255 / 5%)'; // light blue
 const defaultStyledBorder = `${DEFAULT_BORDER_WIDTH}px ${DEFAULT_BORDER_STYLE} ${DEFAULT_BORDER_COLOR}`;
-const ContextReactangle = ({ context, styles, onClick }) => {
+const ContextReactangle = ({ context, styles, onClick, contextDepth, }) => {
     var _a, _b, _c;
     const [isEntered, setIsEntered] = (0, react_1.useState)(false);
     // const [isDisplayed, setIsDisplayed] = useState(false)
@@ -72,7 +72,7 @@ const ContextReactangle = ({ context, styles, onClick }) => {
         borderRadius: (_b = styles === null || styles === void 0 ? void 0 : styles.borderRadius) !== null && _b !== void 0 ? _b : DEFAULT_BORDER_RADIUS,
         border: (_c = styles === null || styles === void 0 ? void 0 : styles.border) !== null && _c !== void 0 ? _c : defaultStyledBorder,
         position: 'absolute',
-        zIndex: 99999999,
+        zIndex: 99999999 + (contextDepth !== null && contextDepth !== void 0 ? contextDepth : 0),
         pointerEvents: onClick ? 'auto' : 'none',
         transition: 'all .2s ease-in-out',
         opacity: isEntered ? 1 : 0,

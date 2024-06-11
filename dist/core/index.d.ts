@@ -9,4 +9,5 @@ export { IContextNode, ITreeBuilder } from './tree/types';
 export { AdapterType, ParserConfig } from './types';
 export { Core } from './core';
 export { Subscription } from './event-emitter';
+export { InsertionPointWithElement } from './tree/types';
 //# sourceMappingURL=index.d.ts.map

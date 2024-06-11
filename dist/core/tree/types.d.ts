@@ -8,6 +8,12 @@ export type TreeNodeEvents = {
     childContextRemoved: {
         child: IContextNode;
     };
+    insertionPointAdded: {
+        insertionPoint: InsertionPointWithElement;
+    };
+    insertionPointRemoved: {
+        insertionPoint: InsertionPointWithElement;
+    };
 };
 export type InsertionPointWithElement = InsertionPoint & {
     element: HTMLElement;
@@ -26,6 +32,8 @@ export interface IContextNode {
     children: IContextNode[];
     removeChild(child: IContextNode): void;
     appendChild(child: IContextNode): void;
+    appendInsPoint(insPoint: InsertionPointWithElement): void;
+    removeInsPoint(insPointName: string): void;
     on<EventName extends keyof TreeNodeEvents>(eventName: EventName, callback: (event: TreeNodeEvents[EventName]) => void): Subscription;
 }
 export interface ITreeBuilder {

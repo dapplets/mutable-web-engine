@@ -1,0 +1,1 @@
+{"version":3,"file":"context-portal.d.ts","sourceRoot":"","sources":["../../../src/react/components/context-portal.tsx"],"names":[],"mappings":"AAAA,OAAO,EAAE,EAAE,EAAE,YAAY,EAAE,MAAM,OAAO,CAAA;AAExC,OAAO,EAAE,YAAY,EAAE,MAAM,YAAY,CAAA;AAEzC,eAAO,MAAM,aAAa,EAAE,EAAE,CAAC;IAC7B,OAAO,EAAE,YAAY,CAAA;IACrB,QAAQ,EAAE,YAAY,CAAA;IACtB,QAAQ,CAAC,EAAE,MAAM,CAAA;CAClB,CAUA,CAAA"}

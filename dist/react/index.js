@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MWebPortal = exports.useMutableWeb = exports.MutableWebProvider = void 0;
-var mutable_web_context_1 = require("./contexts/mutable-web-context");
-Object.defineProperty(exports, "MutableWebProvider", { enumerable: true, get: function () { return mutable_web_context_1.MutableWebProvider; } });
-Object.defineProperty(exports, "useMutableWeb", { enumerable: true, get: function () { return mutable_web_context_1.useMutableWeb; } });
-var mweb_portal_1 = require("./components/mweb-portal");
-Object.defineProperty(exports, "MWebPortal", { enumerable: true, get: function () { return mweb_portal_1.MWebPortal; } });
+exports.ContextPortal = exports.useCore = exports.CoreProvider = void 0;
+var core_context_1 = require("./contexts/core-context");
+Object.defineProperty(exports, "CoreProvider", { enumerable: true, get: function () { return core_context_1.CoreProvider; } });
+Object.defineProperty(exports, "useCore", { enumerable: true, get: function () { return core_context_1.useCore; } });
+var context_portal_1 = require("./components/context-portal");
+Object.defineProperty(exports, "ContextPortal", { enumerable: true, get: function () { return context_portal_1.ContextPortal; } });

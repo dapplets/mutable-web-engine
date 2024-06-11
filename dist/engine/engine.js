@@ -19,7 +19,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _Engine_provider, _Engine_selector, _Engine_nearConfig, _Engine_redirectMap, _Engine_devModePollingTimer, _Engine_repository, _Engine_viewport, _Engine_refComponents;
+var _Engine_provider, _Engine_selector, _Engine_nearConfig, _Engine_repository, _Engine_viewport;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Engine = exports.engineSingleton = void 0;
 const core_1 = require("../core");
@@ -39,14 +39,8 @@ class Engine {
         _Engine_provider.set(this, void 0);
         _Engine_selector.set(this, void 0);
         _Engine_nearConfig.set(this, void 0);
-        _Engine_redirectMap.set(this, null);
-        _Engine_devModePollingTimer.set(this, null);
         _Engine_repository.set(this, void 0);
-        _Engine_viewport.set(this, null
-        // ToDo: duplcated in ContextManager and LayoutManager
-        );
-        // ToDo: duplcated in ContextManager and LayoutManager
-        _Engine_refComponents.set(this, new Map());
+        _Engine_viewport.set(this, null);
         this.started = false;
         this.getLastUsedMutation = () => __awaiter(this, void 0, void 0, function* () {
             const allMutations = yield this.getMutations();
@@ -318,4 +312,4 @@ class Engine {
     }
 }
 exports.Engine = Engine;
-_Engine_provider = new WeakMap(), _Engine_selector = new WeakMap(), _Engine_nearConfig = new WeakMap(), _Engine_redirectMap = new WeakMap(), _Engine_devModePollingTimer = new WeakMap(), _Engine_repository = new WeakMap(), _Engine_viewport = new WeakMap(), _Engine_refComponents = new WeakMap();
+_Engine_provider = new WeakMap(), _Engine_selector = new WeakMap(), _Engine_nearConfig = new WeakMap(), _Engine_repository = new WeakMap(), _Engine_viewport = new WeakMap();

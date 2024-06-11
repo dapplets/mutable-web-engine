@@ -128,8 +128,8 @@ class DynamicHtmlAdapter {
         const insPoints = this._findAvailableInsPoints(element, context.contextType);
         this.treeBuilder.updateParsedContext(context, parsedContext);
         this.treeBuilder.updateInsertionPoints(context, insPoints);
-        this._appendNewChildContexts(pairs, context);
         this._removeOldChildContexts(pairs, context);
+        this._appendNewChildContexts(pairs, context);
     }
     _appendNewChildContexts(childPairs, parentContext) {
         for (const { element, contextName } of childPairs) {

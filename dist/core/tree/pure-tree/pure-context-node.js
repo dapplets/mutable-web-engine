@@ -43,11 +43,23 @@ class PureContextNode {
         child.parentNode = null;
         this.children = this.children.filter((c) => c !== child);
         __classPrivateFieldGet(this, _PureContextNode_eventEmitter, "f").emit('childContextRemoved', { child });
+        // ToDo: remove children of removed context?
     }
     appendChild(child) {
         child.parentNode = this;
         this.children.push(child);
         __classPrivateFieldGet(this, _PureContextNode_eventEmitter, "f").emit('childContextAdded', { child });
+    }
+    appendInsPoint(insertionPoint) {
+        this.insPoints.push(insertionPoint);
+        __classPrivateFieldGet(this, _PureContextNode_eventEmitter, "f").emit('insertionPointAdded', { insertionPoint });
+    }
+    removeInsPoint(insertionPointName) {
+        const insPointToRemove = this.insPoints.find((ip) => ip.name === insertionPointName);
+        if (!insPointToRemove)
+            return;
+        this.insPoints = this.insPoints.filter((ip) => ip.name !== insertionPointName);
+        __classPrivateFieldGet(this, _PureContextNode_eventEmitter, "f").emit('insertionPointRemoved', { insertionPoint: insPointToRemove });
     }
     on(eventName, callback) {
         return __classPrivateFieldGet(this, _PureContextNode_eventEmitter, "f").on(eventName, callback);
