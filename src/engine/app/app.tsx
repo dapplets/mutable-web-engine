@@ -5,6 +5,7 @@ import { StyleSheetManager } from 'styled-components'
 import { Engine, EngineConfig } from '../engine'
 import { EngineProvider } from './contexts/engine-context'
 import { Layout } from './layout'
+import { MutableWebProvider } from './contexts/mutable-web-context'
 
 export const App: FC<{
   config: EngineConfig
@@ -43,7 +44,9 @@ export const App: FC<{
     <StyleSheetManager target={stylesMountPoint}>
       <CoreProvider core={engine.core}>
         <EngineProvider engine={engine}>
-          <Layout>{children}</Layout>
+          <MutableWebProvider>
+            <Layout>{children}</Layout>
+          </MutableWebProvider>
         </EngineProvider>
       </CoreProvider>
     </StyleSheetManager>
