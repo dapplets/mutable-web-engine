@@ -6,12 +6,13 @@ const _DappletPortal: React.FC<{ component: React.FC; target: InjectableTarget }
   component: Component,
   target,
 }) => {
+  const key = React.useId()
   const { addPortal, removePortal } = useEngine()
 
   React.useEffect(() => {
-    addPortal(target, Component)
-    return () => removePortal(Component)
-  }, [target, Component])
+    addPortal(key, target, Component)
+    return () => removePortal(key)
+  }, [target, Component, key])
 
   return null
 }

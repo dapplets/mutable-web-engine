@@ -2,7 +2,7 @@ import { FC, ReactElement } from 'react'
 import { createPortal } from 'react-dom'
 import { IContextNode } from '../../core'
 
-export const MWebPortal: FC<{
+export const ContextPortal: FC<{
   context: IContextNode
   children: ReactElement
   injectTo?: string

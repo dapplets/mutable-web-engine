@@ -17,7 +17,6 @@ import { Repository } from './storage/repository'
 import { JsonStorage } from './storage/json-storage'
 import { LocalStorage } from './storage/local-storage'
 import { Viewport } from './viewport'
-import React from 'react'
 
 export type EngineConfig = {
   networkId: string
@@ -36,13 +35,8 @@ export class Engine {
   #selector: WalletSelector
   mutationManager: MutationManager
   #nearConfig: NearConfig
-  #redirectMap: any = null
-  #devModePollingTimer: number | null = null
   #repository: Repository
   #viewport: Viewport | null = null
-
-  // ToDo: duplcated in ContextManager and LayoutManager
-  #refComponents = new Map<React.FC<unknown>, InjectableTarget>()
 
   started: boolean = false
   core: Core

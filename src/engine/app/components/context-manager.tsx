@@ -1,5 +1,5 @@
 import React, { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { MWebPortal } from '../../../react'
+import { ContextPortal } from '../../../react'
 import { IContextNode, InsertionPointWithElement } from '../../../core'
 import { useEngine } from '../contexts/engine-context'
 import { useUserLinks } from '../contexts/engine-context/use-user-links'
@@ -36,7 +36,7 @@ const ContextHandler: FC<{ context: IContextNode; insPoints: InsertionPointWithE
   return (
     <>
       {insPoints.map((ip) => (
-        <MWebPortal key={ip.name} context={context} injectTo={ip.name}>
+        <ContextPortal key={ip.name} context={context} injectTo={ip.name}>
           <InsPointHandler
             insPointName={ip.name}
             bosLayoutManager={ip.bosLayoutManager}
@@ -49,10 +49,10 @@ const ContextHandler: FC<{ context: IContextNode; insPoints: InsertionPointWithE
             onDisableEditMode={() => setIsEditMode(false)}
             onAttachContextRef={attachContextRef}
           />
-        </MWebPortal>
+        </ContextPortal>
       ))}
       {/* For OverlayTrigger */}
-      <MWebPortal context={context}>
+      <ContextPortal context={context}>
         <InsPointHandler
           context={context}
           transferableContext={transferableContext}
@@ -63,7 +63,7 @@ const ContextHandler: FC<{ context: IContextNode; insPoints: InsertionPointWithE
           onDisableEditMode={() => setIsEditMode(false)}
           onAttachContextRef={attachContextRef}
         />
-      </MWebPortal>
+      </ContextPortal>
     </>
   )
 }
@@ -132,7 +132,7 @@ const InsPointHandler: FC<{
 
   const attachInsPointRef = useCallback(
     (callback: (r: React.Component | Element | null | undefined) => void) => {
-      // ToDo: the similar logic is used in MWebPortal
+      // ToDo: the similar logic is used in ContextPortal
       const targetElement = insPointName
         ? context.insPoints.find((ip) => ip.name === insPointName)?.element
         : context.element

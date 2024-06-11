@@ -1,5 +1,5 @@
 import React, { FC } from 'react'
-import { useMutableWeb } from '../../../react'
+import { useCore } from '../../../react'
 import { IContextNode } from '../../../core'
 import { useEngine } from '../contexts/engine-context'
 import { MutationManager } from '../../mutation-manager'
@@ -20,7 +20,7 @@ const ContextTraverser: FC<{ node: IContextNode; children: React.FC<{ node: ICon
 }
 
 export const ContextPicker: FC = () => {
-  const { tree } = useMutableWeb()
+  const { tree } = useCore()
   const { pickerTask } = useEngine()
 
   if (!tree || !pickerTask) return null
