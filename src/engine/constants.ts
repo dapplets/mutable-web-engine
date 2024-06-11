@@ -10,7 +10,7 @@ export type NearConfig = {
 export const NearConfigs: { [networkId: string]: NearConfig } = {
   mainnet: {
     networkId: 'mainnet',
-    nodeUrl: 'https://go.getblock.io/6cb9a53df9904598843ad0d58a45cd26',
+    nodeUrl: 'https://near-mainnet.mooo.com/',
     contractName: 'social.dapplets.near',
     walletUrl: 'https://app.mynearwallet.com',
     defaultMutationId: 'bos.dapplets.near/mutation/Sandbox',
