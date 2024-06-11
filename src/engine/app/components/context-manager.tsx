@@ -33,12 +33,27 @@ const ContextHandler: FC<{ context: IContextNode; insPoints: InsertionPointWithE
     [context]
   )
 
-  return insPoints.map((ip) => {
-    return (
-      <MWebPortal key={ip.name} context={context} injectTo={ip.name}>
+  return (
+    <>
+      {insPoints.map((ip) => (
+        <MWebPortal key={ip.name} context={context} injectTo={ip.name}>
+          <InsPointHandler
+            insPointName={ip.name}
+            bosLayoutManager={ip.bosLayoutManager}
+            context={context}
+            transferableContext={transferableContext}
+            allUserLinks={allUserLinks}
+            apps={apps}
+            isEditMode={isEditMode}
+            onEnableEditMode={() => setIsEditMode(true)}
+            onDisableEditMode={() => setIsEditMode(false)}
+            onAttachContextRef={attachContextRef}
+          />
+        </MWebPortal>
+      ))}
+      {/* For OverlayTrigger */}
+      <MWebPortal context={context}>
         <InsPointHandler
-          insPointName={ip.name}
-          bosLayoutManager={ip.bosLayoutManager}
           context={context}
           transferableContext={transferableContext}
           allUserLinks={allUserLinks}
@@ -49,12 +64,12 @@ const ContextHandler: FC<{ context: IContextNode; insPoints: InsertionPointWithE
           onAttachContextRef={attachContextRef}
         />
       </MWebPortal>
-    )
-  })
+    </>
+  )
 }
 
 const InsPointHandler: FC<{
-  insPointName: string
+  insPointName?: string
   bosLayoutManager?: string
   context: IContextNode
   transferableContext: TransferableContext
@@ -167,12 +182,13 @@ const InsPointHandler: FC<{
 
   // Don't render layout manager if there are no components
   // It improves performance
-  // if (
-  //   components.length === 0 &&
-  //   !allUserLinks.some((link) => link.insertionPoint === insPointName)
-  // ) {
-  //   return null
-  // }
+  if (
+    components.length === 0 &&
+    !allUserLinks.some((link) => link.insertionPoint === insPointName) &&
+    bosLayoutManager !== 'bos.dapplets.near/widget/ContextActionsGroup' // ToDo: hardcode
+  ) {
+    return null
+  }
 
   return (
     <ShadowDomWrapper>
