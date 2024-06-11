@@ -11,9 +11,9 @@ export type PickerTask = {
 
 export type EngineContextState = {
   engine: Engine
-  portals: Map<React.FC<unknown>, InjectableTarget>
-  addPortal: <T>(target: InjectableTarget, cmp: React.FC<T>) => void
-  removePortal: <T>(cmp: React.FC<T>) => void
+  portals: Map<string, { component: React.FC<unknown>; target: InjectableTarget }>
+  addPortal: <T>(key: string, target: InjectableTarget, cmp: React.FC<T>) => void
+  removePortal: <T>(key: string) => void
   pickerTask: PickerTask | null
   setPickerTask: (picker: PickerTask | null) => void
   redirectMap: BosRedirectMap | null
@@ -23,7 +23,7 @@ export type EngineContextState = {
 
 export const contextDefaultValues: EngineContextState = {
   engine: null as any as Engine, // ToDo: fix it
-  portals: new Map<React.FC<unknown>, InjectableTarget>(),
+  portals: new Map(),
   addPortal: () => undefined,
   removePortal: () => undefined,
   pickerTask: null,

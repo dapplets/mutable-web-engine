@@ -10,13 +10,15 @@ export const usePortals = (context: IContextNode, insPointName?: string) => {
     // ToDo: improve readability
     return Array.from(portals.entries())
       .filter(
-        ([, target]) =>
+        ([, { target }]) =>
           MutationManager._isTargetMet(target, context) && target.injectTo === insPointName
       )
-      .map(([component, target]) => ({
+      .map(([key, { component, target }]) => ({
+        key,
         target,
         component,
       }))
+      .sort((a, b) => (b.key > a.key ? 1 : -1))
   }, [portals, context, insPointName])
 
   return { components }

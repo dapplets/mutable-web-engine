@@ -13,7 +13,9 @@ type Props = {
 }
 
 const EngineProvider: FC<Props> = ({ engine, children }) => {
-  const [portals, setPortals] = useState(new Map<React.FC<unknown>, InjectableTarget>())
+  const [portals, setPortals] = useState(
+    new Map<string, { component: React.FC<unknown>; target: InjectableTarget }>()
+  )
   const [pickerTask, setPickerTask] = useState<PickerTask | null>(null)
   const [redirectMap, setRedirectMap] = useState<BosRedirectMap | null>(null)
   const [isDevMode, setIsDevMode] = useState(false)
@@ -50,13 +52,18 @@ const EngineProvider: FC<Props> = ({ engine, children }) => {
     setIsDevMode(false)
   }, [])
 
-  const addPortal = useCallback(<T,>(target: InjectableTarget, cmp: React.FC<T>) => {
-    setPortals((prev) => new Map(prev.set(cmp as React.FC<unknown>, target)))
-  }, [])
+  const addPortal = useCallback(
+    <T,>(key: string, target: InjectableTarget, component: React.FC<T>) => {
+      setPortals(
+        (prev) => new Map(prev.set(key, { component: component as React.FC<unknown>, target }))
+      )
+    },
+    []
+  )
 
-  const removePortal = useCallback(<T,>(cmp: React.FC<T>) => {
+  const removePortal = useCallback((key: string) => {
     setPortals((prev) => {
-      prev.delete(cmp as React.FC<unknown>)
+      prev.delete(key)
       return new Map(prev)
     })
   }, [])
