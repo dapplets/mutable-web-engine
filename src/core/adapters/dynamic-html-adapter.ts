@@ -170,8 +170,8 @@ export class DynamicHtmlAdapter implements IAdapter {
 
     this.treeBuilder.updateParsedContext(context, parsedContext)
     this.treeBuilder.updateInsertionPoints(context, insPoints)
-    this._appendNewChildContexts(pairs, context)
     this._removeOldChildContexts(pairs, context)
+    this._appendNewChildContexts(pairs, context)
   }
 
   private _appendNewChildContexts(

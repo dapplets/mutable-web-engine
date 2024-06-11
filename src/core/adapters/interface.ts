@@ -19,6 +19,7 @@ export interface IAdapter {
 
   getInsertionPoints(context: IContextNode): InsertionPoint[]
 
+  // ToDo: remove
   // For OverlayTrigger
   getContextElement(context: IContextNode): HTMLElement | null
   getInsertionPointElement(context: IContextNode, insPointName: string): HTMLElement | null
