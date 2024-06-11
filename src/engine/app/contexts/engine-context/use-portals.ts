@@ -3,7 +3,7 @@ import { useEngine } from './use-engine'
 import { IContextNode } from '../../../../core'
 import { MutationManager } from '../../../mutation-manager'
 
-export const usePortals = (context: IContextNode, insPointName: string) => {
+export const usePortals = (context: IContextNode, insPointName?: string) => {
   const { portals } = useEngine()
 
   const components = useMemo(() => {
