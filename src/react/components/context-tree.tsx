@@ -1,12 +1,12 @@
 import { FC, useEffect, useRef, useState } from 'react'
 import { IContextNode, InsertionPointWithElement } from '../../core'
 import React from 'react'
-import { useMutableWeb } from '../contexts/mutable-web-context'
+import { useCore } from '../contexts/core-context'
 
 export const ContextTree: FC<{
   children: React.FC<{ context: IContextNode; insPoints: InsertionPointWithElement[] }>
 }> = ({ children }) => {
-  const { tree } = useMutableWeb()
+  const { tree } = useCore()
 
   if (!tree) return null
 

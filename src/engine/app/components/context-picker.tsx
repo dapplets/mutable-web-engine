@@ -1,5 +1,5 @@
 import React, { FC, useEffect, useRef, useState } from 'react'
-import { useMutableWeb } from '../../../react'
+import { useCore } from '../../../react'
 import { IContextNode } from '../../../core'
 import { useEngine } from '../contexts/engine-context'
 import { MutationManager } from '../../mutation-manager'
@@ -13,7 +13,7 @@ const BACKGROUND_COLOR = 'rgb(56 188 255 / 5%)' // light blue
 const styledBorder = `${BORDER_WIDTH}px ${BORDER_STYLE} ${BORDER_COLOR}`
 
 export const ContextPicker: FC = () => {
-  const { tree } = useMutableWeb()
+  const { tree } = useCore()
   const { pickerTask } = useEngine()
 
   if (!tree || !pickerTask) return null

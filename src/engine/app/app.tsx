@@ -1,6 +1,6 @@
 import React, { ReactElement, useEffect, useState } from 'react'
 import { FC } from 'react'
-import { MutableWebProvider } from '../../react'
+import { CoreProvider } from '../../react'
 import { StyleSheetManager } from 'styled-components'
 import { Engine, EngineConfig } from '../engine'
 import { EngineProvider } from './contexts/engine-context'
@@ -41,11 +41,11 @@ export const App: FC<{
 
   return (
     <StyleSheetManager target={stylesMountPoint}>
-      <MutableWebProvider core={engine.core}>
+      <CoreProvider core={engine.core}>
         <EngineProvider engine={engine}>
           <Layout>{children}</Layout>
         </EngineProvider>
-      </MutableWebProvider>
+      </CoreProvider>
     </StyleSheetManager>
   )
 }

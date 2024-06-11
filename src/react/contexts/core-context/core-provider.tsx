@@ -1,5 +1,5 @@
 import React, { FC, ReactElement, useCallback, useEffect, useState } from 'react'
-import { MutableWebContext, MutableWebContextState } from './mutable-web-context'
+import { CoreContext, CoreContextState } from './core-context'
 import { Core, IContextNode, ParserConfig } from '../../../core'
 
 type Props = {
@@ -7,7 +7,7 @@ type Props = {
   children: ReactElement
 }
 
-const MutableWebProvider: FC<Props> = ({ children, core }) => {
+const CoreProvider: FC<Props> = ({ children, core }) => {
   const attachParserConfig = useCallback(
     (parserConfig: ParserConfig) => {
       core.attachParserConfig(parserConfig)
@@ -22,14 +22,14 @@ const MutableWebProvider: FC<Props> = ({ children, core }) => {
     [core]
   )
 
-  const state: MutableWebContextState = {
+  const state: CoreContextState = {
     core,
     tree: core.tree,
     attachParserConfig,
     detachParserConfig,
   }
 
-  return <MutableWebContext.Provider value={state}>{children}</MutableWebContext.Provider>
+  return <CoreContext.Provider value={state}>{children}</CoreContext.Provider>
 }
 
-export { MutableWebProvider }
+export { CoreProvider }
