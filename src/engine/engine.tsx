@@ -16,7 +16,6 @@ import { IStorage } from './storage/storage'
 import { Repository } from './storage/repository'
 import { JsonStorage } from './storage/json-storage'
 import { LocalStorage } from './storage/local-storage'
-import { Viewport } from './viewport'
 
 export type EngineConfig = {
   networkId: string
@@ -36,7 +35,6 @@ export class Engine {
   mutationManager: MutationManager
   #nearConfig: NearConfig
   #repository: Repository
-  #viewport: Viewport | null = null
 
   started: boolean = false
   core: Core
@@ -142,7 +140,6 @@ export class Engine {
 
     this.started = true
 
-    this._attachViewport()
     this._updateRootContext()
 
     console.log('Mutable Web Engine started!', {
@@ -154,7 +151,6 @@ export class Engine {
   stop() {
     this.started = false
     this.core.clear()
-    this._detachViewport()
   }
 
   async getMutations(): Promise<MutationWithSettings[]> {
@@ -304,22 +300,6 @@ export class Engine {
       settings: {
         isEnabled: await this.#repository.getAppEnabledStatus(currentMutationId, app.id),
       },
-    }
-  }
-
-  private _attachViewport() {
-    if (this.#viewport) {
-      throw new Error('Already attached')
-    }
-
-    this.#viewport = new Viewport({ bosElementStyleSrc: this.config.bosElementStyleSrc })
-    document.body.appendChild(this.#viewport.outer)
-  }
-
-  private _detachViewport() {
-    if (this.#viewport) {
-      document.body.removeChild(this.#viewport.outer)
-      this.#viewport = null
     }
   }
 

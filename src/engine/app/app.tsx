@@ -45,7 +45,10 @@ export const App: FC<{
       <CoreProvider core={engine.core}>
         <EngineProvider engine={engine}>
           <MutableWebProvider>
-            <Layout>{children}</Layout>
+            <>
+              <Layout />
+              {children}
+            </>
           </MutableWebProvider>
         </EngineProvider>
       </CoreProvider>

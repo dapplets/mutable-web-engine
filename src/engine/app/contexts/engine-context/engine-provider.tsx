@@ -13,6 +13,7 @@ type Props = {
 }
 
 const EngineProvider: FC<Props> = ({ engine, children }) => {
+  const viewportRef = React.useRef<HTMLDivElement>(null)
   const [portals, setPortals] = useState(
     new Map<string, { component: React.FC<unknown>; target: InjectableTarget }>()
   )
@@ -70,6 +71,7 @@ const EngineProvider: FC<Props> = ({ engine, children }) => {
 
   const state: EngineContextState = {
     engine,
+    viewportRef,
     portals,
     addPortal,
     removePortal,
