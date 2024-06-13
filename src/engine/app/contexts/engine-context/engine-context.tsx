@@ -11,6 +11,7 @@ export type PickerTask = {
 
 export type EngineContextState = {
   engine: Engine
+  viewportRef: React.RefObject<HTMLDivElement>
   portals: Map<string, { component: React.FC<unknown>; target: InjectableTarget }>
   addPortal: <T>(key: string, target: InjectableTarget, cmp: React.FC<T>) => void
   removePortal: <T>(key: string) => void
@@ -23,6 +24,7 @@ export type EngineContextState = {
 
 export const contextDefaultValues: EngineContextState = {
   engine: null as any as Engine, // ToDo: fix it
+  viewportRef: null as any as React.RefObject<HTMLDivElement>,
   portals: new Map(),
   addPortal: () => undefined,
   removePortal: () => undefined,

@@ -18,7 +18,7 @@ const ContextHandler: FC<{ context: IContextNode; insPoints: InsertionPointWithE
   context,
   insPoints,
 }) => {
-  const { userLinks: allUserLinks } = useUserLinks(context)
+  const { userLinks } = useUserLinks(context)
   const { apps } = useContextApps(context)
 
   const [isEditMode, setIsEditMode] = useState(false)
@@ -33,6 +33,14 @@ const ContextHandler: FC<{ context: IContextNode; insPoints: InsertionPointWithE
     [context]
   )
 
+  const handleEnableEditMode = useCallback(() => {
+    setIsEditMode(true)
+  }, [setIsEditMode])
+
+  const handleDisableEditMode = useCallback(() => {
+    setIsEditMode(false)
+  }, [setIsEditMode])
+
   return (
     <>
       {insPoints.map((ip) => (
@@ -42,11 +50,11 @@ const ContextHandler: FC<{ context: IContextNode; insPoints: InsertionPointWithE
             bosLayoutManager={ip.bosLayoutManager}
             context={context}
             transferableContext={transferableContext}
-            allUserLinks={allUserLinks}
+            allUserLinks={userLinks}
             apps={apps}
             isEditMode={isEditMode}
-            onEnableEditMode={() => setIsEditMode(true)}
-            onDisableEditMode={() => setIsEditMode(false)}
+            onEnableEditMode={handleEnableEditMode}
+            onDisableEditMode={handleDisableEditMode}
             onAttachContextRef={attachContextRef}
           />
         </ContextPortal>
@@ -56,11 +64,11 @@ const ContextHandler: FC<{ context: IContextNode; insPoints: InsertionPointWithE
         <InsPointHandler
           context={context}
           transferableContext={transferableContext}
-          allUserLinks={allUserLinks}
+          allUserLinks={userLinks}
           apps={apps}
           isEditMode={isEditMode}
-          onEnableEditMode={() => setIsEditMode(true)}
-          onDisableEditMode={() => setIsEditMode(false)}
+          onEnableEditMode={handleEnableEditMode}
+          onDisableEditMode={handleDisableEditMode}
           onAttachContextRef={attachContextRef}
         />
       </ContextPortal>

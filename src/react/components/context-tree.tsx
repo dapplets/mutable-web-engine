@@ -13,13 +13,11 @@ export const ContextTree: FC<{
   return <TreeItem node={tree} component={children} />
 }
 
-const TreeItem: FC<{
+const ChildrenTreeItem: FC<{
   node: IContextNode
   component: React.FC<{ context: IContextNode; insPoints: InsertionPointWithElement[] }>
 }> = ({ node, component: Component }) => {
-  const [wrappedNode, setWrappedNode] = useState({ node })
   const [children, setChildren] = useState([...node.children])
-  const [insPoints, setInsPoints] = useState([...node.insPoints])
 
   // ToDo: refactor it. It stores unique key for each context node
   const contextKeyRef = useRef(
@@ -28,9 +26,6 @@ const TreeItem: FC<{
   const contextKeyCounter = useRef(node.children.length - 1) // last index
 
   useEffect(() => {
-    // The Component re-renders when the current node changes only.
-    // Changing the children and the parent node will not cause a re-render.
-    // So it's not recommended to depend on another contexts in the Component.
     const subscriptions = [
       node.on('childContextAdded', ({ child }) => {
         contextKeyRef.current.set(child, ++contextKeyCounter.current)
@@ -39,6 +34,35 @@ const TreeItem: FC<{
       node.on('childContextRemoved', ({ child }) => {
         setChildren((prev) => prev.filter((c) => c !== child))
       }),
+    ]
+
+    return () => {
+      subscriptions.forEach((sub) => sub.remove())
+    }
+  }, [node])
+
+  return children.map((child) => (
+    <TreeItem
+      // key={`${child.namespace}/${child.contextType}/${child.id}`}
+      key={contextKeyRef.current.get(child)}
+      node={child}
+      component={Component}
+    />
+  ))
+}
+
+const TreeItem: FC<{
+  node: IContextNode
+  component: React.FC<{ context: IContextNode; insPoints: InsertionPointWithElement[] }>
+}> = ({ node, component: Component }) => {
+  const [wrappedNode, setWrappedNode] = useState({ node })
+  const [insPoints, setInsPoints] = useState([...node.insPoints])
+
+  useEffect(() => {
+    // The Component re-renders when the current node changes only.
+    // Changing the children and the parent node will not cause a re-render.
+    // So it's not recommended to depend on another contexts in the Component.
+    const subscriptions = [
       node.on('insertionPointAdded', ({ insertionPoint }) => {
         setInsPoints((prev) => [...prev, insertionPoint])
       }),
@@ -61,14 +85,7 @@ const TreeItem: FC<{
       {wrappedNode.node.element ? (
         <Component context={wrappedNode.node} insPoints={insPoints} />
       ) : null}
-      {children.map((child) => (
-        <TreeItem
-          // key={`${child.namespace}/${child.contextType}/${child.id}`}
-          key={contextKeyRef.current.get(child)}
-          node={child}
-          component={Component}
-        />
-      ))}
+      <ChildrenTreeItem node={wrappedNode.node} component={Component} />
     </>
   )
 }
