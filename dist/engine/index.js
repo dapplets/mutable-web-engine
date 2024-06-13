@@ -26,7 +26,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.useEngine = exports.App = exports.LocalStorage = exports.customElements = void 0;
+exports.useMutationApp = exports.useEditMutation = exports.useCreateMutation = exports.useMutableWeb = exports.useEngine = exports.App = exports.LocalStorage = exports.customElements = void 0;
 __exportStar(require("./engine"), exports);
 exports.customElements = __importStar(require("./custom-elements"));
 var local_storage_1 = require("./storage/local-storage");
@@ -35,3 +35,8 @@ var app_1 = require("./app/app");
 Object.defineProperty(exports, "App", { enumerable: true, get: function () { return app_1.App; } });
 var engine_context_1 = require("./app/contexts/engine-context");
 Object.defineProperty(exports, "useEngine", { enumerable: true, get: function () { return engine_context_1.useEngine; } });
+var mutable_web_context_1 = require("./app/contexts/mutable-web-context");
+Object.defineProperty(exports, "useMutableWeb", { enumerable: true, get: function () { return mutable_web_context_1.useMutableWeb; } });
+Object.defineProperty(exports, "useCreateMutation", { enumerable: true, get: function () { return mutable_web_context_1.useCreateMutation; } });
+Object.defineProperty(exports, "useEditMutation", { enumerable: true, get: function () { return mutable_web_context_1.useEditMutation; } });
+Object.defineProperty(exports, "useMutationApp", { enumerable: true, get: function () { return mutable_web_context_1.useMutationApp; } });

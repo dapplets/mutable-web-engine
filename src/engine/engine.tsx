@@ -16,9 +16,7 @@ import { IStorage } from './storage/storage'
 import { Repository } from './storage/repository'
 import { JsonStorage } from './storage/json-storage'
 import { LocalStorage } from './storage/local-storage'
-import { Viewport } from './viewport'
 import { EventEmitter } from '../core/event-emitter'
-import { CoreEvents } from '../core/events'
 import { TreeBuilderEvents } from '../core/tree/pure-tree/pure-tree-builder'
 
 export type EngineConfig = {
@@ -30,16 +28,12 @@ export type EngineConfig = {
   bosElementStyleSrc?: string
 }
 
-// ToDo: dirty hack
-export let engineSingleton: Engine | null = null
-
 export class Engine {
   #provider: IProvider
   #selector: WalletSelector
   mutationManager: MutationManager
   #nearConfig: NearConfig
   #repository: Repository
-  #viewport: Viewport | null = null
 
   started: boolean = false
   core: Core
@@ -62,8 +56,6 @@ export class Engine {
     this.core = new Core()
     this.event = new EventEmitter()
     this.core.on('contextStarted', this.handleContextStarted.bind(this))
-    this.event.on('contextStarted', this.handleContextStarted.bind(this))
-    engineSingleton = this
   }
 
   async handleContextStarted({ context }: { context: IContextNode }): Promise<void> {
@@ -146,7 +138,6 @@ export class Engine {
 
     this.started = true
 
-    this._attachViewport()
     this._updateRootContext()
 
     console.log('Mutable Web Engine started!', {
@@ -158,7 +149,6 @@ export class Engine {
   stop() {
     this.started = false
     this.core.clear()
-    this._detachViewport()
   }
 
   async getMutations(): Promise<MutationWithSettings[]> {
@@ -308,22 +298,6 @@ export class Engine {
       settings: {
         isEnabled: await this.#repository.getAppEnabledStatus(currentMutationId, app.id),
       },
-    }
-  }
-
-  private _attachViewport() {
-    if (this.#viewport) {
-      throw new Error('Already attached')
-    }
-
-    this.#viewport = new Viewport({ bosElementStyleSrc: this.config.bosElementStyleSrc })
-    document.body.appendChild(this.#viewport.outer)
-  }
-
-  private _detachViewport() {
-    if (this.#viewport) {
-      document.body.removeChild(this.#viewport.outer)
-      this.#viewport = null
     }
   }
 

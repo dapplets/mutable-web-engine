@@ -27,24 +27,6 @@ exports.MutableWebProvider = void 0;
 const react_1 = __importStar(require("react"));
 const mutable_web_context_1 = require("./mutable-web-context");
 const MutableWebProvider = ({ children, core }) => {
-    const [contexts, setContexts] = (0, react_1.useState)([]);
-    (0, react_1.useEffect)(() => {
-        const ctxStartedSubscription = core.on('contextStarted', (e) => {
-            setContexts((prev) => [...prev, e.context]);
-        });
-        const ctxFinishedSubscription = core.on('contextFinished', (e) => {
-            setContexts((prev) => prev.filter((ctx) => ctx !== e.context));
-        });
-        const ctxChangedSubscription = core.on('contextChanged', (e) => {
-            // ToDo: no sense
-            setContexts((prev) => prev.map((ctx) => (ctx === e.context ? e.context : ctx)));
-        });
-        return () => {
-            ctxStartedSubscription.remove();
-            ctxFinishedSubscription.remove();
-            ctxChangedSubscription.remove();
-        };
-    }, [core]);
     const attachParserConfig = (0, react_1.useCallback)((parserConfig) => {
         core.attachParserConfig(parserConfig);
     }, [core]);
@@ -54,7 +36,6 @@ const MutableWebProvider = ({ children, core }) => {
     const state = {
         core,
         tree: core.tree,
-        contexts,
         attachParserConfig,
         detachParserConfig,
     };

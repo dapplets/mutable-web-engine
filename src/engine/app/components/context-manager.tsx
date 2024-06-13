@@ -5,7 +5,7 @@ import { useEngine } from '../contexts/engine-context'
 import { useUserLinks } from '../contexts/engine-context/use-user-links'
 import { Widget } from 'near-social-vm'
 import { AppMetadata, BosUserLink, ContextTarget } from '../../providers/provider'
-import { usePortals } from '../contexts/engine-context/use-portals'
+import { usePortalFilter } from '../contexts/engine-context/use-portal-filter'
 import { ShadowDomWrapper } from '../../bos/shadow-dom-wrapper'
 import { ContextTree } from '../../../react/components/context-tree'
 import { useContextApps } from '../contexts/engine-context/use-context-apps'
@@ -18,7 +18,7 @@ const ContextHandler: FC<{ context: IContextNode; insPoints: InsertionPointWithE
   context,
   insPoints,
 }) => {
-  const { userLinks: allUserLinks } = useUserLinks(context)
+  const { userLinks } = useUserLinks(context)
   const { apps } = useContextApps(context)
 
   const [isEditMode, setIsEditMode] = useState(false)
@@ -33,6 +33,14 @@ const ContextHandler: FC<{ context: IContextNode; insPoints: InsertionPointWithE
     [context]
   )
 
+  const handleEnableEditMode = useCallback(() => {
+    setIsEditMode(true)
+  }, [setIsEditMode])
+
+  const handleDisableEditMode = useCallback(() => {
+    setIsEditMode(false)
+  }, [setIsEditMode])
+
   return (
     <>
       {insPoints.map((ip) => (
@@ -42,11 +50,11 @@ const ContextHandler: FC<{ context: IContextNode; insPoints: InsertionPointWithE
             bosLayoutManager={ip.bosLayoutManager}
             context={context}
             transferableContext={transferableContext}
-            allUserLinks={allUserLinks}
+            allUserLinks={userLinks}
             apps={apps}
             isEditMode={isEditMode}
-            onEnableEditMode={() => setIsEditMode(true)}
-            onDisableEditMode={() => setIsEditMode(false)}
+            onEnableEditMode={handleEnableEditMode}
+            onDisableEditMode={handleDisableEditMode}
             onAttachContextRef={attachContextRef}
           />
         </ContextPortal>
@@ -56,11 +64,11 @@ const ContextHandler: FC<{ context: IContextNode; insPoints: InsertionPointWithE
         <InsPointHandler
           context={context}
           transferableContext={transferableContext}
-          allUserLinks={allUserLinks}
+          allUserLinks={userLinks}
           apps={apps}
           isEditMode={isEditMode}
-          onEnableEditMode={() => setIsEditMode(true)}
-          onDisableEditMode={() => setIsEditMode(false)}
+          onEnableEditMode={handleEnableEditMode}
+          onDisableEditMode={handleDisableEditMode}
           onAttachContextRef={attachContextRef}
         />
       </ContextPortal>
@@ -92,7 +100,7 @@ const InsPointHandler: FC<{
   onAttachContextRef,
 }) => {
   const { pickerTask, setPickerTask, redirectMap } = useEngine()
-  const { components } = usePortals(context, insPointName) // ToDo: extract to the separate AppManager component
+  const { components } = usePortalFilter(context, insPointName) // ToDo: extract to the separate AppManager component
 
   const pickContext = useCallback((target: ContextTarget) => {
     return new Promise<TransferableContext | null>((resolve, reject) => {

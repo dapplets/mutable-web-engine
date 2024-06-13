@@ -39,7 +39,7 @@ export const ShadowDomWrapper = React.forwardRef<HTMLDivElement, ShadowDomWrappe
             display: flex; 
             align-items: center;
             justify-content: center;
-            position: relative;
+            /* position: relative; */
             visibility: visible !important;
             }
         `
@@ -72,6 +72,13 @@ export const ShadowDomWrapper = React.forwardRef<HTMLDivElement, ShadowDomWrappe
           myRef.current!.addEventListener(eventName, (e) => e.stopPropagation())
         })
 
+        // Refactored: moved from "myRef.current = node"
+        if (typeof ref === 'function') {
+          ref(container)
+        } else if (ref) {
+          ref.current = container
+        }
+
         setRoot({ container, stylesMountPoint })
       } else {
         setRoot(null)
@@ -82,16 +89,13 @@ export const ShadowDomWrapper = React.forwardRef<HTMLDivElement, ShadowDomWrappe
       <div
         ref={(node) => {
           myRef.current = node
-          if (typeof ref === 'function') {
-            ref(node)
-          } else if (ref) {
-            ref.current = node
-          }
         }}
       >
         {root && children
           ? createPortal(
-              <StyleSheetManager target={root.stylesMountPoint}>{children}</StyleSheetManager>,
+              <StyleSheetManager target={root.stylesMountPoint}>
+                <>{children}</>
+              </StyleSheetManager>,
               root.container
             )
           : null}

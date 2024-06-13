@@ -1,4 +1,23 @@
-import { InsertionPointWithElement } from './pure-tree/pure-context-node';
+import { Subscription } from '../event-emitter';
+import { InsertionPoint } from '../parsers/interface';
+export type TreeNodeEvents = {
+    contextChanged: {};
+    childContextAdded: {
+        child: IContextNode;
+    };
+    childContextRemoved: {
+        child: IContextNode;
+    };
+    insertionPointAdded: {
+        insertionPoint: InsertionPointWithElement;
+    };
+    insertionPointRemoved: {
+        insertionPoint: InsertionPointWithElement;
+    };
+};
+export type InsertionPointWithElement = InsertionPoint & {
+    element: HTMLElement;
+};
 export type ParsedContext = {
     [key: string]: any;
 };
@@ -13,6 +32,9 @@ export interface IContextNode {
     children: IContextNode[];
     removeChild(child: IContextNode): void;
     appendChild(child: IContextNode): void;
+    appendInsPoint(insPoint: InsertionPointWithElement): void;
+    removeInsPoint(insPointName: string): void;
+    on<EventName extends keyof TreeNodeEvents>(eventName: EventName, callback: (event: TreeNodeEvents[EventName]) => void): Subscription;
 }
 export interface ITreeBuilder {
     root: IContextNode;

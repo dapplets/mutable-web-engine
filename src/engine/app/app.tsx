@@ -44,7 +44,10 @@ export const App: FC<{
       <CoreProvider event={engine.event} core={engine.core}>
         <EngineProvider engine={engine}>
           <MutableWebProvider>
-            <Layout _events={engine.event}>{children}</Layout>
+            <>
+              <Layout />
+              {children}
+            </>
           </MutableWebProvider>
         </EngineProvider>
       </CoreProvider>

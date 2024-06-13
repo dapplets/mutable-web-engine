@@ -25,6 +25,7 @@ class Viewport {
         // Context cannot be a shadow root node because mutation observer doesn't work there
         // So we need to select a child node for context
         viewportInner.setAttribute('data-mweb-context-type', 'shadow-dom');
+        viewportInner.setAttribute('data-mweb-context-parsed', '{"id":"viewport"}');
         shadowRoot.appendChild(viewportInner);
         // Prevent event propagation from BOS-component to parent
         const EventsToStopPropagation = ['click', 'keydown', 'keyup', 'keypress'];

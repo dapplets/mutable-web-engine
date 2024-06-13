@@ -31,29 +31,36 @@ const use_user_links_1 = require("../contexts/engine-context/use-user-links");
 const near_social_vm_1 = require("near-social-vm");
 const use_portals_1 = require("../contexts/engine-context/use-portals");
 const shadow_dom_wrapper_1 = require("../../bos/shadow-dom-wrapper");
+const context_tree_1 = require("../../../react/components/context-tree");
+const use_context_apps_1 = require("../contexts/engine-context/use-context-apps");
 const ContextManager = () => {
-    const { tree } = (0, react_2.useMutableWeb)();
-    if (!tree)
-        return null;
-    return react_1.default.createElement(ContextTraverser, { node: tree, component: ContextHandler });
+    return react_1.default.createElement(context_tree_1.ContextTree, { children: ContextHandler });
 };
 exports.ContextManager = ContextManager;
-const ContextTraverser = ({ node, component: Component }) => {
-    return (react_1.default.createElement(react_1.default.Fragment, null,
-        node.element ? react_1.default.createElement(Component, { context: node }) : null,
-        node.children.map((child, i) => (react_1.default.createElement(ContextTraverser, { key: i, node: child, component: Component })))));
-};
-const ContextHandler = ({ context }) => {
-    const { userLinks: allUserLinks } = (0, use_user_links_1.useUserLinks)(context);
+const ContextHandler = ({ context, insPoints, }) => {
+    const { userLinks } = (0, use_user_links_1.useUserLinks)(context);
+    const { apps } = (0, use_context_apps_1.useContextApps)(context);
+    const [isEditMode, setIsEditMode] = (0, react_1.useState)(false);
     const transferableContext = (0, react_1.useMemo)(() => buildTransferableContext(context), [context]);
-    return context.insPoints.map((ip) => {
-        return (react_1.default.createElement(react_2.MWebPortal, { key: ip.name, context: context, injectTo: ip.name },
-            react_1.default.createElement(InsPointHandler, { insPointName: ip.name, bosLayoutManager: ip.bosLayoutManager, context: context, transferableContext: transferableContext, allUserLinks: allUserLinks })));
-    });
+    // For OverlayTrigger
+    const attachContextRef = (0, react_1.useCallback)((callback) => {
+        callback(context.element);
+    }, [context]);
+    const handleEnableEditMode = (0, react_1.useCallback)(() => {
+        setIsEditMode(true);
+    }, [setIsEditMode]);
+    const handleDisableEditMode = (0, react_1.useCallback)(() => {
+        setIsEditMode(false);
+    }, [setIsEditMode]);
+    return (react_1.default.createElement(react_1.default.Fragment, null,
+        insPoints.map((ip) => (react_1.default.createElement(react_2.ContextPortal, { key: ip.name, context: context, injectTo: ip.name },
+            react_1.default.createElement(InsPointHandler, { insPointName: ip.name, bosLayoutManager: ip.bosLayoutManager, context: context, transferableContext: transferableContext, allUserLinks: userLinks, apps: apps, isEditMode: isEditMode, onEnableEditMode: handleEnableEditMode, onDisableEditMode: handleDisableEditMode, onAttachContextRef: attachContextRef })))),
+        react_1.default.createElement(react_2.ContextPortal, { context: context },
+            react_1.default.createElement(InsPointHandler, { context: context, transferableContext: transferableContext, allUserLinks: userLinks, apps: apps, isEditMode: isEditMode, onEnableEditMode: handleEnableEditMode, onDisableEditMode: handleDisableEditMode, onAttachContextRef: attachContextRef }))));
 };
-const InsPointHandler = ({ insPointName, bosLayoutManager, context, transferableContext, allUserLinks }) => {
-    const { pickerTask, setPickerTask } = (0, engine_context_1.useEngine)();
-    const { components } = (0, use_portals_1.usePortals)(context, insPointName);
+const InsPointHandler = ({ insPointName, bosLayoutManager, context, transferableContext, allUserLinks, apps, isEditMode, onEnableEditMode, onDisableEditMode, onAttachContextRef, }) => {
+    const { pickerTask, setPickerTask, redirectMap } = (0, engine_context_1.useEngine)();
+    const { components } = (0, use_portals_1.usePortals)(context, insPointName); // ToDo: extract to the separate AppManager component
     const pickContext = (0, react_1.useCallback)((target) => {
         return new Promise((resolve, reject) => {
             if (pickerTask) {
@@ -66,17 +73,35 @@ const InsPointHandler = ({ insPointName, bosLayoutManager, context, transferable
             setPickerTask({ callback, target });
         });
     }, []);
-    (0, react_1.useEffect)(() => {
-        console.log({ pickContext });
-    }, [pickContext]);
+    const pickContexts = (0, react_1.useCallback)((target, callback) => {
+        if (pickerTask) {
+            throw new Error('The picker is busy');
+        }
+        const stop = () => setPickerTask(null);
+        const taskCallback = (context) => {
+            if (context) {
+                callback(buildTransferableContext(context));
+            }
+        };
+        setPickerTask({ callback: taskCallback, target });
+        return { stop };
+    }, []);
+    const attachInsPointRef = (0, react_1.useCallback)((callback) => {
+        var _a;
+        // ToDo: the similar logic is used in ContextPortal
+        const targetElement = insPointName
+            ? (_a = context.insPoints.find((ip) => ip.name === insPointName)) === null || _a === void 0 ? void 0 : _a.element
+            : context.element;
+        callback(targetElement);
+    }, [context, insPointName]);
     const defaultLayoutManager = 'bos.dapplets.near/widget/DefaultLayoutManager';
     const props = {
         // ToDo: unify context forwarding
         context: transferableContext,
-        // apps: apps.map((app) => ({
-        //   id: app.id,
-        //   metadata: app.metadata,
-        // })),
+        apps: apps.map((app) => ({
+            id: app.id,
+            metadata: app.metadata,
+        })),
         widgets: allUserLinks.map((link) => ({
             linkId: link.id,
             linkAuthorId: link.authorId,
@@ -91,19 +116,28 @@ const InsPointHandler = ({ insPointName, bosLayoutManager, context, transferable
             isSuitable: link.insertionPoint === insPointName, // ToDo: LM know about widgets from other LM
         })),
         components: components,
-        // isEditMode: this.#isEditMode,
+        isEditMode: isEditMode,
         // ToDo: move functions to separate api namespace?
         // createUserLink: this._createUserLink.bind(this),
         // deleteUserLink: this._deleteUserLink.bind(this),
-        // enableEditMode: this._enableEditMode.bind(this),
-        // disableEditMode: this._disableEditMode.bind(this),
-        // // For OverlayTrigger
-        // attachContextRef: this._attachContextRef.bind(this),
-        // attachInsPointRef: this._attachInsPointRef.bind(this),
+        enableEditMode: onEnableEditMode,
+        disableEditMode: onDisableEditMode,
+        // For OverlayTrigger
+        attachContextRef: onAttachContextRef,
+        attachInsPointRef,
         pickContext,
+        pickContexts,
     };
+    // Don't render layout manager if there are no components
+    // It improves performance
+    if (components.length === 0 &&
+        !allUserLinks.some((link) => link.insertionPoint === insPointName) &&
+        bosLayoutManager !== 'bos.dapplets.near/widget/ContextActionsGroup' // ToDo: hardcode
+    ) {
+        return null;
+    }
     return (react_1.default.createElement(shadow_dom_wrapper_1.ShadowDomWrapper, null,
-        react_1.default.createElement(near_social_vm_1.Widget, { src: bosLayoutManager !== null && bosLayoutManager !== void 0 ? bosLayoutManager : defaultLayoutManager, props: props, loading: react_1.default.createElement(react_1.default.Fragment, null) })));
+        react_1.default.createElement(near_social_vm_1.Widget, { src: bosLayoutManager !== null && bosLayoutManager !== void 0 ? bosLayoutManager : defaultLayoutManager, props: props, loading: react_1.default.createElement(react_1.default.Fragment, null), config: { redirectMap } })));
 };
 const buildTransferableContext = (context) => ({
     namespace: context.namespace,

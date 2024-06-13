@@ -5,7 +5,6 @@ const react_1 = require("react");
 exports.contextDefaultValues = {
     core: null,
     tree: null,
-    contexts: [],
     attachParserConfig: () => undefined,
     detachParserConfig: () => undefined,
 };

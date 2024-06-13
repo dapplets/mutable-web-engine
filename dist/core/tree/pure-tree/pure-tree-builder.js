@@ -29,6 +29,7 @@ class PureTreeBuilder {
         const oldParsedContext = context.parsedContext;
         // ToDo: what to do with contexts without IDs?
         if ((oldParsedContext === null || oldParsedContext === void 0 ? void 0 : oldParsedContext.id) !== (newParsedContext === null || newParsedContext === void 0 ? void 0 : newParsedContext.id)) {
+            // ToDo: remove child?
             this._emitContextFinished(context);
             context.parsedContext = newParsedContext;
             context.id = newParsedContext.id;
@@ -47,15 +48,12 @@ class PureTreeBuilder {
         const newIPs = foundIPs.filter((ip) => !existingIPs.some((_ip) => _ip.name === ip.name));
         // Remove old IPs from context.insPoints
         oldIPs.forEach((ip) => {
-            const index = existingIPs.findIndex((_ip) => _ip.name === ip.name);
-            if (index !== -1) {
-                existingIPs.splice(index, 1);
-            }
+            context.removeInsPoint(ip.name);
             this._emitInsPointFinished(context, ip);
         });
         // Add new IPs to context.insPoints
         newIPs.forEach((ip) => {
-            existingIPs.push(ip);
+            context.appendInsPoint(ip);
             this._emitInsPointStarted(context, ip);
         });
     }

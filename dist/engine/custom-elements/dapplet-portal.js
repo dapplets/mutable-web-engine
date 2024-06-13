@@ -27,12 +27,12 @@ exports.DappletPortal = void 0;
 const React = __importStar(require("react"));
 const engine_context_1 = require("../app/contexts/engine-context");
 const _DappletPortal = ({ component: Component, target, }) => {
+    const key = React.useId();
     const { addPortal, removePortal } = (0, engine_context_1.useEngine)();
-    // ToDo: remove singleton
     React.useEffect(() => {
-        addPortal(target, Component);
-        return () => removePortal(Component);
-    }, [target, Component]);
+        addPortal(key, target, Component);
+        return () => removePortal(key);
+    }, [target, Component, key]);
     return null;
 };
 const DappletPortal = (props) => {
