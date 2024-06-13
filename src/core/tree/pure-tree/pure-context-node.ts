@@ -11,7 +11,7 @@ export class PureContextNode implements IContextNode {
   public element: HTMLElement | null = null
 
   #parsedContext: any = {}
-  #eventEmitter = new EventEmitter<TreeNodeEvents>()
+  #eventEmitter = new EventEmitter<TreeNodeEvents>() // ToDo: implement event bubbling?
 
   public get parsedContext() {
     return this.#parsedContext

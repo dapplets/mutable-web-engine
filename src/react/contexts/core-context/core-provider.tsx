@@ -1,13 +1,15 @@
-import React, { FC, ReactElement, useCallback, useEffect, useState } from 'react'
+import React, { FC, ReactElement, useCallback, useEffect, useRef, useState } from 'react'
 import { CoreContext, CoreContextState } from './core-context'
 import { Core, IContextNode, ParserConfig } from '../../../core'
 
 type Props = {
-  core: Core
   children: ReactElement
 }
 
-const CoreProvider: FC<Props> = ({ children, core }) => {
+const CoreProvider: FC<Props> = ({ children }) => {
+  const coreRef = useRef(new Core())
+  const core = coreRef.current
+
   const attachParserConfig = useCallback(
     (parserConfig: ParserConfig) => {
       core.attachParserConfig(parserConfig)
@@ -22,11 +24,19 @@ const CoreProvider: FC<Props> = ({ children, core }) => {
     [core]
   )
 
+  const updateRootContext = useCallback(
+    (rootParsedContext: any = {}) => {
+      core.updateRootContext(rootParsedContext)
+    },
+    [core]
+  )
+
   const state: CoreContextState = {
     core,
     tree: core.tree,
     attachParserConfig,
     detachParserConfig,
+    updateRootContext,
   }
 
   return <CoreContext.Provider value={state}>{children}</CoreContext.Provider>

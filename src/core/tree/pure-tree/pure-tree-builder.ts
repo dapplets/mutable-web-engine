@@ -15,21 +15,17 @@ export type TreeBuilderEvents = {
 export class PureTreeBuilder implements ITreeBuilder {
   root: IContextNode // ToDo: replace with Root Adapter
 
-  constructor(private _eventEmitter: EventEmitter<TreeBuilderEvents>) {
+  constructor() {
     // ToDo: move to engine, it's not a core responsibility
     this.root = this.createNode(DappletsEngineNs, 'website') // default ns
   }
 
   appendChild(parent: IContextNode, child: IContextNode): void {
     parent.appendChild(child)
-    this._emitContextStarted(child)
-    child.insPoints?.forEach((ip) => this._emitInsPointStarted(child, ip))
   }
 
   removeChild(parent: IContextNode, child: IContextNode): void {
     parent.removeChild(child)
-    this._emitContextFinished(child)
-    child.insPoints?.forEach((ip) => this._emitInsPointFinished(child, ip))
   }
 
   createNode(
@@ -49,13 +45,10 @@ export class PureTreeBuilder implements ITreeBuilder {
 
     if (oldParsedContext?.id !== newParsedContext?.id) {
       // ToDo: remove child?
-      this._emitContextFinished(context)
       context.parsedContext = newParsedContext
       context.id = newParsedContext.id
-      this._emitContextStarted(context)
     } else if (!isDeepEqual(oldParsedContext, newParsedContext)) {
       context.parsedContext = newParsedContext
-      this._emitContextChanged(context, oldParsedContext)
     }
   }
 
@@ -69,44 +62,16 @@ export class PureTreeBuilder implements ITreeBuilder {
     // Remove old IPs from context.insPoints
     oldIPs.forEach((ip) => {
       context.removeInsPoint(ip.name)
-      this._emitInsPointFinished(context, ip)
     })
 
     // Add new IPs to context.insPoints
     newIPs.forEach((ip) => {
       context.appendInsPoint(ip)
-      this._emitInsPointStarted(context, ip)
     })
   }
 
   clear() {
     // ToDo: move to engine, it's not a core responsibility
     this.root = this.createNode(DappletsEngineNs, 'website') // default ns
-  }
-
-  private _emitContextStarted(context: IContextNode) {
-    this._eventEmitter.emit('contextStarted', { context })
-  }
-
-  private _emitContextChanged(context: IContextNode, previousContext: ParsedContext) {
-    this._eventEmitter.emit('contextChanged', { context, previousContext })
-  }
-
-  private _emitContextFinished(context: IContextNode) {
-    this._eventEmitter.emit('contextFinished', { context })
-  }
-
-  private _emitInsPointStarted(context: IContextNode, insertionPoint: InsertionPointWithElement) {
-    this._eventEmitter.emit('insertionPointStarted', {
-      context,
-      insertionPoint,
-    })
-  }
-
-  private _emitInsPointFinished(context: IContextNode, insertionPoint: InsertionPointWithElement) {
-    this._eventEmitter.emit('insertionPointFinished', {
-      context,
-      insertionPoint,
-    })
   }
 }

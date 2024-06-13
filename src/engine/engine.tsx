@@ -34,7 +34,6 @@ export class Engine {
   #repository: Repository
 
   started: boolean = false
-  core: Core
 
   constructor(public readonly config: EngineConfig) {
     if (!this.config.storage) {
@@ -49,25 +48,6 @@ export class Engine {
     const nearSigner = new NearSigner(this.#selector, jsonStorage, nearConfig)
     this.#provider = new SocialDbProvider(nearSigner, nearConfig.contractName)
     this.mutationManager = new MutationManager(this.#provider)
-
-    this.core = new Core()
-
-    this.core.on('contextStarted', this.handleContextStarted.bind(this))
-  }
-
-  async handleContextStarted({ context }: { context: IContextNode }): Promise<void> {
-    // if (!this.started) return;
-    if (!context.id) return
-
-    // We don't wait adapters here
-    const parserConfigs = this.mutationManager.filterSuitableParsers(context)
-    for (const config of parserConfigs) {
-      this.core.attachParserConfig(config)
-    }
-
-    const adapter = this.core.adapters.get(context.namespace)
-
-    if (!adapter) return
   }
 
   getLastUsedMutation = async (): Promise<string | null> => {
@@ -135,7 +115,7 @@ export class Engine {
 
     this.started = true
 
-    this._updateRootContext()
+    // this._updateRootContext()
 
     console.log('Mutable Web Engine started!', {
       engine: this,
@@ -145,7 +125,6 @@ export class Engine {
 
   stop() {
     this.started = false
-    this.core.clear()
   }
 
   async getMutations(): Promise<MutationWithSettings[]> {
@@ -258,15 +237,6 @@ export class Engine {
     await this.#repository.setAppEnabledStatus(currentMutationId, appId, false)
 
     await this._stopApp(appId)
-  }
-
-  private _updateRootContext() {
-    // ToDo: instantiate root context with data initially
-    // ToDo: looks like circular dependency
-    this.core.updateRootContext({
-      mutationId: this.mutationManager.mutation?.id ?? null,
-      gatewayId: this.config.gatewayId,
-    })
   }
 
   private async _populateMutationWithSettings(mutation: Mutation): Promise<MutationWithSettings> {

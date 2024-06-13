@@ -42,7 +42,7 @@ export const App: FC<{
 
   return (
     <StyleSheetManager target={stylesMountPoint}>
-      <CoreProvider core={engine.core}>
+      <CoreProvider>
         <EngineProvider engine={engine}>
           <MutableWebProvider>
             <>

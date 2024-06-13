@@ -6,27 +6,18 @@ import { JsonParser } from './parsers/json-parser'
 import { BosParser } from './parsers/bos-parser'
 import { MutableWebParser } from './parsers/mweb-parser'
 import { ParserConfig } from './types'
-import { CoreEvents } from './events'
-import { EventEmitter, Subscription } from './event-emitter'
-
-export interface CoreConfig {}
 
 export class Core {
-  private _eventEmitter: EventEmitter<CoreEvents>
   private _treeBuilder: PureTreeBuilder
 
-  /**
-   * @deprecated
-   */
-  public adapters = new Map<string, IAdapter>()
+  private adapters = new Map<string, IAdapter>()
 
   public get tree() {
     return this._treeBuilder.root
   }
 
-  constructor(config?: CoreConfig) {
-    this._eventEmitter = new EventEmitter()
-    this._treeBuilder = new PureTreeBuilder(this._eventEmitter)
+  constructor() {
+    this._treeBuilder = new PureTreeBuilder()
   }
 
   public attachParserConfig(parserConfig: ParserConfig) {
@@ -40,20 +31,9 @@ export class Core {
     this._unregisterAdapter(adapter)
   }
 
-  public on<EventName extends keyof CoreEvents>(
-    eventName: EventName,
-    callback: (event: CoreEvents[EventName]) => void
-  ): Subscription {
-    return this._eventEmitter.on(eventName, callback)
-  }
-
-  public off<EventName extends keyof CoreEvents>(
-    eventName: EventName,
-    callback: (event: CoreEvents[EventName]) => void
-  ): void {
-    return this._eventEmitter.off(eventName, callback)
-  }
-
+  /**
+   * @deprecated
+   */
   public updateRootContext(rootParsedContext: any = {}) {
     this._treeBuilder.updateParsedContext(this._treeBuilder.root, {
       id: window.location.hostname,
