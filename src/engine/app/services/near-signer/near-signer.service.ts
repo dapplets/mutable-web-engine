@@ -1,10 +1,10 @@
 import { WalletSelector } from '@near-wallet-selector/core'
 import * as nearAPI from 'near-api-js'
 import { QueryResponseKind } from 'near-api-js/lib/providers/provider'
-import { KeyStorage } from './key-storage'
-import { JsonStorage } from '../storage/json-storage'
+import { KeyStorage } from '../social-db/key-storage'
+import { LocalDbService } from '../local-db/local-db.service'
 import Big from 'big.js'
-import { NearConfig } from '../constants'
+import { NearConfig } from '../../../constants'
 import { TypedError } from 'near-api-js/lib/providers'
 import BN from 'bn.js'
 
@@ -23,7 +23,7 @@ export class NearSigner {
 
   constructor(
     private _selector: WalletSelector,
-    private _jsonStorage: JsonStorage,
+    private _localDb: LocalDbService,
     private _nearConfig: NearConfig
   ) {
     this.provider = new nearAPI.providers.JsonRpcProvider({
@@ -115,7 +115,7 @@ export class NearSigner {
   }
 
   private _getKeyStoreForContract(contractId: string) {
-    return new KeyStorage(this._jsonStorage, `${contractId}:keystore:`)
+    return new KeyStorage(this._localDb, `${contractId}:keystore:`)
   }
 
   private async _createConnectionForContract(contractId: string) {

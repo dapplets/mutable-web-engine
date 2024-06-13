@@ -1,5 +1,5 @@
 import { KeyPair, keyStores } from 'near-api-js'
-import { JsonStorage } from '../storage/json-storage'
+import { LocalDbService } from '../local-db/local-db.service'
 
 const LOCAL_STORAGE_KEY_PREFIX = 'near-api-js:keystore:'
 
@@ -7,7 +7,7 @@ export class KeyStorage extends keyStores.KeyStore {
   private prefix: string
 
   constructor(
-    private _storage: JsonStorage,
+    private _storage: LocalDbService,
     keyStorePrefix?: string
   ) {
     super()

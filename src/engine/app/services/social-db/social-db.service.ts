@@ -1,5 +1,5 @@
 import Big from 'big.js'
-import { NearSigner } from './near-signer'
+import { NearSigner } from '../near-signer/near-signer.service'
 
 export type StorageUsage = string
 
@@ -9,6 +9,8 @@ export type StorageView = {
 }
 
 export type Value = any
+
+const KeyDelimiter = '/'
 
 const EstimatedKeyValueSize = 40 * 3 + 8 + 12
 const EstimatedNodeSize = 40 * 2 + 8 + 10
@@ -97,7 +99,7 @@ const removeDuplicates = (data: any, prevData: any) => {
   return Object.keys(obj).length ? obj : undefined
 }
 
-export class SocialDbClient {
+export class SocialDbService {
   constructor(
     private _signer: NearSigner,
     private _contractName: string
@@ -168,7 +170,7 @@ export class SocialDbClient {
 
   async delete(keys: string[]): Promise<void> {
     const data = await this.get(keys)
-    const nullData = SocialDbClient._nullifyData(data)
+    const nullData = SocialDbService._nullifyData(data)
     await this.set(nullData)
   }
 
@@ -197,5 +199,43 @@ export class SocialDbClient {
         return [key, nullVal]
       })
     )
+  }
+
+  public static buildNestedData(keys: string[], data: any): any {
+    const [firstKey, ...anotherKeys] = keys
+    if (anotherKeys.length === 0) {
+      return {
+        [firstKey]: data,
+      }
+    } else {
+      return {
+        [firstKey]: this.buildNestedData(anotherKeys, data),
+      }
+    }
+  }
+
+  public static splitObjectByDepth(obj: any, depth = 0, path: string[] = []): any {
+    if (depth === 0 || typeof obj !== 'object' || obj === null) {
+      return { [path.join(KeyDelimiter)]: obj }
+    }
+
+    const result: any = {}
+    for (const key in obj) {
+      const newPath = [...path, key]
+      const nestedResult = this.splitObjectByDepth(obj[key], depth - 1, newPath)
+      for (const nestedKey in nestedResult) {
+        result[nestedKey] = nestedResult[nestedKey]
+      }
+    }
+    return result
+  }
+
+  public static getValueByKey(keys: string[], obj: any): any {
+    const [firstKey, ...anotherKeys] = keys
+    if (anotherKeys.length === 0) {
+      return obj?.[firstKey]
+    } else {
+      return this.getValueByKey(anotherKeys, obj?.[firstKey])
+    }
   }
 }

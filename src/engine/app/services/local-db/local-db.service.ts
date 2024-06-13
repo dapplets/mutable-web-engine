@@ -1,6 +1,6 @@
-import { IStorage } from './storage'
+import { IStorage } from './local-storage'
 
-export class JsonStorage {
+export class LocalDbService {
   storage: IStorage
 
   constructor(storage: IStorage) {

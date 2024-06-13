@@ -1,4 +1,4 @@
-import { Mutation } from '../../../providers/provider'
+import { Mutation } from '../../services/mutation/mutation.entity'
 import { useContext, useState } from 'react'
 import { MutableWebContext } from './mutable-web-context'
 

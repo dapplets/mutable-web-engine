@@ -1,19 +1,18 @@
 import { IContextNode } from '../core'
 import {
-  AdapterType,
   AppId,
   AppMetadata,
   AppMetadataTarget,
-  BosUserLink,
-  IProvider,
-  LinkIndexObject,
-  Mutation,
-  MutationId,
-  ParserConfig,
-  ScalarType,
-  TargetCondition,
-  UserLinkId,
-} from './providers/provider'
+} from './app/services/application/application.entity'
+import { ApplicationRepository } from './app/services/application/application.repository'
+import { Mutation, MutationId } from './app/services/mutation/mutation.entity'
+import { MutationRepository } from './app/services/mutation/mutation.repository'
+import { AdapterType, ParserConfig } from './app/services/parser-config/parser-config.entity'
+import { ParserConfigRepository } from './app/services/parser-config/parser-config.repository'
+import { ScalarType, TargetCondition } from './app/services/target/target.entity'
+import { LinkIndexObject, UserLinkId } from './app/services/user-link/user-link.entity'
+import { UserLinkRepository } from './app/services/user-link/user-link.repository'
+import { BosUserLink } from './providers/provider'
 
 const MWebParserConfig: ParserConfig = {
   parserType: AdapterType.MWeb,
@@ -34,13 +33,15 @@ export type AppWithTargetLinks = AppMetadata & {
 export class MutationManager {
   public mutation: Mutation | null = null
 
-  #provider: IProvider
   #activeApps = new Map<string, AppMetadata>()
   #activeParsers = new Map<string, ParserConfig>()
 
-  constructor(provider: IProvider) {
-    this.#provider = provider
-  }
+  constructor(
+    private mutationRepository: MutationRepository,
+    private applicationRepository: ApplicationRepository,
+    private userLinkRepository: UserLinkRepository,
+    private parserConfigRepository: ParserConfigRepository
+  ) {}
 
   // #region Read methods
 
@@ -76,7 +77,7 @@ export class MutationManager {
   }
 
   async getMutationsForContext(context: IContextNode): Promise<Mutation[]> {
-    const mutations = await this.#provider.getMutations()
+    const mutations = await this.mutationRepository.getMutations()
     return mutations.filter((mutation) =>
       mutation.targets.some((target) => MutationManager._isTargetMet(target, context))
     )
@@ -162,7 +163,7 @@ export class MutationManager {
     // ToDo: it loads all parsers, need to optimize
     await Promise.all(
       this.mutation.apps.map((appId) =>
-        this.#provider
+        this.applicationRepository
           .getApplication(appId)
           .then((app) =>
             Promise.all((app?.targets ?? []).map((target) => this.loadParser(target.namespace)))
@@ -200,7 +201,7 @@ export class MutationManager {
 
     // ToDo: this limitation on the frontend side only
     if (target.injectOnce) {
-      const existingLinks = await this.#provider.getLinksByIndex(indexObject)
+      const existingLinks = await this.userLinkRepository.getLinksByIndex(indexObject)
       if (existingLinks.length > 0) {
         throw new Error(
           `The widget is injected already. The "injectOnce" parameter limits multiple insertion of widgets`
@@ -208,7 +209,7 @@ export class MutationManager {
       }
     }
 
-    const indexedLink = await this.#provider.createLink(indexObject)
+    const indexedLink = await this.userLinkRepository.createLink(indexObject)
 
     return {
       id: indexedLink.id,
@@ -221,7 +222,7 @@ export class MutationManager {
   }
 
   async deleteUserLink(userLinkId: UserLinkId): Promise<void> {
-    return this.#provider.deleteUserLink(userLinkId)
+    return this.userLinkRepository.deleteUserLink(userLinkId)
   }
 
   public async loadApp(appId: string): Promise<AppMetadata> {
@@ -230,7 +231,7 @@ export class MutationManager {
       return this.#activeApps.get(appId)!
     }
 
-    const app = await this.#provider.getApplication(appId)
+    const app = await this.applicationRepository.getApplication(appId)
 
     if (!app) {
       throw new Error(`App doesn't exist: ${appId}`)
@@ -258,7 +259,7 @@ export class MutationManager {
       return this.#activeParsers.get(parserId)!
     }
 
-    const parser = await this.#provider.getParserConfig(parserId)
+    const parser = await this.parserConfigRepository.getParserConfig(parserId)
 
     if (!parser) {
       throw new Error(`Parser doesn't exist: ${parserId}`)
@@ -292,7 +293,7 @@ export class MutationManager {
     if (!this.mutation) throw new Error('Mutation is not loaded')
 
     const indexObject = MutationManager._buildLinkIndex(appId, this.mutation.id, target, context)
-    const indexedLinks = await this.#provider.getLinksByIndex(indexObject)
+    const indexedLinks = await this.userLinkRepository.getLinksByIndex(indexObject)
 
     return indexedLinks.map((link) => ({
       id: link.id,

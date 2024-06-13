@@ -1,4 +1,4 @@
-import { JsonStorage } from './json-storage'
+import { LocalDbService } from '../app/services/local-db/local-db.service'
 
 const KEY_DELIMITER = ':'
 const FAVORITE_MUTATION = 'favorite-mutation'
@@ -6,9 +6,9 @@ const MUTATION_LAST_USAGE = 'mutation-last-usage'
 const STOPPED_APPS = 'stopped-apps'
 
 export class Repository {
-  jsonStorage: JsonStorage
+  jsonStorage: LocalDbService
 
-  constructor(jsonStorage: JsonStorage) {
+  constructor(jsonStorage: LocalDbService) {
     this.jsonStorage = jsonStorage
   }
 

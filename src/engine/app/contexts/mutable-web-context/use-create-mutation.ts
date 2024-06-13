@@ -1,6 +1,6 @@
-import { Mutation } from '../../../providers/provider'
 import { useContext, useState } from 'react'
 import { MutableWebContext } from './mutable-web-context'
+import { Mutation } from '../../services/mutation/mutation.entity'
 
 export function useCreateMutation() {
   const { engine, setMutations } = useContext(MutableWebContext)

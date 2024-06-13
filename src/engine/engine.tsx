@@ -1,21 +1,20 @@
 import { IContextNode, PureContextNode, Core } from '../core'
-import {
-  AppMetadata,
-  AppWithSettings,
-  IProvider,
-  InjectableTarget,
-  Mutation,
-  MutationWithSettings,
-} from './providers/provider'
+import { AppWithSettings, MutationWithSettings } from './providers/provider'
 import { WalletSelector } from '@near-wallet-selector/core'
 import { NearConfig, getNearConfig } from './constants'
-import { NearSigner } from './providers/near-signer'
-import { SocialDbProvider } from './providers/social-db-provider'
+import { NearSigner } from './app/services/near-signer/near-signer.service'
+import { SocialDbService } from './app/services/social-db/social-db.service'
 import { MutationManager } from './mutation-manager'
-import { IStorage } from './storage/storage'
+import { IStorage } from './app/services/local-db/local-storage'
 import { Repository } from './storage/repository'
-import { JsonStorage } from './storage/json-storage'
-import { LocalStorage } from './storage/local-storage'
+import { LocalDbService } from './app/services/local-db/local-db.service'
+import { LocalStorage } from './app/services/local-db/local-storage'
+import { AppMetadata } from './app/services/application/application.entity'
+import { Mutation } from './app/services/mutation/mutation.entity'
+import { MutationRepository } from './app/services/mutation/mutation.repository'
+import { ApplicationRepository } from './app/services/application/application.repository'
+import { UserLinkRepository } from './app/services/user-link/user-link.repository'
+import { ParserConfigRepository } from './app/services/parser-config/parser-config.repository'
 
 export type EngineConfig = {
   networkId: string
@@ -27,11 +26,15 @@ export type EngineConfig = {
 }
 
 export class Engine {
-  #provider: IProvider
   #selector: WalletSelector
   mutationManager: MutationManager
   #nearConfig: NearConfig
   #repository: Repository
+
+  private mutationRepository: MutationRepository
+  private applicationRepository: ApplicationRepository
+  private userLinkRepository: UserLinkRepository
+  private parserConfigRepository: ParserConfigRepository
 
   started: boolean = false
 
@@ -42,12 +45,21 @@ export class Engine {
 
     this.#selector = this.config.selector
     const nearConfig = getNearConfig(this.config.networkId)
-    const jsonStorage = new JsonStorage(this.config.storage)
+    const jsonStorage = new LocalDbService(this.config.storage)
     this.#nearConfig = nearConfig
     this.#repository = new Repository(jsonStorage)
     const nearSigner = new NearSigner(this.#selector, jsonStorage, nearConfig)
-    this.#provider = new SocialDbProvider(nearSigner, nearConfig.contractName)
-    this.mutationManager = new MutationManager(this.#provider)
+    const socialDb = new SocialDbService(nearSigner, nearConfig.contractName)
+    this.mutationRepository = new MutationRepository(socialDb)
+    this.applicationRepository = new ApplicationRepository(socialDb)
+    this.userLinkRepository = new UserLinkRepository(socialDb, nearSigner)
+    this.parserConfigRepository = new ParserConfigRepository(socialDb)
+    this.mutationManager = new MutationManager(
+      this.mutationRepository,
+      this.applicationRepository,
+      this.userLinkRepository,
+      this.parserConfigRepository
+    )
   }
 
   getLastUsedMutation = async (): Promise<string | null> => {
@@ -119,7 +131,6 @@ export class Engine {
 
     console.log('Mutable Web Engine started!', {
       engine: this,
-      provider: this.#provider,
     })
   }
 
@@ -166,22 +177,22 @@ export class Engine {
   }
 
   async getApplications(): Promise<AppMetadata[]> {
-    return this.#provider.getApplications()
+    return this.applicationRepository.getApplications()
   }
 
   async createMutation(mutation: Mutation): Promise<MutationWithSettings> {
     // ToDo: move to provider?
-    if (await this.#provider.getMutation(mutation.id)) {
+    if (await this.mutationRepository.getMutation(mutation.id)) {
       throw new Error('Mutation with that ID already exists')
     }
 
-    await this.#provider.saveMutation(mutation)
+    await this.mutationRepository.saveMutation(mutation)
 
     return this._populateMutationWithSettings(mutation)
   }
 
   async editMutation(mutation: Mutation): Promise<MutationWithSettings> {
-    await this.#provider.saveMutation(mutation)
+    await this.mutationRepository.saveMutation(mutation)
 
     // If the current mutation is edited, reload it
     if (mutation.id === this.mutationManager?.mutation?.id) {
@@ -199,7 +210,7 @@ export class Engine {
     const mutation =
       currentMutation?.id === mutationId
         ? currentMutation
-        : await this.#provider.getMutation(mutationId)
+        : await this.mutationRepository.getMutation(mutationId)
 
     if (!mutation) {
       throw new Error(`Mutation doesn't exist: ${mutationId}`)
@@ -208,7 +219,7 @@ export class Engine {
     // ToDo: improve readability
     return Promise.all(
       mutation.apps.map((appId) =>
-        this.#provider
+        this.applicationRepository
           .getApplication(appId)
           .then((appMetadata) => (appMetadata ? this._populateAppWithSettings(appMetadata) : null))
       )

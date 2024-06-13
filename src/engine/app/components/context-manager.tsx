@@ -4,11 +4,13 @@ import { IContextNode, InsertionPointWithElement } from '../../../core'
 import { useEngine } from '../contexts/engine-context'
 import { useUserLinks } from '../contexts/engine-context/use-user-links'
 import { Widget } from 'near-social-vm'
-import { AppMetadata, BosUserLink, ContextTarget } from '../../providers/provider'
+import { BosUserLink } from '../../providers/provider'
 import { usePortalFilter } from '../contexts/engine-context/use-portal-filter'
 import { ShadowDomWrapper } from '../../bos/shadow-dom-wrapper'
 import { ContextTree } from '../../../react/components/context-tree'
 import { useContextApps } from '../contexts/engine-context/use-context-apps'
+import { Target } from '../services/target/target.entity'
+import { AppMetadata } from '../services/application/application.entity'
 
 export const ContextManager: FC = () => {
   return <ContextTree children={ContextHandler} />
@@ -102,7 +104,7 @@ const InsPointHandler: FC<{
   const { pickerTask, setPickerTask, redirectMap } = useEngine()
   const { components } = usePortalFilter(context, insPointName) // ToDo: extract to the separate AppManager component
 
-  const pickContext = useCallback((target: ContextTarget) => {
+  const pickContext = useCallback((target: Target) => {
     return new Promise<TransferableContext | null>((resolve, reject) => {
       if (pickerTask) {
         return reject('The picker is busy')
@@ -118,7 +120,7 @@ const InsPointHandler: FC<{
   }, [])
 
   const pickContexts = useCallback(
-    (target: ContextTarget, callback: (context: TransferableContext) => void) => {
+    (target: Target, callback: (context: TransferableContext) => void) => {
       if (pickerTask) {
         throw new Error('The picker is busy')
       }

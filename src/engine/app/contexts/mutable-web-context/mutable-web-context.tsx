@@ -1,6 +1,7 @@
-import { AppMetadata, AppWithSettings, MutationWithSettings } from '../../../providers/provider'
+import { AppWithSettings, MutationWithSettings } from '../../../providers/provider'
 import { Engine } from '../../../engine'
 import { createContext } from 'react'
+import { AppMetadata } from '../../services/application/application.entity'
 
 export type MutableWebContextState = {
   engine: Engine

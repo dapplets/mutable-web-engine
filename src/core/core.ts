@@ -1,11 +1,10 @@
 import { PureTreeBuilder } from './tree/pure-tree/pure-tree-builder'
 import { IAdapter } from './adapters/interface'
 import { DynamicHtmlAdapter } from './adapters/dynamic-html-adapter'
-import { AdapterType } from '../engine/providers/provider'
 import { JsonParser } from './parsers/json-parser'
 import { BosParser } from './parsers/bos-parser'
 import { MutableWebParser } from './parsers/mweb-parser'
-import { ParserConfig } from './types'
+import { AdapterType, ParserConfig } from './types'
 
 export class Core {
   private _treeBuilder: PureTreeBuilder
