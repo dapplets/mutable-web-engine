@@ -3,7 +3,6 @@ import { WalletSelector } from '@near-wallet-selector/core'
 import { NearConfig, getNearConfig } from './constants'
 import { NearSigner } from './app/services/near-signer/near-signer.service'
 import { SocialDbService } from './app/services/social-db/social-db.service'
-import { MutationManager } from './mutation-manager'
 import { IStorage } from './app/services/local-db/local-storage'
 import { LocalDbService } from './app/services/local-db/local-db.service'
 import { LocalStorage } from './app/services/local-db/local-storage'
@@ -20,7 +19,8 @@ import {
   ParserConfigId,
 } from './app/services/parser-config/parser-config.entity'
 import { ApplicationService } from './app/services/application/application.service'
-import { BosUserLink } from './providers/provider'
+import { UserLinkSerivce } from './app/services/user-link/user-link.service'
+import { BosUserLink } from './app/services/user-link/user-link.entity'
 
 const MWebParserConfig: ParserConfig = {
   parserType: AdapterType.MWeb,
@@ -45,8 +45,6 @@ export type EngineConfig = {
 
 export class Engine {
   #selector: WalletSelector
-  mutationManager: MutationManager
-  #nearConfig: NearConfig
 
   private mutationRepository: MutationRepository
   private applicationRepository: ApplicationRepository
@@ -54,6 +52,7 @@ export class Engine {
   private parserConfigRepository: ParserConfigRepository
   private mutationService: MutationService
   private applicationService: ApplicationService
+  private userLinkService: UserLinkSerivce
 
   started: boolean = false
 
@@ -72,16 +71,15 @@ export class Engine {
     this.#selector = this.config.selector
     const nearConfig = getNearConfig(this.config.networkId)
     const localDb = new LocalDbService(this.config.storage)
-    this.#nearConfig = nearConfig
     const nearSigner = new NearSigner(this.#selector, localDb, nearConfig)
     const socialDb = new SocialDbService(nearSigner, nearConfig.contractName)
     this.mutationRepository = new MutationRepository(socialDb, localDb)
     this.applicationRepository = new ApplicationRepository(socialDb, localDb)
     this.userLinkRepository = new UserLinkRepository(socialDb, nearSigner)
     this.parserConfigRepository = new ParserConfigRepository(socialDb)
-    this.mutationManager = new MutationManager(this.userLinkRepository)
     this.mutationService = new MutationService(this.mutationRepository, nearConfig)
     this.applicationService = new ApplicationService(this.applicationRepository)
+    this.userLinkService = new UserLinkSerivce(this.userLinkRepository, this.applicationService)
   }
 
   getLastUsedMutation = async (): Promise<string | null> => {
@@ -275,7 +273,7 @@ export class Engine {
     context: IContextNode,
     includedApps?: AppId[]
   ): Promise<BosUserLink[]> {
-    return this.mutationManager.getLinksForContext(
+    return this.userLinkService.getLinksForContext(
       Array.from(this.activeApps.values()),
       mutationId,
       context,
@@ -283,12 +281,8 @@ export class Engine {
     )
   }
 
-  filterSuitableApps(context: IContextNode, includedApps?: AppId[]) {
-    return this.mutationManager.filterSuitableApps(
-      Array.from(this.activeApps.values()),
-      context,
-      includedApps
-    )
+  filterSuitableApps(context: IContextNode) {
+    return this.applicationService.filterSuitableApps(Array.from(this.activeApps.values()), context)
   }
 
   private async _switchMutation(mutation: Mutation | null): Promise<void> {

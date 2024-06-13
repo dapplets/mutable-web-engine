@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useEngine } from './use-engine'
 import { IContextNode } from '../../../../core'
-import { MutationManager } from '../../../mutation-manager'
+import { TargetService } from '../../services/target/target.service'
 
 export const usePortalFilter = (context: IContextNode, insPointName?: string) => {
   const { portals } = useEngine()
@@ -11,7 +11,7 @@ export const usePortalFilter = (context: IContextNode, insPointName?: string) =>
     return Array.from(portals.entries())
       .filter(
         ([, { target }]) =>
-          MutationManager._isTargetMet(target, context) && target.injectTo === insPointName
+          TargetService.isTargetMet(target, context) && target.injectTo === insPointName
       )
       .map(([key, { component, target }]) => ({
         key,

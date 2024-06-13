@@ -1,8 +1,8 @@
 import React, { FC } from 'react'
 import { ContextTree, useCore } from '../../../react'
 import { useEngine } from '../contexts/engine-context'
-import { MutationManager } from '../../mutation-manager'
 import { ContextReactangle } from '../../../highlighter'
+import { TargetService } from '../services/target/target.service'
 
 export const ContextPicker: FC = () => {
   const { tree } = useCore()
@@ -14,7 +14,7 @@ export const ContextPicker: FC = () => {
     <ContextTree>
       {({ context }) => {
         const isSuitable = pickerTask.target
-          ? MutationManager._isTargetMet(pickerTask.target, context)
+          ? TargetService.isTargetMet(pickerTask.target, context)
           : true
 
         if (!isSuitable) return null

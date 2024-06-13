@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useEngine } from './use-engine'
 import { IContextNode } from '../../../../core'
-import { BosUserLink } from '../../../providers/provider'
+import { BosUserLink } from '../../services/user-link/user-link.entity'
 
 export const useUserLinks = (context: IContextNode) => {
   const { engine } = useEngine()

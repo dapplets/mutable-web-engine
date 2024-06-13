@@ -4,13 +4,13 @@ import { IContextNode, InsertionPointWithElement } from '../../../core'
 import { useEngine } from '../contexts/engine-context'
 import { useUserLinks } from '../contexts/engine-context/use-user-links'
 import { Widget } from 'near-social-vm'
-import { BosUserLink } from '../../providers/provider'
 import { usePortalFilter } from '../contexts/engine-context/use-portal-filter'
 import { ShadowDomWrapper } from '../../bos/shadow-dom-wrapper'
 import { ContextTree } from '../../../react/components/context-tree'
 import { useContextApps } from '../contexts/engine-context/use-context-apps'
 import { Target } from '../services/target/target.entity'
 import { AppMetadata } from '../services/application/application.entity'
+import { BosUserLink } from '../services/user-link/user-link.entity'
 
 export const ContextManager: FC = () => {
   return <ContextTree children={ContextHandler} />
