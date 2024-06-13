@@ -9,19 +9,17 @@ const DEFAULT_BACKGROUND_COLOR = 'rgb(56 188 255 / 5%)' // light blue
 
 const defaultStyledBorder = `${DEFAULT_BORDER_WIDTH}px ${DEFAULT_BORDER_STYLE} ${DEFAULT_BORDER_COLOR}`
 
+const getContextDepth = (context: IContextNode): number => {
+  return context.parentNode ? getContextDepth(context.parentNode) + 1 : 0
+}
+
 interface IContextReactangle {
   context: IContextNode
   styles?: React.CSSProperties
   onClick?: () => void
-  contextDepth?: number
 }
 
-export const ContextReactangle: FC<IContextReactangle> = ({
-  context,
-  styles,
-  onClick,
-  contextDepth,
-}) => {
+export const ContextReactangle: FC<IContextReactangle> = ({ context, styles, onClick }) => {
   const [isEntered, setIsEntered] = useState(false)
   // const [isDisplayed, setIsDisplayed] = useState(false)
   const pickerRef = useRef<any>(null)
@@ -55,6 +53,7 @@ export const ContextReactangle: FC<IContextReactangle> = ({
   const targetOffset = context.element.getBoundingClientRect()
   const targetHeight = targetOffset.height
   const targetWidth = targetOffset.width
+  const contextDepth = getContextDepth(context)
 
   const wrapperStyle: React.CSSProperties = {
     left: targetOffset.left - bodyOffset.left,
