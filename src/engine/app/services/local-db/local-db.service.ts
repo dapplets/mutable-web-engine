@@ -1,5 +1,10 @@
 import { IStorage } from './local-storage'
 
+const KEY_DELIMITER = ':'
+
+/**
+ * ToDo: rename to DataSource
+ */
 export class LocalDbService {
   storage: IStorage
 
@@ -20,5 +25,9 @@ export class LocalDbService {
     } else {
       return this.storage.setItem(key, JSON.stringify(value))
     }
+  }
+
+  public static makeKey(...keys: string[]): string {
+    return keys.join(KEY_DELIMITER)
   }
 }

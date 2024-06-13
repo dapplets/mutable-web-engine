@@ -99,6 +99,9 @@ const removeDuplicates = (data: any, prevData: any) => {
   return Object.keys(obj).length ? obj : undefined
 }
 
+/**
+ * ToDo: rename to DataSource
+ */
 export class SocialDbService {
   constructor(
     private _signer: NearSigner,
