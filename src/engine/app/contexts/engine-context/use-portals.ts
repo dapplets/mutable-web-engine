@@ -1,25 +1,30 @@
-import { useMemo } from 'react'
-import { useEngine } from './use-engine'
-import { IContextNode } from '../../../../core'
-import { MutationManager } from '../../../mutation-manager'
+import { useCallback, useState } from 'react'
+import { InjectableTarget } from '../../../providers/provider'
 
-export const usePortals = (context: IContextNode, insPointName?: string) => {
-  const { portals } = useEngine()
+export const usePortals = () => {
+  const [portals, setPortals] = useState(
+    new Map<string, { component: React.FC<unknown>; target: InjectableTarget }>()
+  )
 
-  const components = useMemo(() => {
-    // ToDo: improve readability
-    return Array.from(portals.entries())
-      .filter(
-        ([, { target }]) =>
-          MutationManager._isTargetMet(target, context) && target.injectTo === insPointName
+  const addPortal = useCallback(
+    <T>(key: string, target: InjectableTarget, component: React.FC<T>) => {
+      setPortals(
+        (prev) => new Map(prev.set(key, { component: component as React.FC<unknown>, target }))
       )
-      .map(([key, { component, target }]) => ({
-        key,
-        target,
-        component,
-      }))
-      .sort((a, b) => (b.key > a.key ? 1 : -1))
-  }, [portals, context, insPointName])
+    },
+    []
+  )
 
-  return { components }
+  const removePortal = useCallback((key: string) => {
+    setPortals((prev) => {
+      prev.delete(key)
+      return new Map(prev)
+    })
+  }, [])
+
+  return {
+    portals,
+    addPortal,
+    removePortal,
+  }
 }
