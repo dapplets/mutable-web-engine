@@ -7,10 +7,10 @@ import { useEngine } from './contexts/engine-context'
 import { Notification } from './components/notification'
 
 export const Layout: FC = () => {
-  const { viewportRef } = useEngine()
+  const { engine, viewportRef } = useEngine()
 
   return (
-    <ShadowDomWrapper ref={viewportRef}>
+    <ShadowDomWrapper ref={viewportRef} stylesheetSrc={engine.config.bosElementStyleSrc}>
       <Notification />
       <ContextPicker />
       <ContextManager />

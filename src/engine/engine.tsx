@@ -39,7 +39,7 @@ export class Engine {
   core: Core
   event: EventEmitter<TreeBuilderEvents>
 
-  constructor(private config: EngineConfig) {
+  constructor(public readonly config: EngineConfig) {
     if (!this.config.storage) {
       this.config.storage = new LocalStorage('mutable-web-engine')
     }
