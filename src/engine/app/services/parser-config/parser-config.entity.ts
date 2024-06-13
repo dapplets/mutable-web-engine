@@ -1,6 +1,8 @@
 import { BosParserConfig, JsonParserConfig } from '../../../../core'
 import { Target } from '../target/target.entity'
 
+export type ParserConfigId = string
+
 export enum AdapterType {
   Bos = 'bos',
   Microdata = 'microdata',
@@ -9,6 +11,6 @@ export enum AdapterType {
 }
 
 export type ParserConfig =
-  | ({ parserType: AdapterType.Json; id: string; targets: Target[] } & JsonParserConfig)
-  | ({ parserType: AdapterType.Bos; id: string; targets: Target[] } & BosParserConfig)
-  | { parserType: AdapterType.MWeb; id: string; targets: Target[] }
+  | ({ parserType: AdapterType.Json; id: ParserConfigId; targets: Target[] } & JsonParserConfig)
+  | ({ parserType: AdapterType.Bos; id: ParserConfigId; targets: Target[] } & BosParserConfig)
+  | { parserType: AdapterType.MWeb; id: ParserConfigId; targets: Target[] }

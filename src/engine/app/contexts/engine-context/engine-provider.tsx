@@ -1,17 +1,19 @@
-import React, { FC, ReactElement, useEffect, useState } from 'react'
+import React, { FC, ReactElement, useEffect, useRef, useState } from 'react'
 import { EngineContext, EngineContextState, PickerTask } from './engine-context'
-import { Engine } from '../../../engine'
+import { Engine, EngineConfig } from '../../../engine'
 import { usePortals } from './use-portals'
 import { useDevMode } from './use-dev-mode'
 import { useCore } from '../../../../react'
 
 type Props = {
-  engine: Engine
+  config: EngineConfig
+  defaultMutationId?: string | null
   children?: ReactElement
 }
 
-const EngineProvider: FC<Props> = ({ engine, children }) => {
-  const { tree, attachParserConfig, updateRootContext } = useCore()
+const EngineProvider: FC<Props> = ({ config, defaultMutationId, children }) => {
+  const { core, tree, attachParserConfig, updateRootContext } = useCore()
+  const [engine, setEngine] = useState<Engine | null>(null)
 
   const viewportRef = React.useRef<HTMLDivElement>(null)
   const [pickerTask, setPickerTask] = useState<PickerTask | null>(null)
@@ -20,10 +22,31 @@ const EngineProvider: FC<Props> = ({ engine, children }) => {
   const { redirectMap, enableDevMode, disableDevMode } = useDevMode()
 
   useEffect(() => {
-    if (!tree) return
+    ;(async () => {
+      const engine = new Engine(core, config)
+
+      console.log('Mutable Web Engine is initializing...')
+
+      if (defaultMutationId) {
+        try {
+          await engine.start(defaultMutationId)
+        } catch (err) {
+          console.error(err)
+          await engine.start()
+        }
+      } else {
+        await engine.start()
+      }
+
+      setEngine(engine)
+    })()
+  }, [defaultMutationId])
+
+  useEffect(() => {
+    if (!tree || !engine) return
 
     updateRootContext({
-      mutationId: engine.mutationManager.mutation?.id ?? null,
+      mutationId: engine.mutation?.id ?? null,
       gatewayId: engine.config.gatewayId,
     })
 
@@ -33,7 +56,25 @@ const EngineProvider: FC<Props> = ({ engine, children }) => {
     for (const config of parserConfigs) {
       attachParserConfig(config)
     }
-  }, [tree])
+  }, [engine, tree])
+
+  useEffect(() => {
+    if (!engine) return
+    console.log('engine context', {
+      engine,
+      viewportRef,
+      portals,
+      addPortal,
+      removePortal,
+      pickerTask,
+      setPickerTask,
+      redirectMap,
+      enableDevMode,
+      disableDevMode,
+    })
+  }, [engine])
+
+  if (!engine) return null
 
   const state: EngineContextState = {
     engine,
@@ -47,10 +88,6 @@ const EngineProvider: FC<Props> = ({ engine, children }) => {
     enableDevMode,
     disableDevMode,
   }
-
-  useEffect(() => {
-    console.log('engine context', state)
-  }, [])
 
   return <EngineContext.Provider value={state}>{children}</EngineContext.Provider>
 }

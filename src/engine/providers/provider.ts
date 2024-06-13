@@ -1,5 +1,3 @@
-import { AppMetadata } from '../app/services/application/application.entity'
-import { Mutation } from '../app/services/mutation/mutation.entity'
 import { Target } from '../app/services/target/target.entity'
 import { UserLinkId } from '../app/services/user-link/user-link.entity'
 
@@ -15,17 +13,4 @@ export type BosUserLink = {
 
 export type InjectableTarget = Target & {
   injectTo: string
-}
-
-export type MutationWithSettings = Mutation & {
-  settings: {
-    isFavorite: boolean
-    lastUsage: string | null
-  }
-}
-
-export type AppWithSettings = AppMetadata & {
-  settings: {
-    isEnabled: boolean
-  }
 }

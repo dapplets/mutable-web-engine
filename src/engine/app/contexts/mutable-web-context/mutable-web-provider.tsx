@@ -1,9 +1,9 @@
-import { AppWithSettings, MutationWithSettings } from '../../../providers/provider'
 import React, { FC, ReactElement, useEffect, useMemo, useState } from 'react'
 import { MutableWebContext, MutableWebContextState } from './mutable-web-context'
 import { useEngine } from '../engine-context'
 import { Engine } from '../../../engine'
-import { AppMetadata } from '../../services/application/application.entity'
+import { AppMetadata, AppWithSettings } from '../../services/application/application.entity'
+import { MutationWithSettings } from '../../services/mutation/mutation.entity'
 
 type Props = {
   children: ReactElement

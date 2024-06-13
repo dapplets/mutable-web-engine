@@ -2,6 +2,7 @@ import { Core, IContextNode, ParserConfig } from '../../../core'
 import { createContext } from 'react'
 
 export type CoreContextState = {
+  core: Core
   tree: IContextNode | null
   attachParserConfig: (parserConfig: ParserConfig) => void
   detachParserConfig: (parserId: string) => void
@@ -9,6 +10,7 @@ export type CoreContextState = {
 }
 
 export const contextDefaultValues: CoreContextState = {
+  core: null as any as Core,
   tree: null,
   attachParserConfig: () => undefined,
   detachParserConfig: () => undefined,

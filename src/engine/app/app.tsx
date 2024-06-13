@@ -13,37 +13,10 @@ export const App: FC<{
   stylesMountPoint: HTMLElement
   children?: ReactElement
 }> = ({ config, defaultMutationId, stylesMountPoint, children }) => {
-  const [engine, setEngine] = useState<Engine | null>(null)
-
-  // ToDo: move to EngineProvider
-  useEffect(() => {
-    if (!config) return
-    ;(async () => {
-      const engine = new Engine(config)
-
-      console.log('Mutable Web Engine is initializing...')
-
-      if (defaultMutationId) {
-        try {
-          await engine.start(defaultMutationId)
-        } catch (err) {
-          console.error(err)
-          await engine.start()
-        }
-      } else {
-        await engine.start()
-      }
-
-      setEngine(engine)
-    })()
-  }, [config, defaultMutationId])
-
-  if (!engine) return null
-
   return (
     <StyleSheetManager target={stylesMountPoint}>
       <CoreProvider>
-        <EngineProvider engine={engine}>
+        <EngineProvider config={config} defaultMutationId={defaultMutationId}>
           <MutableWebProvider>
             <>
               <Layout />

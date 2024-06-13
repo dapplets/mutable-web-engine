@@ -14,3 +14,10 @@ export type Mutation = {
   apps: string[]
   targets: Target[]
 }
+
+export type MutationWithSettings = Mutation & {
+  settings: {
+    isFavorite: boolean
+    lastUsage: string | null
+  }
+}

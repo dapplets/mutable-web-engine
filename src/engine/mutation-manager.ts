@@ -5,39 +5,24 @@ import {
   AppMetadataTarget,
 } from './app/services/application/application.entity'
 import { ApplicationRepository } from './app/services/application/application.repository'
-import { Mutation, MutationId } from './app/services/mutation/mutation.entity'
+import { MutationId } from './app/services/mutation/mutation.entity'
 import { MutationRepository } from './app/services/mutation/mutation.repository'
-import { AdapterType, ParserConfig } from './app/services/parser-config/parser-config.entity'
+import { ParserConfig, ParserConfigId } from './app/services/parser-config/parser-config.entity'
 import { ParserConfigRepository } from './app/services/parser-config/parser-config.repository'
 import { ScalarType, TargetCondition } from './app/services/target/target.entity'
 import { LinkIndexObject, UserLinkId } from './app/services/user-link/user-link.entity'
 import { UserLinkRepository } from './app/services/user-link/user-link.repository'
 import { BosUserLink } from './providers/provider'
 
-const MWebParserConfig: ParserConfig = {
-  parserType: AdapterType.MWeb,
-  id: 'mweb',
-  targets: [
-    {
-      namespace: 'engine',
-      contextType: 'website',
-      if: { id: { not: null } },
-    },
-  ],
-}
-
 export type AppWithTargetLinks = AppMetadata & {
   targets: { links: BosUserLink[] }[]
 }
 
 export class MutationManager {
-  public mutation: Mutation | null = null
-
-  #activeApps = new Map<string, AppMetadata>()
-  #activeParsers = new Map<string, ParserConfig>()
+  activeApps = new Map<string, AppMetadata>()
+  activeParsers = new Map<string, ParserConfig>()
 
   constructor(
-    private mutationRepository: MutationRepository,
     private applicationRepository: ApplicationRepository,
     private userLinkRepository: UserLinkRepository,
     private parserConfigRepository: ParserConfigRepository
@@ -45,10 +30,13 @@ export class MutationManager {
 
   // #region Read methods
 
-  async getAppsAndLinksForContext(context: IContextNode): Promise<AppWithTargetLinks[]> {
+  async getAppsAndLinksForContext(
+    mutationId: MutationId,
+    context: IContextNode
+  ): Promise<AppWithTargetLinks[]> {
     const promises: Promise<AppWithTargetLinks>[] = []
 
-    for (const app of this.#activeApps.values()) {
+    for (const app of this.activeApps.values()) {
       const suitableTargets = app.targets.filter((target) =>
         MutationManager._isTargetMet(target, context)
       )
@@ -56,7 +44,7 @@ export class MutationManager {
       if (suitableTargets.length > 0) {
         // ToDo: batch requests
         const targetPromises = suitableTargets.map((target) =>
-          this._getUserLinksForTarget(app.id, target, context).then((links) => ({
+          this._getUserLinksForTarget(mutationId, app.id, target, context).then((links) => ({
             ...target,
             links,
           }))
@@ -76,20 +64,13 @@ export class MutationManager {
     return appLinksNested
   }
 
-  async getMutationsForContext(context: IContextNode): Promise<Mutation[]> {
-    const mutations = await this.mutationRepository.getMutations()
-    return mutations.filter((mutation) =>
-      mutation.targets.some((target) => MutationManager._isTargetMet(target, context))
-    )
-  }
-
   // ToDo: replace with getAppsAndLinksForContext
-  filterSuitableApps(context: IContextNode, includedApps?: string[]): AppMetadata[] {
+  filterSuitableApps(context: IContextNode, includedApps?: AppId[]): AppMetadata[] {
     const suitableApps: AppMetadata[] = []
 
     const appsToCheck = includedApps
-      ? Array.from(this.#activeApps.values()).filter((app) => includedApps.includes(app.id))
-      : Array.from(this.#activeApps.values())
+      ? Array.from(this.activeApps.values()).filter((app) => includedApps.includes(app.id))
+      : Array.from(this.activeApps.values())
 
     for (const app of appsToCheck) {
       const suitableTargets = app.targets.filter((target) =>
@@ -105,12 +86,16 @@ export class MutationManager {
   }
 
   // ToDo: replace with getAppsAndLinksForContext
-  async getLinksForContext(context: IContextNode, includedApps?: string[]): Promise<BosUserLink[]> {
+  async getLinksForContext(
+    mutationId: MutationId,
+    context: IContextNode,
+    includedApps?: AppId[]
+  ): Promise<BosUserLink[]> {
     const promises: Promise<BosUserLink[]>[] = []
 
     const appsToCheck = includedApps
-      ? Array.from(this.#activeApps.values()).filter((app) => includedApps.includes(app.id))
-      : Array.from(this.#activeApps.values())
+      ? Array.from(this.activeApps.values()).filter((app) => includedApps.includes(app.id))
+      : Array.from(this.activeApps.values())
 
     for (const app of appsToCheck) {
       const suitableTargets = app.targets.filter((target) =>
@@ -119,7 +104,7 @@ export class MutationManager {
 
       // ToDo: batch requests
       suitableTargets.forEach((target) => {
-        promises.push(this._getUserLinksForTarget(app.id, target, context))
+        promises.push(this._getUserLinksForTarget(mutationId, app.id, target, context))
       })
     }
 
@@ -131,7 +116,7 @@ export class MutationManager {
   filterSuitableParsers(context: IContextNode): ParserConfig[] {
     const suitableParsers: ParserConfig[] = []
 
-    for (const parser of this.#activeParsers.values()) {
+    for (const parser of this.activeParsers.values()) {
       const suitableTargets = parser.targets.filter((target) =>
         MutationManager._isTargetMet(target, context)
       )
@@ -148,36 +133,12 @@ export class MutationManager {
 
   // #region Write methods
 
-  async switchMutation(mutation: Mutation | null): Promise<void> {
-    this.#activeApps.clear()
-    this.#activeParsers.clear()
-    this.mutation = null
-
-    if (!mutation) return
-
-    this.mutation = mutation
-
-    // MWeb parser is enabled by default
-    this.#activeParsers.set(MWebParserConfig.id, MWebParserConfig)
-
-    // ToDo: it loads all parsers, need to optimize
-    await Promise.all(
-      this.mutation.apps.map((appId) =>
-        this.applicationRepository
-          .getApplication(appId)
-          .then((app) =>
-            Promise.all((app?.targets ?? []).map((target) => this.loadParser(target.namespace)))
-          )
-      )
-    )
-  }
-
-  async createLink(appGlobalId: AppId, context: IContextNode): Promise<BosUserLink> {
-    if (!this.mutation) {
-      throw new Error('Mutation is not loaded')
-    }
-
-    const app = this.#activeApps.get(appGlobalId)
+  async createLink(
+    mutationId: MutationId,
+    appGlobalId: AppId,
+    context: IContextNode
+  ): Promise<BosUserLink> {
+    const app = this.activeApps.get(appGlobalId)
 
     if (!app) {
       throw new Error('App is not active')
@@ -197,7 +158,7 @@ export class MutationManager {
 
     const [target] = suitableTargets
 
-    const indexObject = MutationManager._buildLinkIndex(app.id, this.mutation.id, target, context)
+    const indexObject = MutationManager._buildLinkIndex(app.id, mutationId, target, context)
 
     // ToDo: this limitation on the frontend side only
     if (target.injectOnce) {
@@ -225,10 +186,10 @@ export class MutationManager {
     return this.userLinkRepository.deleteUserLink(userLinkId)
   }
 
-  public async loadApp(appId: string): Promise<AppMetadata> {
+  public async loadApp(appId: AppId): Promise<AppMetadata> {
     // prevents racing
-    if (this.#activeApps.has(appId)) {
-      return this.#activeApps.get(appId)!
+    if (this.activeApps.has(appId)) {
+      return this.activeApps.get(appId)!
     }
 
     const app = await this.applicationRepository.getApplication(appId)
@@ -238,25 +199,25 @@ export class MutationManager {
     }
 
     // prevents racing
-    if (this.#activeApps.has(appId)) {
-      return this.#activeApps.get(appId)!
+    if (this.activeApps.has(appId)) {
+      return this.activeApps.get(appId)!
     }
 
-    this.#activeApps.set(app.id, app)
+    this.activeApps.set(app.id, app)
     console.log(`App loaded: ${appId}`)
 
     return app
   }
 
-  public async unloadApp(appId: string): Promise<void> {
-    this.#activeApps.delete(appId)
+  public async unloadApp(appId: AppId): Promise<void> {
+    this.activeApps.delete(appId)
     console.log(`App unloaded: ${appId}`)
   }
 
-  public async loadParser(parserId: string): Promise<ParserConfig> {
+  public async loadParser(parserId: ParserConfigId): Promise<ParserConfig> {
     // prevents racing
-    if (this.#activeParsers.has(parserId)) {
-      return this.#activeParsers.get(parserId)!
+    if (this.activeParsers.has(parserId)) {
+      return this.activeParsers.get(parserId)!
     }
 
     const parser = await this.parserConfigRepository.getParserConfig(parserId)
@@ -266,18 +227,17 @@ export class MutationManager {
     }
 
     // prevents racing
-    if (this.#activeParsers.has(parserId)) {
-      return this.#activeParsers.get(parserId)!
+    if (this.activeParsers.has(parserId)) {
+      return this.activeParsers.get(parserId)!
     }
 
-    this.#activeParsers.set(parser.id, parser)
-    // console.log(`Parser loaded: ${parser.id}`)
+    this.activeParsers.set(parser.id, parser)
 
     return parser
   }
 
   public async unloadParser(parserId: string): Promise<void> {
-    this.#activeParsers.delete(parserId)
+    this.activeParsers.delete(parserId)
     console.log(`Parser unloaded: ${parserId}`)
   }
 
@@ -286,13 +246,12 @@ export class MutationManager {
   // #region Private
 
   private async _getUserLinksForTarget(
+    mutationId: string,
     appId: string,
     target: AppMetadataTarget,
     context: IContextNode
   ): Promise<BosUserLink[]> {
-    if (!this.mutation) throw new Error('Mutation is not loaded')
-
-    const indexObject = MutationManager._buildLinkIndex(appId, this.mutation.id, target, context)
+    const indexObject = MutationManager._buildLinkIndex(appId, mutationId, target, context)
     const indexedLinks = await this.userLinkRepository.getLinksByIndex(indexObject)
 
     return indexedLinks.map((link) => ({

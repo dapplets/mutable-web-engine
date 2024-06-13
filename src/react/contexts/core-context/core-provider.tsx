@@ -7,7 +7,12 @@ type Props = {
 }
 
 const CoreProvider: FC<Props> = ({ children }) => {
-  const coreRef = useRef(new Core())
+  const coreRef = useRef<Core | null>(null)
+
+  if (!coreRef.current) {
+    coreRef.current = new Core()
+  }
+
   const core = coreRef.current
 
   const attachParserConfig = useCallback(
@@ -32,6 +37,7 @@ const CoreProvider: FC<Props> = ({ children }) => {
   )
 
   const state: CoreContextState = {
+    core,
     tree: core.tree,
     attachParserConfig,
     detachParserConfig,

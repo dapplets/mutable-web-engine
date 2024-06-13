@@ -9,10 +9,10 @@ export const useUserLinks = (context: IContextNode) => {
   const [error, setError] = useState<Error | null>(null)
 
   const fetchUserLinks = useCallback(async () => {
-    if (!engine) return
+    if (!engine || !engine.mutation?.id) return
 
     try {
-      const links = await engine.mutationManager.getLinksForContext(context)
+      const links = await engine.mutationManager.getLinksForContext(engine.mutation?.id, context)
       setUserLinks(links)
     } catch (err) {
       if (err instanceof Error) {

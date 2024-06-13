@@ -21,3 +21,9 @@ export type AppMetadata = {
     }
   }
 }
+
+export type AppWithSettings = AppMetadata & {
+  settings: {
+    isEnabled: boolean
+  }
+}

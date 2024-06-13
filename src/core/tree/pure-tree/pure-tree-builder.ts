@@ -1,5 +1,4 @@
 import { DappletsEngineNs } from '../../constants'
-import { EventEmitter } from '../../event-emitter'
 import { isDeepEqual } from '../../utils'
 import { IContextNode, ITreeBuilder, InsertionPointWithElement, ParsedContext } from '../types'
 import { PureContextNode } from './pure-context-node'
@@ -17,7 +16,9 @@ export class PureTreeBuilder implements ITreeBuilder {
 
   constructor() {
     // ToDo: move to engine, it's not a core responsibility
-    this.root = this.createNode(DappletsEngineNs, 'website') // default ns
+    this.root = this.createNode(DappletsEngineNs, 'website', {
+      id: window.location.hostname,
+    }) // default ns
   }
 
   appendChild(parent: IContextNode, child: IContextNode): void {

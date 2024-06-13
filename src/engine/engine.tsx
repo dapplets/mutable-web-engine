@@ -1,5 +1,4 @@
 import { IContextNode, PureContextNode, Core } from '../core'
-import { AppWithSettings, MutationWithSettings } from './providers/provider'
 import { WalletSelector } from '@near-wallet-selector/core'
 import { NearConfig, getNearConfig } from './constants'
 import { NearSigner } from './app/services/near-signer/near-signer.service'
@@ -8,12 +7,26 @@ import { MutationManager } from './mutation-manager'
 import { IStorage } from './app/services/local-db/local-storage'
 import { LocalDbService } from './app/services/local-db/local-db.service'
 import { LocalStorage } from './app/services/local-db/local-storage'
-import { AppMetadata } from './app/services/application/application.entity'
-import { Mutation } from './app/services/mutation/mutation.entity'
+import { AppMetadata, AppWithSettings } from './app/services/application/application.entity'
+import { Mutation, MutationWithSettings } from './app/services/mutation/mutation.entity'
 import { MutationRepository } from './app/services/mutation/mutation.repository'
 import { ApplicationRepository } from './app/services/application/application.repository'
 import { UserLinkRepository } from './app/services/user-link/user-link.repository'
 import { ParserConfigRepository } from './app/services/parser-config/parser-config.repository'
+import { MutationService } from './app/services/mutation/mutation.service'
+import { AdapterType, ParserConfig } from './app/services/parser-config/parser-config.entity'
+
+const MWebParserConfig: ParserConfig = {
+  parserType: AdapterType.MWeb,
+  id: 'mweb',
+  targets: [
+    {
+      namespace: 'engine',
+      contextType: 'website',
+      if: { id: { not: null } },
+    },
+  ],
+}
 
 export type EngineConfig = {
   networkId: string
@@ -33,10 +46,16 @@ export class Engine {
   private applicationRepository: ApplicationRepository
   private userLinkRepository: UserLinkRepository
   private parserConfigRepository: ParserConfigRepository
+  private mutationService: MutationService
 
   started: boolean = false
 
-  constructor(public readonly config: EngineConfig) {
+  public mutation: Mutation | null = null
+
+  constructor(
+    private core: Core,
+    public readonly config: EngineConfig
+  ) {
     if (!this.config.storage) {
       this.config.storage = new LocalStorage('mutable-web-engine')
     }
@@ -52,39 +71,15 @@ export class Engine {
     this.userLinkRepository = new UserLinkRepository(socialDb, nearSigner)
     this.parserConfigRepository = new ParserConfigRepository(socialDb)
     this.mutationManager = new MutationManager(
-      this.mutationRepository,
       this.applicationRepository,
       this.userLinkRepository,
       this.parserConfigRepository
     )
+    this.mutationService = new MutationService(this.mutationRepository, nearConfig)
   }
 
   getLastUsedMutation = async (): Promise<string | null> => {
-    const allMutations = await this.getMutations()
-    const hostname = window.location.hostname
-    const lastUsedData = await Promise.all(
-      allMutations.map(async (m) => ({
-        id: m.id,
-        lastUsage: await this.mutationRepository.getMutationLastUsage(m.id, hostname),
-      }))
-    )
-    const usedMutationsData = lastUsedData
-      .filter((m) => m.lastUsage)
-      .map((m) => ({ id: m.id, lastUsage: new Date(m.lastUsage!).getTime() }))
-
-    if (usedMutationsData?.length) {
-      if (usedMutationsData.length === 1) return usedMutationsData[0].id
-      let lastMutation = usedMutationsData[0]
-      for (let i = 1; i < usedMutationsData.length; i++) {
-        if (usedMutationsData[i].lastUsage > lastMutation.lastUsage) {
-          lastMutation = usedMutationsData[i]
-        }
-      }
-      return lastMutation.id
-    } else {
-      // Activate default mutation for new users
-      return this.#nearConfig.defaultMutationId
-    }
+    return this.mutationService.getLastUsedMutation(this.core.tree)
   }
 
   async start(mutationId?: string | null): Promise<void> {
@@ -98,7 +93,7 @@ export class Engine {
 
       if (mutation) {
         // load mutation
-        await this.mutationManager.switchMutation(mutation)
+        await this._switchMutation(mutation)
 
         // load non-disabled apps only
         await Promise.all(
@@ -139,13 +134,7 @@ export class Engine {
   }
 
   async getMutations(): Promise<MutationWithSettings[]> {
-    // ToDo: use real context from the PureTreeBuilder
-    const context = new PureContextNode('engine', 'website')
-    context.parsedContext = { id: window.location.hostname }
-
-    const mutations = await this.mutationManager.getMutationsForContext(context)
-
-    return Promise.all(mutations.map((mut) => this._populateMutationWithSettings(mut)))
+    return this.mutationService.getMutationsWithSettings(this.core.tree)
   }
 
   async switchMutation(mutationId: string): Promise<void> {
@@ -157,54 +146,46 @@ export class Engine {
   }
 
   async getCurrentMutation(): Promise<MutationWithSettings | null> {
-    const mutation = this.mutationManager?.mutation
+    const mutation = this.mutation
     if (!mutation) return null
 
-    return this._populateMutationWithSettings(mutation)
+    return this.mutationService.populateMutationWithSettings(mutation)
   }
 
   async setFavoriteMutation(mutationId: string | null): Promise<void> {
-    return this.mutationRepository.setFavoriteMutation(mutationId)
+    return this.mutationService.setFavoriteMutation(mutationId)
   }
 
   async getFavoriteMutation(): Promise<string | null> {
-    const value = await this.mutationRepository.getFavoriteMutation()
-    return value ?? null
+    return this.mutationService.getFavoriteMutation()
   }
 
   async removeMutationFromRecents(mutationId: string): Promise<void> {
-    await this.mutationRepository.setMutationLastUsage(mutationId, null, window.location.hostname)
+    return this.mutationService.removeMutationFromRecents(mutationId)
+  }
+
+  async createMutation(mutation: Mutation): Promise<MutationWithSettings> {
+    return this.mutationService.createMutation(mutation)
+  }
+
+  async editMutation(mutation: Mutation): Promise<MutationWithSettings> {
+    const editedMutation = await this.mutationService.editMutation(mutation)
+
+    // If the current mutation is edited, reload it
+    if (mutation.id === this.mutation?.id) {
+      this.stop()
+      await this.start(mutation.id)
+    }
+
+    return editedMutation
   }
 
   async getApplications(): Promise<AppMetadata[]> {
     return this.applicationRepository.getApplications()
   }
 
-  async createMutation(mutation: Mutation): Promise<MutationWithSettings> {
-    // ToDo: move to provider?
-    if (await this.mutationRepository.getMutation(mutation.id)) {
-      throw new Error('Mutation with that ID already exists')
-    }
-
-    await this.mutationRepository.saveMutation(mutation)
-
-    return this._populateMutationWithSettings(mutation)
-  }
-
-  async editMutation(mutation: Mutation): Promise<MutationWithSettings> {
-    await this.mutationRepository.saveMutation(mutation)
-
-    // If the current mutation is edited, reload it
-    if (mutation.id === this.mutationManager?.mutation?.id) {
-      this.stop()
-      await this.start(mutation.id)
-    }
-
-    return this._populateMutationWithSettings(mutation)
-  }
-
   async getAppsFromMutation(mutationId: string): Promise<AppWithSettings[]> {
-    const { mutation: currentMutation } = this.mutationManager
+    const { mutation: currentMutation } = this
 
     // don't fetch mutation if fetched already
     const mutation =
@@ -227,7 +208,7 @@ export class Engine {
   }
 
   async enableApp(appId: string): Promise<void> {
-    const currentMutationId = this.mutationManager.mutation?.id
+    const currentMutationId = this.mutation?.id
 
     if (!currentMutationId) {
       throw new Error('Mutation is not active')
@@ -239,7 +220,7 @@ export class Engine {
   }
 
   async disableApp(appId: string): Promise<void> {
-    const currentMutationId = this.mutationManager.mutation?.id
+    const currentMutationId = this.mutation?.id
 
     if (!currentMutationId) {
       throw new Error('Mutation is not active')
@@ -250,24 +231,8 @@ export class Engine {
     await this._stopApp(appId)
   }
 
-  private async _populateMutationWithSettings(mutation: Mutation): Promise<MutationWithSettings> {
-    const isFavorite = (await this.getFavoriteMutation()) === mutation.id
-    const lastUsage = await this.mutationRepository.getMutationLastUsage(
-      mutation.id,
-      window.location.hostname
-    )
-
-    return {
-      ...mutation,
-      settings: {
-        isFavorite,
-        lastUsage,
-      },
-    }
-  }
-
   private async _populateAppWithSettings(app: AppMetadata): Promise<AppWithSettings> {
-    const currentMutationId = this.mutationManager.mutation?.id
+    const currentMutationId = this.mutation?.id
 
     if (!currentMutationId) throw new Error('Mutation is not active')
 
@@ -295,5 +260,35 @@ export class Engine {
       callback(parent),
       ...parent.children.map((child) => this._traverseContextTree(callback, child)),
     ])
+  }
+
+  // Methods from MutationManager
+
+  private async _switchMutation(mutation: Mutation | null): Promise<void> {
+    this.mutationManager.activeApps.clear()
+    this.mutationManager.activeParsers.clear()
+    this.mutation = null
+
+    if (!mutation) return
+
+    this.mutation = mutation
+
+    // MWeb parser is enabled by default
+    this.mutationManager.activeParsers.set(MWebParserConfig.id, MWebParserConfig)
+
+    // ToDo: it loads all parsers, need to optimize
+    await Promise.all(
+      this.mutation.apps.map((appId) =>
+        this.applicationRepository
+          .getApplication(appId)
+          .then((app) =>
+            Promise.all(
+              (app?.targets ?? []).map((target) =>
+                this.mutationManager.loadParser(target.namespace)
+              )
+            )
+          )
+      )
+    )
   }
 }
