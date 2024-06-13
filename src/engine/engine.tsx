@@ -36,7 +36,7 @@ export class Engine {
   started: boolean = false
   core: Core
 
-  constructor(private config: EngineConfig) {
+  constructor(public readonly config: EngineConfig) {
     if (!this.config.storage) {
       this.config.storage = new LocalStorage('mutable-web-engine')
     }

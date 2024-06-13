@@ -6,10 +6,10 @@ import { ShadowDomWrapper } from '../bos/shadow-dom-wrapper'
 import { useEngine } from './contexts/engine-context'
 
 export const Layout: FC = () => {
-  const { viewportRef } = useEngine()
+  const { engine, viewportRef } = useEngine()
 
   return (
-    <ShadowDomWrapper ref={viewportRef}>
+    <ShadowDomWrapper ref={viewportRef} stylesheetSrc={engine.config.bosElementStyleSrc}>
       <ContextPicker />
       <ContextManager />
     </ShadowDomWrapper>
