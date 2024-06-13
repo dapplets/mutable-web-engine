@@ -26,9 +26,6 @@ export type EngineConfig = {
   bosElementStyleSrc?: string
 }
 
-// ToDo: dirty hack
-export let engineSingleton: Engine | null = null
-
 export class Engine {
   #provider: IProvider
   #selector: WalletSelector
@@ -56,8 +53,6 @@ export class Engine {
     this.core = new Core()
 
     this.core.on('contextStarted', this.handleContextStarted.bind(this))
-
-    engineSingleton = this
   }
 
   async handleContextStarted({ context }: { context: IContextNode }): Promise<void> {

@@ -1,7 +1,6 @@
 export {
   customElements,
   LocalStorage,
-  engineSingleton,
   Engine,
   App,
   useEngine,
