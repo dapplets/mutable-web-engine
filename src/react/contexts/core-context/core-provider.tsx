@@ -32,7 +32,6 @@ const CoreProvider: FC<Props> = ({ children }) => {
   )
 
   const state: CoreContextState = {
-    core,
     tree: core.tree,
     attachParserConfig,
     detachParserConfig,

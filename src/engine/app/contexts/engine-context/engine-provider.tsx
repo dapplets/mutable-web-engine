@@ -11,7 +11,7 @@ type Props = {
 }
 
 const EngineProvider: FC<Props> = ({ engine, children }) => {
-  const { core, attachParserConfig } = useCore()
+  const { tree, attachParserConfig, updateRootContext } = useCore()
 
   const viewportRef = React.useRef<HTMLDivElement>(null)
   const [pickerTask, setPickerTask] = useState<PickerTask | null>(null)
@@ -20,20 +20,20 @@ const EngineProvider: FC<Props> = ({ engine, children }) => {
   const { redirectMap, enableDevMode, disableDevMode } = useDevMode()
 
   useEffect(() => {
-    if (!core) return
+    if (!tree) return
 
-    core.updateRootContext({
+    updateRootContext({
       mutationId: engine.mutationManager.mutation?.id ?? null,
       gatewayId: engine.config.gatewayId,
     })
 
     // Load parser configs for root context
     // ToDo: generalize for whole context tree
-    const parserConfigs = engine.mutationManager.filterSuitableParsers(core.tree)
+    const parserConfigs = engine.mutationManager.filterSuitableParsers(tree)
     for (const config of parserConfigs) {
       attachParserConfig(config)
     }
-  }, [core])
+  }, [tree])
 
   const state: EngineContextState = {
     engine,
