@@ -8,11 +8,11 @@ export type MutableWebContextState = {
   mutations: MutationWithSettings[]
   allApps: AppMetadata[]
   mutationApps: AppWithSettings[]
+  activeApps: AppWithSettings[]
   selectedMutation: MutationWithSettings | null
   isLoading: boolean
+  switchMutation: (mutationId: string | null) => void
   favoriteMutationId: string | null
-  stopEngine: () => void
-  switchMutation: (mutationId: string) => void
   setFavoriteMutation: (mutationId: string | null) => void
   removeMutationFromRecents: (mutationId: string) => void
   setMutations: React.Dispatch<React.SetStateAction<MutationWithSettings[]>>
@@ -24,11 +24,11 @@ export const contextDefaultValues: MutableWebContextState = {
   mutations: [],
   allApps: [],
   mutationApps: [],
+  activeApps: [],
   isLoading: false,
   selectedMutation: null,
-  favoriteMutationId: null,
-  stopEngine: () => undefined,
   switchMutation: () => undefined,
+  favoriteMutationId: null,
   setFavoriteMutation: () => undefined,
   removeMutationFromRecents: () => undefined,
   setMutations: () => undefined,

@@ -2,16 +2,20 @@ import { useContext, useState } from 'react'
 import { MutableWebContext } from './mutable-web-context'
 
 export function useMutationApp(appId: string) {
-  const { engine, setMutationApps } = useContext(MutableWebContext)
+  const { engine, setMutationApps, selectedMutation } = useContext(MutableWebContext)
 
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const enableApp = async () => {
+    if (!selectedMutation) {
+      throw new Error('No selected mutation')
+    }
+
     try {
       setIsLoading(true)
 
-      await engine.enableApp(appId)
+      await engine.applicationService.enableAppInMutation(selectedMutation.id, appId)
 
       setMutationApps((apps) =>
         apps.map((app) =>
@@ -30,10 +34,14 @@ export function useMutationApp(appId: string) {
   }
 
   const disableApp = async () => {
+    if (!selectedMutation) {
+      throw new Error('No selected mutation')
+    }
+
     try {
       setIsLoading(true)
 
-      await engine.disableApp(appId)
+      await engine.applicationService.disableAppInMutation(selectedMutation.id, appId)
 
       setMutationApps((apps) =>
         apps.map((app) =>

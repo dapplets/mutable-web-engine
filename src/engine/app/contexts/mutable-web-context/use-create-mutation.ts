@@ -12,7 +12,7 @@ export function useCreateMutation() {
     try {
       setIsLoading(true)
 
-      const createdMutation = await engine.createMutation(creatingMutation)
+      const createdMutation = await engine.mutationService.createMutation(creatingMutation)
 
       setMutations((mutations) => [...mutations, createdMutation])
     } catch (err) {

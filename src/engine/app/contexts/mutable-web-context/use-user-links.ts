@@ -1,18 +1,22 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useEngine } from './use-engine'
 import { IContextNode } from '../../../../core'
 import { BosUserLink } from '../../services/user-link/user-link.entity'
+import { useMutableWeb } from '.'
 
 export const useUserLinks = (context: IContextNode) => {
-  const { engine } = useEngine()
+  const { engine, selectedMutation, activeApps } = useMutableWeb()
   const [userLinks, setUserLinks] = useState<BosUserLink[]>([])
   const [error, setError] = useState<Error | null>(null)
 
   const fetchUserLinks = useCallback(async () => {
-    if (!engine || !engine.mutation?.id) return
+    if (!engine || !selectedMutation?.id) return
 
     try {
-      const links = await engine.getLinksForContext(engine.mutation?.id, context)
+      const links = await engine.userLinkService.getLinksForContext(
+        activeApps,
+        selectedMutation.id,
+        context
+      )
       setUserLinks(links)
     } catch (err) {
       if (err instanceof Error) {
@@ -21,7 +25,7 @@ export const useUserLinks = (context: IContextNode) => {
         setError(new Error('An unknown error occurred'))
       }
     }
-  }, [engine, context])
+  }, [engine, selectedMutation, activeApps, context])
 
   useEffect(() => {
     fetchUserLinks()

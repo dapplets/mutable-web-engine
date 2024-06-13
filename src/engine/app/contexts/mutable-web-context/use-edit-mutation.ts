@@ -12,7 +12,7 @@ export function useEditMutation() {
     try {
       setIsLoading(true)
 
-      const editedMutation = await engine.editMutation(editingMutation)
+      const editedMutation = await engine.mutationService.editMutation(editingMutation)
 
       setMutations((mutations) =>
         mutations.map((mut) => (mut.id === editedMutation.id ? editedMutation : mut))

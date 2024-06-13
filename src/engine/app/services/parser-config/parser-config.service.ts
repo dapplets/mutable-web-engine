@@ -4,7 +4,7 @@ import { ParserConfigRepository } from './parser-config.repository'
 export class ParserConfigService {
   constructor(private parserConfigRepository: ParserConfigRepository) {}
 
-  public getParserConfig(parserId: ParserConfigId) {
+  public async getParserConfig(parserId: ParserConfigId) {
     return this.parserConfigRepository.getParserConfig(parserId)
   }
 }

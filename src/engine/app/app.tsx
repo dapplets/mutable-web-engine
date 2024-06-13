@@ -16,8 +16,8 @@ export const App: FC<{
   return (
     <StyleSheetManager target={stylesMountPoint}>
       <CoreProvider>
-        <EngineProvider config={config} defaultMutationId={defaultMutationId}>
-          <MutableWebProvider>
+        <EngineProvider>
+          <MutableWebProvider config={config} defaultMutationId={defaultMutationId}>
             <>
               <Layout />
               {children}
