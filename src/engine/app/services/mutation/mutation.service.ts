@@ -1,6 +1,6 @@
 import { IContextNode, PureContextNode } from '../../../../core'
 import { TargetService } from '../target/target.service'
-import { Mutation, MutationWithSettings } from './mutation.entity'
+import { Mutation, MutationId, MutationWithSettings } from './mutation.entity'
 import { MutationRepository } from './mutation.repository'
 
 export class MutationService {
@@ -8,6 +8,10 @@ export class MutationService {
     private mutationRepository: MutationRepository,
     private nearConfig: { defaultMutationId: string }
   ) {}
+
+  async getMutation(mutationId: string): Promise<Mutation | null> {
+    return this.mutationRepository.getMutation(mutationId)
+  }
 
   async getMutationsForContext(context: IContextNode): Promise<Mutation[]> {
     const mutations = await this.mutationRepository.getMutations()
@@ -76,8 +80,14 @@ export class MutationService {
     return this.populateMutationWithSettings(mutation)
   }
 
-  async removeMutationFromRecents(mutationId: string): Promise<void> {
+  async removeMutationFromRecents(mutationId: MutationId): Promise<void> {
     await this.mutationRepository.setMutationLastUsage(mutationId, null, window.location.hostname)
+  }
+
+  public async updateMutationLastUsage(mutationId: MutationId, hostname: string): Promise<void> {
+    // save last usage
+    const currentDate = new Date().toISOString()
+    await this.mutationRepository.setMutationLastUsage(mutationId, currentDate, hostname)
   }
 
   public async populateMutationWithSettings(mutation: Mutation): Promise<MutationWithSettings> {

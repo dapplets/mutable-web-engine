@@ -21,6 +21,7 @@ import {
 import { ApplicationService } from './app/services/application/application.service'
 import { UserLinkSerivce } from './app/services/user-link/user-link.service'
 import { BosUserLink } from './app/services/user-link/user-link.entity'
+import { ParserConfigService } from './app/services/parser-config/parser-config.service'
 
 const MWebParserConfig: ParserConfig = {
   parserType: AdapterType.MWeb,
@@ -46,13 +47,10 @@ export type EngineConfig = {
 export class Engine {
   #selector: WalletSelector
 
-  private mutationRepository: MutationRepository
-  private applicationRepository: ApplicationRepository
-  private userLinkRepository: UserLinkRepository
-  private parserConfigRepository: ParserConfigRepository
   private mutationService: MutationService
   private applicationService: ApplicationService
   private userLinkService: UserLinkSerivce
+  private parserConfigService: ParserConfigService
 
   started: boolean = false
 
@@ -73,13 +71,14 @@ export class Engine {
     const localDb = new LocalDbService(this.config.storage)
     const nearSigner = new NearSigner(this.#selector, localDb, nearConfig)
     const socialDb = new SocialDbService(nearSigner, nearConfig.contractName)
-    this.mutationRepository = new MutationRepository(socialDb, localDb)
-    this.applicationRepository = new ApplicationRepository(socialDb, localDb)
-    this.userLinkRepository = new UserLinkRepository(socialDb, nearSigner)
-    this.parserConfigRepository = new ParserConfigRepository(socialDb)
-    this.mutationService = new MutationService(this.mutationRepository, nearConfig)
-    this.applicationService = new ApplicationService(this.applicationRepository)
-    this.userLinkService = new UserLinkSerivce(this.userLinkRepository, this.applicationService)
+    const mutationRepository = new MutationRepository(socialDb, localDb)
+    const applicationRepository = new ApplicationRepository(socialDb, localDb)
+    const userLinkRepository = new UserLinkRepository(socialDb, nearSigner)
+    const parserConfigRepository = new ParserConfigRepository(socialDb)
+    this.mutationService = new MutationService(mutationRepository, nearConfig)
+    this.applicationService = new ApplicationService(applicationRepository)
+    this.userLinkService = new UserLinkSerivce(userLinkRepository, this.applicationService)
+    this.parserConfigService = new ParserConfigService(parserConfigRepository)
   }
 
   getLastUsedMutation = async (): Promise<string | null> => {
@@ -102,7 +101,7 @@ export class Engine {
         // load non-disabled apps only
         await Promise.all(
           mutation.apps.map(async (appId) => {
-            const isAppEnabled = await this.applicationRepository.getAppEnabledStatus(
+            const isAppEnabled = await this.applicationService.getAppEnabledStatus(
               mutation.id,
               appId
             )
@@ -112,13 +111,7 @@ export class Engine {
           })
         )
 
-        // save last usage
-        const currentDate = new Date().toISOString()
-        await this.mutationRepository.setMutationLastUsage(
-          mutation.id,
-          currentDate,
-          window.location.hostname
-        )
+        await this.mutationService.updateMutationLastUsage(mutation.id, window.location.hostname)
       } else {
         console.error('No suitable mutations found')
       }
@@ -185,7 +178,7 @@ export class Engine {
   }
 
   async getApplications(): Promise<AppMetadata[]> {
-    return this.applicationRepository.getApplications()
+    return this.applicationService.getApplications()
   }
 
   async getAppsFromMutation(mutationId: string): Promise<AppWithSettings[]> {
@@ -195,7 +188,7 @@ export class Engine {
     const mutation =
       currentMutation?.id === mutationId
         ? currentMutation
-        : await this.mutationRepository.getMutation(mutationId)
+        : await this.mutationService.getMutation(mutationId)
 
     if (!mutation) {
       throw new Error(`Mutation doesn't exist: ${mutationId}`)
@@ -204,9 +197,13 @@ export class Engine {
     // ToDo: improve readability
     return Promise.all(
       mutation.apps.map((appId) =>
-        this.applicationRepository
+        this.applicationService
           .getApplication(appId)
-          .then((appMetadata) => (appMetadata ? this._populateAppWithSettings(appMetadata) : null))
+          .then((appMetadata) =>
+            appMetadata
+              ? this.applicationService.populateAppWithSettings(mutation.id, appMetadata)
+              : null
+          )
       )
     ).then((apps) => apps.filter((app) => app !== null) as AppWithSettings[])
   }
@@ -218,7 +215,7 @@ export class Engine {
       throw new Error('Mutation is not active')
     }
 
-    await this.applicationRepository.setAppEnabledStatus(currentMutationId, appId, true)
+    await this.applicationService.enableAppInMutation(currentMutationId, appId)
 
     await this._startApp(appId)
   }
@@ -230,22 +227,9 @@ export class Engine {
       throw new Error('Mutation is not active')
     }
 
-    await this.applicationRepository.setAppEnabledStatus(currentMutationId, appId, false)
+    await this.applicationService.disableAppInMutation(currentMutationId, appId)
 
     await this._stopApp(appId)
-  }
-
-  private async _populateAppWithSettings(app: AppMetadata): Promise<AppWithSettings> {
-    const currentMutationId = this.mutation?.id
-
-    if (!currentMutationId) throw new Error('Mutation is not active')
-
-    return {
-      ...app,
-      settings: {
-        isEnabled: await this.applicationRepository.getAppEnabledStatus(currentMutationId, app.id),
-      },
-    }
   }
 
   private async _startApp(appId: string): Promise<void> {
@@ -338,7 +322,7 @@ export class Engine {
       return this.activeParsers.get(parserId)!
     }
 
-    const parser = await this.parserConfigRepository.getParserConfig(parserId)
+    const parser = await this.parserConfigService.getParserConfig(parserId)
 
     if (!parser) {
       throw new Error(`Parser doesn't exist: ${parserId}`)
