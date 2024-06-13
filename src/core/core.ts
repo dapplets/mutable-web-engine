@@ -1,4 +1,4 @@
-import { PureTreeBuilder } from './tree/pure-tree/pure-tree-builder'
+import { PureTreeBuilder, TreeBuilderEvents } from './tree/pure-tree/pure-tree-builder'
 import { IAdapter } from './adapters/interface'
 import { DynamicHtmlAdapter } from './adapters/dynamic-html-adapter'
 import { AdapterType } from '../engine/providers/provider'
@@ -12,7 +12,7 @@ import { EventEmitter, Subscription } from './event-emitter'
 export interface CoreConfig {}
 
 export class Core {
-  private _eventEmitter: EventEmitter<CoreEvents>
+  private _eventEmitter: EventEmitter<TreeBuilderEvents>
   private _treeBuilder: PureTreeBuilder
 
   /**
@@ -24,8 +24,11 @@ export class Core {
     return this._treeBuilder.root
   }
 
+  public get event() {
+    return this._eventEmitter.emit
+  }
   constructor(config?: CoreConfig) {
-    this._eventEmitter = new EventEmitter()
+    this._eventEmitter = new EventEmitter<TreeBuilderEvents>()
     this._treeBuilder = new PureTreeBuilder(this._eventEmitter)
   }
 

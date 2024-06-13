@@ -39,13 +39,12 @@ export const App: FC<{
   }, [config, defaultMutationId])
 
   if (!engine) return null
-
   return (
     <StyleSheetManager target={stylesMountPoint}>
-      <CoreProvider core={engine.core}>
+      <CoreProvider event={engine.event} core={engine.core}>
         <EngineProvider engine={engine}>
           <MutableWebProvider>
-            <Layout>{children}</Layout>
+            <Layout _events={engine.event}>{children}</Layout>
           </MutableWebProvider>
         </EngineProvider>
       </CoreProvider>

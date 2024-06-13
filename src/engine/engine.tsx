@@ -1,4 +1,4 @@
-import { IContextNode, PureContextNode, Core } from '../core'
+import { IContextNode, PureContextNode, Core, ITreeBuilder } from '../core'
 import {
   AppMetadata,
   AppWithSettings,
@@ -17,6 +17,9 @@ import { Repository } from './storage/repository'
 import { JsonStorage } from './storage/json-storage'
 import { LocalStorage } from './storage/local-storage'
 import { Viewport } from './viewport'
+import { EventEmitter } from '../core/event-emitter'
+import { CoreEvents } from '../core/events'
+import { TreeBuilderEvents } from '../core/tree/pure-tree/pure-tree-builder'
 
 export type EngineConfig = {
   networkId: string
@@ -40,6 +43,7 @@ export class Engine {
 
   started: boolean = false
   core: Core
+  event: EventEmitter<TreeBuilderEvents>
 
   constructor(private config: EngineConfig) {
     if (!this.config.storage) {
@@ -56,9 +60,9 @@ export class Engine {
     this.mutationManager = new MutationManager(this.#provider)
 
     this.core = new Core()
-
+    this.event = new EventEmitter()
     this.core.on('contextStarted', this.handleContextStarted.bind(this))
-
+    this.event.on('contextStarted', this.handleContextStarted.bind(this))
     engineSingleton = this
   }
 

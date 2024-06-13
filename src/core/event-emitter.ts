@@ -25,7 +25,7 @@ export interface EventEmitterService<Events extends Record<string, unknown>> {
 export class EventEmitter<Events extends Record<string, unknown>>
   implements EventEmitterService<Events>
 {
-  private emitter = new NEventEmitter()
+  emitter = new NEventEmitter()
 
   on<Event extends keyof Events>(
     eventName: Event,

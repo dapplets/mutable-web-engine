@@ -1,13 +1,17 @@
 import React, { FC, ReactElement, useCallback, useEffect, useState } from 'react'
 import { CoreContext, CoreContextState } from './core-context'
 import { Core, IContextNode, ParserConfig } from '../../../core'
+import { CoreEvents } from '../../../core/events'
+import { EventEmitter } from '../../../core/event-emitter'
+import { TreeBuilderEvents } from '../../../core/tree/pure-tree/pure-tree-builder'
 
 type Props = {
   core: Core
+  event: EventEmitter<TreeBuilderEvents>
   children: ReactElement
 }
 
-const CoreProvider: FC<Props> = ({ children, core }) => {
+const CoreProvider: FC<Props> = ({ children, core, event }) => {
   const attachParserConfig = useCallback(
     (parserConfig: ParserConfig) => {
       core.attachParserConfig(parserConfig)
@@ -25,6 +29,7 @@ const CoreProvider: FC<Props> = ({ children, core }) => {
   const state: CoreContextState = {
     core,
     tree: core.tree,
+    event,
     attachParserConfig,
     detachParserConfig,
   }
