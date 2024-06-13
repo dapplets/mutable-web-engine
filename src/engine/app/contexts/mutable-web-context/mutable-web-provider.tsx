@@ -28,7 +28,7 @@ const MWebParserConfig: ParserConfig = {
 }
 
 const MutableWebProvider: FC<Props> = ({ config, defaultMutationId, children }) => {
-  const { tree, attachParserConfig, updateRootContext } = useCore()
+  const { tree, attachParserConfig, detachParserConfig, updateRootContext } = useCore()
   const engineRef = useRef<Engine | null>(null)
 
   if (!engineRef.current) {
@@ -102,6 +102,12 @@ const MutableWebProvider: FC<Props> = ({ config, defaultMutationId, children }) 
 
       if (isSuitableParser) {
         attachParserConfig(parser)
+      }
+    }
+
+    return () => {
+      for (const parser of parserConfigs) {
+        detachParserConfig(parser.id)
       }
     }
   }, [parserConfigs, tree, selectedMutationId])

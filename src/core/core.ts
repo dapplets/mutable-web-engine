@@ -26,7 +26,7 @@ export class Core {
 
   public detachParserConfig(namespace: string) {
     const adapter = this.adapters.get(namespace)
-    if (!adapter) throw new Error('Adapter is not registried')
+    if (!adapter) return
     this._unregisterAdapter(adapter)
   }
 
