@@ -39,7 +39,7 @@ export const ShadowDomWrapper = React.forwardRef<HTMLDivElement, ShadowDomWrappe
             display: flex; 
             align-items: center;
             justify-content: center;
-            position: relative;
+            /* position: relative; */
             visibility: visible !important;
             }
         `
