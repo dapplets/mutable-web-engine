@@ -268,16 +268,11 @@ export class Engine {
 
   // Methods from MutationManager
 
-  async getLinksForContext(
-    mutationId: MutationId,
-    context: IContextNode,
-    includedApps?: AppId[]
-  ): Promise<BosUserLink[]> {
+  async getLinksForContext(mutationId: MutationId, context: IContextNode): Promise<BosUserLink[]> {
     return this.userLinkService.getLinksForContext(
       Array.from(this.activeApps.values()),
       mutationId,
-      context,
-      includedApps
+      context
     )
   }
 

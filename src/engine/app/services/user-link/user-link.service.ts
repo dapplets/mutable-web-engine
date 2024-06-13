@@ -15,14 +15,11 @@ export class UserLinkSerivce {
 
   // ToDo: replace with getAppsAndLinksForContext
   async getLinksForContext(
-    apps: AppMetadata[],
+    appsToCheck: AppMetadata[],
     mutationId: MutationId,
-    context: IContextNode,
-    includedApps?: AppId[]
+    context: IContextNode
   ): Promise<BosUserLink[]> {
     const promises: Promise<BosUserLink[]>[] = []
-
-    const appsToCheck = includedApps ? apps.filter((app) => includedApps.includes(app.id)) : apps
 
     for (const app of appsToCheck) {
       const suitableTargets = app.targets.filter((target) =>
