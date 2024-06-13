@@ -19,7 +19,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _Engine_provider, _Engine_selector, _Engine_nearConfig, _Engine_repository, _Engine_viewport;
+var _Engine_provider, _Engine_selector, _Engine_nearConfig, _Engine_repository;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Engine = exports.engineSingleton = void 0;
 const core_1 = require("../core");
@@ -30,7 +30,6 @@ const mutation_manager_1 = require("./mutation-manager");
 const repository_1 = require("./storage/repository");
 const json_storage_1 = require("./storage/json-storage");
 const local_storage_1 = require("./storage/local-storage");
-const viewport_1 = require("./viewport");
 // ToDo: dirty hack
 exports.engineSingleton = null;
 class Engine {
@@ -40,7 +39,6 @@ class Engine {
         _Engine_selector.set(this, void 0);
         _Engine_nearConfig.set(this, void 0);
         _Engine_repository.set(this, void 0);
-        _Engine_viewport.set(this, null);
         this.started = false;
         this.getLastUsedMutation = () => __awaiter(this, void 0, void 0, function* () {
             const allMutations = yield this.getMutations();
@@ -128,7 +126,6 @@ class Engine {
                 }
             }
             this.started = true;
-            this._attachViewport();
             this._updateRootContext();
             console.log('Mutable Web Engine started!', {
                 engine: this,
@@ -139,7 +136,6 @@ class Engine {
     stop() {
         this.started = false;
         this.core.clear();
-        this._detachViewport();
     }
     getMutations() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -279,19 +275,6 @@ class Engine {
                 } });
         });
     }
-    _attachViewport() {
-        if (__classPrivateFieldGet(this, _Engine_viewport, "f")) {
-            throw new Error('Already attached');
-        }
-        __classPrivateFieldSet(this, _Engine_viewport, new viewport_1.Viewport({ bosElementStyleSrc: this.config.bosElementStyleSrc }), "f");
-        document.body.appendChild(__classPrivateFieldGet(this, _Engine_viewport, "f").outer);
-    }
-    _detachViewport() {
-        if (__classPrivateFieldGet(this, _Engine_viewport, "f")) {
-            document.body.removeChild(__classPrivateFieldGet(this, _Engine_viewport, "f").outer);
-            __classPrivateFieldSet(this, _Engine_viewport, null, "f");
-        }
-    }
     _startApp(appId) {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.mutationManager.loadApp(appId);
@@ -312,4 +295,4 @@ class Engine {
     }
 }
 exports.Engine = Engine;
-_Engine_provider = new WeakMap(), _Engine_selector = new WeakMap(), _Engine_nearConfig = new WeakMap(), _Engine_repository = new WeakMap(), _Engine_viewport = new WeakMap();
+_Engine_provider = new WeakMap(), _Engine_selector = new WeakMap(), _Engine_nearConfig = new WeakMap(), _Engine_repository = new WeakMap();

@@ -38,7 +38,7 @@ const ContextManager = () => {
 };
 exports.ContextManager = ContextManager;
 const ContextHandler = ({ context, insPoints, }) => {
-    const { userLinks: allUserLinks } = (0, use_user_links_1.useUserLinks)(context);
+    const { userLinks } = (0, use_user_links_1.useUserLinks)(context);
     const { apps } = (0, use_context_apps_1.useContextApps)(context);
     const [isEditMode, setIsEditMode] = (0, react_1.useState)(false);
     const transferableContext = (0, react_1.useMemo)(() => buildTransferableContext(context), [context]);
@@ -46,11 +46,17 @@ const ContextHandler = ({ context, insPoints, }) => {
     const attachContextRef = (0, react_1.useCallback)((callback) => {
         callback(context.element);
     }, [context]);
+    const handleEnableEditMode = (0, react_1.useCallback)(() => {
+        setIsEditMode(true);
+    }, [setIsEditMode]);
+    const handleDisableEditMode = (0, react_1.useCallback)(() => {
+        setIsEditMode(false);
+    }, [setIsEditMode]);
     return (react_1.default.createElement(react_1.default.Fragment, null,
         insPoints.map((ip) => (react_1.default.createElement(react_2.ContextPortal, { key: ip.name, context: context, injectTo: ip.name },
-            react_1.default.createElement(InsPointHandler, { insPointName: ip.name, bosLayoutManager: ip.bosLayoutManager, context: context, transferableContext: transferableContext, allUserLinks: allUserLinks, apps: apps, isEditMode: isEditMode, onEnableEditMode: () => setIsEditMode(true), onDisableEditMode: () => setIsEditMode(false), onAttachContextRef: attachContextRef })))),
+            react_1.default.createElement(InsPointHandler, { insPointName: ip.name, bosLayoutManager: ip.bosLayoutManager, context: context, transferableContext: transferableContext, allUserLinks: userLinks, apps: apps, isEditMode: isEditMode, onEnableEditMode: handleEnableEditMode, onDisableEditMode: handleDisableEditMode, onAttachContextRef: attachContextRef })))),
         react_1.default.createElement(react_2.ContextPortal, { context: context },
-            react_1.default.createElement(InsPointHandler, { context: context, transferableContext: transferableContext, allUserLinks: allUserLinks, apps: apps, isEditMode: isEditMode, onEnableEditMode: () => setIsEditMode(true), onDisableEditMode: () => setIsEditMode(false), onAttachContextRef: attachContextRef }))));
+            react_1.default.createElement(InsPointHandler, { context: context, transferableContext: transferableContext, allUserLinks: userLinks, apps: apps, isEditMode: isEditMode, onEnableEditMode: handleEnableEditMode, onDisableEditMode: handleDisableEditMode, onAttachContextRef: attachContextRef }))));
 };
 const InsPointHandler = ({ insPointName, bosLayoutManager, context, transferableContext, allUserLinks, apps, isEditMode, onEnableEditMode, onDisableEditMode, onAttachContextRef, }) => {
     const { pickerTask, setPickerTask, redirectMap } = (0, engine_context_1.useEngine)();

@@ -42,6 +42,7 @@ const dev_server_service_1 = require("../../services/dev-server-service");
 const json_stringify_deterministic_1 = __importDefault(require("json-stringify-deterministic"));
 const DevModeUpdateInterval = 1500;
 const EngineProvider = ({ engine, children }) => {
+    const viewportRef = react_1.default.useRef(null);
     const [portals, setPortals] = (0, react_1.useState)(new Map());
     const [pickerTask, setPickerTask] = (0, react_1.useState)(null);
     const [redirectMap, setRedirectMap] = (0, react_1.useState)(null);
@@ -81,6 +82,7 @@ const EngineProvider = ({ engine, children }) => {
     }, []);
     const state = {
         engine,
+        viewportRef,
         portals,
         addPortal,
         removePortal,

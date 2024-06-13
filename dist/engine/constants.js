@@ -4,7 +4,7 @@ exports.ViewportInnerElementId = exports.ViewportElementId = exports.bosLoaderUr
 exports.NearConfigs = {
     mainnet: {
         networkId: 'mainnet',
-        nodeUrl: 'https://go.getblock.io/6cb9a53df9904598843ad0d58a45cd26',
+        nodeUrl: 'https://go.getblock.io/75e825521eeb49c9bbb15e6c977b147c',
         contractName: 'social.dapplets.near',
         walletUrl: 'https://app.mynearwallet.com',
         defaultMutationId: 'bos.dapplets.near/mutation/Sandbox',

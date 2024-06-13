@@ -1,0 +1,1 @@
+{"version":3,"file":"mutable-web-provider.d.ts","sourceRoot":"","sources":["../../../../../src/engine/app/contexts/mutable-web-context/mutable-web-provider.tsx"],"names":[],"mappings":"AACA,OAAc,EAAE,EAAE,EAAE,YAAY,EAAgC,MAAM,OAAO,CAAA;AAK7E,KAAK,KAAK,GAAG;IACX,QAAQ,EAAE,YAAY,CAAA;CACvB,CAAA;AAED,QAAA,MAAM,kBAAkB,EAAE,EAAE,CAAC,KAAK,CA8GjC,CAAA;AAED,OAAO,EAAE,kBAAkB,EAAE,CAAA"}

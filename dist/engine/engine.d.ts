@@ -40,8 +40,6 @@ export declare class Engine {
     private _updateRootContext;
     private _populateMutationWithSettings;
     private _populateAppWithSettings;
-    private _attachViewport;
-    private _detachViewport;
     private _startApp;
     private _stopApp;
     private _traverseContextTree;

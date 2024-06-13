@@ -9,6 +9,7 @@ export type PickerTask = {
 };
 export type EngineContextState = {
     engine: Engine;
+    viewportRef: React.RefObject<HTMLDivElement>;
     portals: Map<string, {
         component: React.FC<unknown>;
         target: InjectableTarget;
