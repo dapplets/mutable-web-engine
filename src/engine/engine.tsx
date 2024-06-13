@@ -7,14 +7,20 @@ import { MutationManager } from './mutation-manager'
 import { IStorage } from './app/services/local-db/local-storage'
 import { LocalDbService } from './app/services/local-db/local-db.service'
 import { LocalStorage } from './app/services/local-db/local-storage'
-import { AppMetadata, AppWithSettings } from './app/services/application/application.entity'
-import { Mutation, MutationWithSettings } from './app/services/mutation/mutation.entity'
+import { AppId, AppMetadata, AppWithSettings } from './app/services/application/application.entity'
+import { Mutation, MutationId, MutationWithSettings } from './app/services/mutation/mutation.entity'
 import { MutationRepository } from './app/services/mutation/mutation.repository'
 import { ApplicationRepository } from './app/services/application/application.repository'
 import { UserLinkRepository } from './app/services/user-link/user-link.repository'
 import { ParserConfigRepository } from './app/services/parser-config/parser-config.repository'
 import { MutationService } from './app/services/mutation/mutation.service'
-import { AdapterType, ParserConfig } from './app/services/parser-config/parser-config.entity'
+import {
+  AdapterType,
+  ParserConfig,
+  ParserConfigId,
+} from './app/services/parser-config/parser-config.entity'
+import { ApplicationService } from './app/services/application/application.service'
+import { BosUserLink } from './providers/provider'
 
 const MWebParserConfig: ParserConfig = {
   parserType: AdapterType.MWeb,
@@ -47,10 +53,13 @@ export class Engine {
   private userLinkRepository: UserLinkRepository
   private parserConfigRepository: ParserConfigRepository
   private mutationService: MutationService
+  private applicationService: ApplicationService
 
   started: boolean = false
 
   public mutation: Mutation | null = null
+  activeApps = new Map<string, AppMetadata>()
+  activeParsers = new Map<string, ParserConfig>()
 
   constructor(
     private core: Core,
@@ -70,12 +79,9 @@ export class Engine {
     this.applicationRepository = new ApplicationRepository(socialDb, localDb)
     this.userLinkRepository = new UserLinkRepository(socialDb, nearSigner)
     this.parserConfigRepository = new ParserConfigRepository(socialDb)
-    this.mutationManager = new MutationManager(
-      this.applicationRepository,
-      this.userLinkRepository,
-      this.parserConfigRepository
-    )
+    this.mutationManager = new MutationManager(this.userLinkRepository)
     this.mutationService = new MutationService(this.mutationRepository, nearConfig)
+    this.applicationService = new ApplicationService(this.applicationRepository)
   }
 
   getLastUsedMutation = async (): Promise<string | null> => {
@@ -104,7 +110,7 @@ export class Engine {
             )
             if (!isAppEnabled) return
 
-            return this.mutationManager.loadApp(appId)
+            return this._loadApp(appId)
           })
         )
 
@@ -245,11 +251,11 @@ export class Engine {
   }
 
   private async _startApp(appId: string): Promise<void> {
-    await this.mutationManager.loadApp(appId)
+    await this._loadApp(appId)
   }
 
   private async _stopApp(appId: string): Promise<void> {
-    await this.mutationManager.unloadApp(appId)
+    await this._unloadApp(appId)
   }
 
   private async _traverseContextTree(
@@ -264,9 +270,30 @@ export class Engine {
 
   // Methods from MutationManager
 
+  async getLinksForContext(
+    mutationId: MutationId,
+    context: IContextNode,
+    includedApps?: AppId[]
+  ): Promise<BosUserLink[]> {
+    return this.mutationManager.getLinksForContext(
+      Array.from(this.activeApps.values()),
+      mutationId,
+      context,
+      includedApps
+    )
+  }
+
+  filterSuitableApps(context: IContextNode, includedApps?: AppId[]) {
+    return this.mutationManager.filterSuitableApps(
+      Array.from(this.activeApps.values()),
+      context,
+      includedApps
+    )
+  }
+
   private async _switchMutation(mutation: Mutation | null): Promise<void> {
-    this.mutationManager.activeApps.clear()
-    this.mutationManager.activeParsers.clear()
+    this.activeApps.clear()
+    this.activeParsers.clear()
     this.mutation = null
 
     if (!mutation) return
@@ -274,21 +301,72 @@ export class Engine {
     this.mutation = mutation
 
     // MWeb parser is enabled by default
-    this.mutationManager.activeParsers.set(MWebParserConfig.id, MWebParserConfig)
+    this.activeParsers.set(MWebParserConfig.id, MWebParserConfig)
 
     // ToDo: it loads all parsers, need to optimize
     await Promise.all(
       this.mutation.apps.map((appId) =>
-        this.applicationRepository
+        this.applicationService
           .getApplication(appId)
           .then((app) =>
-            Promise.all(
-              (app?.targets ?? []).map((target) =>
-                this.mutationManager.loadParser(target.namespace)
-              )
-            )
+            Promise.all((app?.targets ?? []).map((target) => this._loadParser(target.namespace)))
           )
       )
     )
+  }
+
+  public async _loadApp(appId: AppId): Promise<AppMetadata> {
+    // prevents racing
+    if (this.activeApps.has(appId)) {
+      return this.activeApps.get(appId)!
+    }
+
+    const app = await this.applicationService.getApplication(appId)
+
+    if (!app) {
+      throw new Error(`App doesn't exist: ${appId}`)
+    }
+
+    // prevents racing
+    if (this.activeApps.has(appId)) {
+      return this.activeApps.get(appId)!
+    }
+
+    this.activeApps.set(app.id, app)
+    console.log(`App loaded: ${appId}`)
+
+    return app
+  }
+
+  public async _unloadApp(appId: AppId): Promise<void> {
+    this.activeApps.delete(appId)
+    console.log(`App unloaded: ${appId}`)
+  }
+
+  public async _loadParser(parserId: ParserConfigId): Promise<ParserConfig> {
+    // prevents racing
+    if (this.activeParsers.has(parserId)) {
+      return this.activeParsers.get(parserId)!
+    }
+
+    const parser = await this.parserConfigRepository.getParserConfig(parserId)
+
+    if (!parser) {
+      throw new Error(`Parser doesn't exist: ${parserId}`)
+    }
+
+    // prevents racing
+    if (this.activeParsers.has(parserId)) {
+      return this.activeParsers.get(parserId)!
+    }
+
+    this.activeParsers.set(parser.id, parser)
+
+    return parser
+  }
+
+  public async _unloadParser(parserId: string): Promise<void> {
+    this.activeParsers.delete(parserId)
+    console.log(`Parser unloaded: ${parserId}`)
   }
 }

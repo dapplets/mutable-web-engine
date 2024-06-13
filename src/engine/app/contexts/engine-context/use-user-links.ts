@@ -12,7 +12,7 @@ export const useUserLinks = (context: IContextNode) => {
     if (!engine || !engine.mutation?.id) return
 
     try {
-      const links = await engine.mutationManager.getLinksForContext(engine.mutation?.id, context)
+      const links = await engine.getLinksForContext(engine.mutation?.id, context)
       setUserLinks(links)
     } catch (err) {
       if (err instanceof Error) {

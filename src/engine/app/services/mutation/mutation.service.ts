@@ -12,7 +12,7 @@ export class MutationService {
   async getMutationsForContext(context: IContextNode): Promise<Mutation[]> {
     const mutations = await this.mutationRepository.getMutations()
     return mutations.filter((mutation) =>
-      mutation.targets.some((target) => TargetService._isTargetMet(target, context))
+      mutation.targets.some((target) => TargetService.isTargetMet(target, context))
     )
   }
 

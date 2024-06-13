@@ -4,6 +4,7 @@ import { Engine, EngineConfig } from '../../../engine'
 import { usePortals } from './use-portals'
 import { useDevMode } from './use-dev-mode'
 import { useCore } from '../../../../react'
+import { TargetService } from '../../services/target/target.service'
 
 type Props = {
   config: EngineConfig
@@ -52,9 +53,14 @@ const EngineProvider: FC<Props> = ({ config, defaultMutationId, children }) => {
 
     // Load parser configs for root context
     // ToDo: generalize for whole context tree
-    const parserConfigs = engine.mutationManager.filterSuitableParsers(tree)
-    for (const config of parserConfigs) {
-      attachParserConfig(config)
+    for (const parser of engine.activeParsers.values()) {
+      const isSuitableParser = parser.targets.some((target) =>
+        TargetService.isTargetMet(target, tree)
+      )
+
+      if (isSuitableParser) {
+        attachParserConfig(parser)
+      }
     }
   }, [engine, tree])
 

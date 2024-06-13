@@ -2,7 +2,7 @@ import { IContextNode } from '../../../../core'
 import { ScalarType, TargetCondition, Target } from './target.entity'
 
 export class TargetService {
-  static _isTargetMet(
+  static isTargetMet(
     target: Target,
     context: Pick<IContextNode, 'namespace' | 'contextType' | 'parsedContext'>
   ): boolean {
