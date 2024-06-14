@@ -2,6 +2,7 @@ export type Target = {
   namespace: string
   contextType: string
   if: Record<string, TargetCondition>
+  parent?: Target
 }
 
 export type TargetCondition = {
