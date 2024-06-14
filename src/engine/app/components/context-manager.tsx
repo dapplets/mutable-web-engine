@@ -180,6 +180,7 @@ const InsPointHandler: FC<{
           id: link.id,
           authorId: link.authorId,
         },
+        notify,
       }, // ToDo: add props
       isSuitable: link.insertionPoint === insPointName, // ToDo: LM know about widgets from other LM
     })),

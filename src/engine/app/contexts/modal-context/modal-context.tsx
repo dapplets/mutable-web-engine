@@ -4,6 +4,10 @@ export type ModalProps = {
   subject: string
   body: string
   type: 'error' | 'info' | 'warning'
+  actions: {
+    label: string
+    onClick: () => void
+  }[]
 }
 
 export type ModalContextState = {
