@@ -9,8 +9,8 @@ import { ShadowDomWrapper } from '../../bos/shadow-dom-wrapper'
 import { ContextTree } from '../../../react/components/context-tree'
 import { useContextApps } from '../contexts/mutable-web-context/use-context-apps'
 import { Target } from '../services/target/target.entity'
-import { AppMetadata } from '../services/application/application.entity'
-import { BosUserLink } from '../services/user-link/user-link.entity'
+import { AppId, AppMetadata } from '../services/application/application.entity'
+import { BosUserLink, UserLinkId } from '../services/user-link/user-link.entity'
 
 export const ContextManager: FC = () => {
   return <ContextTree children={ContextHandler} />
@@ -20,7 +20,7 @@ const ContextHandler: FC<{ context: IContextNode; insPoints: InsertionPointWithE
   context,
   insPoints,
 }) => {
-  const { userLinks } = useUserLinks(context)
+  const { userLinks, createUserLink, deleteUserLink } = useUserLinks(context)
   const { apps } = useContextApps(context)
 
   const [isEditMode, setIsEditMode] = useState(false)
@@ -55,6 +55,8 @@ const ContextHandler: FC<{ context: IContextNode; insPoints: InsertionPointWithE
             allUserLinks={userLinks}
             apps={apps}
             isEditMode={isEditMode}
+            onCreateUserLink={createUserLink}
+            onDeleteUserLink={deleteUserLink}
             onEnableEditMode={handleEnableEditMode}
             onDisableEditMode={handleDisableEditMode}
             onAttachContextRef={attachContextRef}
@@ -69,6 +71,8 @@ const ContextHandler: FC<{ context: IContextNode; insPoints: InsertionPointWithE
           allUserLinks={userLinks}
           apps={apps}
           isEditMode={isEditMode}
+          onCreateUserLink={createUserLink}
+          onDeleteUserLink={deleteUserLink}
           onEnableEditMode={handleEnableEditMode}
           onDisableEditMode={handleDisableEditMode}
           onAttachContextRef={attachContextRef}
@@ -86,6 +90,8 @@ const InsPointHandler: FC<{
   allUserLinks: BosUserLink[]
   apps: AppMetadata[]
   isEditMode: boolean
+  onCreateUserLink: (appId: AppId) => Promise<void>
+  onDeleteUserLink: (userLinkId: UserLinkId) => Promise<void>
   onEnableEditMode: () => void
   onDisableEditMode: () => void
   onAttachContextRef: (callback: (r: React.Component | Element | null | undefined) => void) => void
@@ -97,6 +103,8 @@ const InsPointHandler: FC<{
   allUserLinks,
   apps,
   isEditMode,
+  onCreateUserLink,
+  onDeleteUserLink,
   onEnableEditMode,
   onDisableEditMode,
   onAttachContextRef,
@@ -177,8 +185,8 @@ const InsPointHandler: FC<{
     isEditMode: isEditMode,
 
     // ToDo: move functions to separate api namespace?
-    // createUserLink: this._createUserLink.bind(this),
-    // deleteUserLink: this._deleteUserLink.bind(this),
+    createUserLink: onCreateUserLink,
+    deleteUserLink: onDeleteUserLink,
     enableEditMode: onEnableEditMode,
     disableEditMode: onDisableEditMode,
 
