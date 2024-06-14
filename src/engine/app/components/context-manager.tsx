@@ -9,9 +9,23 @@ import { usePortalFilter } from '../contexts/engine-context/use-portal-filter'
 import { ShadowDomWrapper } from '../../bos/shadow-dom-wrapper'
 import { ContextTree } from '../../../react/components/context-tree'
 import { useContextApps } from '../contexts/engine-context/use-context-apps'
+import { EventEmitter } from '../../../core/event-emitter'
 
 export const ContextManager: FC = () => {
   return <ContextTree children={ContextHandler} />
+}
+
+enum TypeNotify {
+  'WAITING',
+  'INFO',
+  'WARN',
+  'ERROR',
+}
+interface Notification {
+  subject: string
+  text: string
+
+  type: TypeNotify
 }
 
 const ContextHandler: FC<{ context: IContextNode; insPoints: InsertionPointWithElement[] }> = ({
@@ -20,7 +34,7 @@ const ContextHandler: FC<{ context: IContextNode; insPoints: InsertionPointWithE
 }) => {
   const { userLinks } = useUserLinks(context)
   const { apps } = useContextApps(context)
-
+  const eventEmitter = new EventEmitter<any>()
   const [isEditMode, setIsEditMode] = useState(false)
 
   const transferableContext = useMemo(() => buildTransferableContext(context), [context])
@@ -41,6 +55,13 @@ const ContextHandler: FC<{ context: IContextNode; insPoints: InsertionPointWithE
     setIsEditMode(false)
   }, [setIsEditMode])
 
+  const handleCreateNotification = useCallback(
+    (notify: Notification) => {
+      eventEmitter.emit(notify.text, { ...notify })
+    },
+    [eventEmitter]
+  )
+
   return (
     <>
       {insPoints.map((ip) => (
@@ -56,6 +77,7 @@ const ContextHandler: FC<{ context: IContextNode; insPoints: InsertionPointWithE
             onEnableEditMode={handleEnableEditMode}
             onDisableEditMode={handleDisableEditMode}
             onAttachContextRef={attachContextRef}
+            createNotification={handleCreateNotification}
           />
         </ContextPortal>
       ))}
@@ -70,6 +92,7 @@ const ContextHandler: FC<{ context: IContextNode; insPoints: InsertionPointWithE
           onEnableEditMode={handleEnableEditMode}
           onDisableEditMode={handleDisableEditMode}
           onAttachContextRef={attachContextRef}
+          createNotification={handleCreateNotification}
         />
       </ContextPortal>
     </>
@@ -87,6 +110,7 @@ const InsPointHandler: FC<{
   onEnableEditMode: () => void
   onDisableEditMode: () => void
   onAttachContextRef: (callback: (r: React.Component | Element | null | undefined) => void) => void
+  createNotification?: (notify: Notification) => void
 }> = ({
   insPointName,
   bosLayoutManager,
@@ -98,6 +122,7 @@ const InsPointHandler: FC<{
   onEnableEditMode,
   onDisableEditMode,
   onAttachContextRef,
+  createNotification,
 }) => {
   const { pickerTask, setPickerTask, redirectMap } = useEngine()
   const { components } = usePortalFilter(context, insPointName) // ToDo: extract to the separate AppManager component
@@ -179,6 +204,9 @@ const InsPointHandler: FC<{
     // deleteUserLink: this._deleteUserLink.bind(this),
     enableEditMode: onEnableEditMode,
     disableEditMode: onDisableEditMode,
+
+    // for notify
+    notify: createNotification,
 
     // For OverlayTrigger
     attachContextRef: onAttachContextRef,

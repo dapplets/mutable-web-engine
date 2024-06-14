@@ -34,7 +34,7 @@ const IconAlert = () => (
 const mockTitle = 'Notification Title'
 const mockText = 'This is a mock notification text.'
 
-export const Notification: FC<{}> = ({}) => {
+export const Notification: FC<{ event: any }> = ({ event }) => {
   const wrapperStyle: React.CSSProperties = {
     borderRadius: '10px',
     border: '1px solid #02193A',
@@ -72,7 +72,7 @@ export const Notification: FC<{}> = ({}) => {
     <div style={wrapperStyle} className="notification">
       <Toast>
         <Toast.Header style={toastHeaderStyle}>
-          <div style={iconStyle}>
+          <div onClick={() => console.log(event, 'event')} style={iconStyle}>
             <IconAlert />
           </div>
 
