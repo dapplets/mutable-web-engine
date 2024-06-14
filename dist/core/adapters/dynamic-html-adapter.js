@@ -13,8 +13,6 @@ var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (
 var _DynamicHtmlAdapter_observerByElement, _DynamicHtmlAdapter_elementByContext, _DynamicHtmlAdapter_contextByElement, _DynamicHtmlAdapter_isStarted;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DynamicHtmlAdapter = void 0;
-const interface_1 = require("./interface");
-const DefaultInsertionType = interface_1.InsertionType.Before;
 class DynamicHtmlAdapter {
     constructor(element, treeBuilder, namespace, parser) {
         _DynamicHtmlAdapter_observerByElement.set(this, new Map());
@@ -44,56 +42,6 @@ class DynamicHtmlAdapter {
     stop() {
         __classPrivateFieldSet(this, _DynamicHtmlAdapter_isStarted, false, "f");
         __classPrivateFieldGet(this, _DynamicHtmlAdapter_observerByElement, "f").forEach((observer) => observer.disconnect());
-    }
-    injectElement(injectingElement, context, insertionPoint) {
-        var _a;
-        const contextElement = __classPrivateFieldGet(this, _DynamicHtmlAdapter_elementByContext, "f").get(context);
-        if (!contextElement) {
-            throw new Error('Context element not found');
-        }
-        const insPoint = this.parser
-            .getInsertionPoints(contextElement, context.contextType)
-            .find((ip) => ip.name === insertionPoint);
-        if (!insPoint) {
-            throw new Error(`Insertion point "${insertionPoint}" is not defined in the parser`);
-        }
-        const insPointElement = this.parser.findInsertionPoint(contextElement, context.contextType, insertionPoint);
-        const insertionType = (_a = insPoint.insertionType) !== null && _a !== void 0 ? _a : DefaultInsertionType;
-        if (!insPointElement) {
-            throw new Error(`Insertion point "${insertionPoint}" not found in "${context.contextType}" context type for "${insertionType}" insertion type`);
-        }
-        switch (insertionType) {
-            case interface_1.InsertionType.Before:
-                insPointElement.before(injectingElement);
-                break;
-            case interface_1.InsertionType.After:
-                insPointElement.after(injectingElement);
-                break;
-            case interface_1.InsertionType.End:
-                insPointElement.appendChild(injectingElement);
-                break;
-            case interface_1.InsertionType.Begin:
-                insPointElement.insertBefore(injectingElement, insPointElement.firstChild);
-                break;
-            default:
-                throw new Error('Unknown insertion type');
-        }
-    }
-    getInsertionPoints(context) {
-        const htmlElement = __classPrivateFieldGet(this, _DynamicHtmlAdapter_elementByContext, "f").get(context);
-        if (!htmlElement)
-            return [];
-        return this.parser.getInsertionPoints(htmlElement, context.contextType);
-    }
-    getContextElement(context) {
-        var _a;
-        return (_a = __classPrivateFieldGet(this, _DynamicHtmlAdapter_elementByContext, "f").get(context)) !== null && _a !== void 0 ? _a : null;
-    }
-    getInsertionPointElement(context, insPointName) {
-        const contextElement = this.getContextElement(context);
-        if (!contextElement)
-            return null;
-        return this.parser.findInsertionPoint(contextElement, context.contextType, insPointName);
     }
     _tryCreateContextForElement(element, contextName, defaultContextId) {
         const parsedContext = this.parser.parseContext(element, contextName);

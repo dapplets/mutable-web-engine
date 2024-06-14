@@ -1,8 +1,6 @@
-import { IParser, InsertionPoint } from '../parsers/interface'
+import { IParser } from '../parsers/interface'
 import { IContextNode, ITreeBuilder, InsertionPointWithElement } from '../tree/types'
-import { IAdapter, InsertionType } from './interface'
-
-const DefaultInsertionType: InsertionType = InsertionType.Before
+import { IAdapter } from './interface'
 
 export class DynamicHtmlAdapter implements IAdapter {
   protected element: HTMLElement
@@ -45,73 +43,6 @@ export class DynamicHtmlAdapter implements IAdapter {
   stop() {
     this.#isStarted = false
     this.#observerByElement.forEach((observer) => observer.disconnect())
-  }
-
-  injectElement(
-    injectingElement: HTMLElement,
-    context: IContextNode,
-    insertionPoint: string | 'root'
-  ) {
-    const contextElement = this.#elementByContext.get(context)
-
-    if (!contextElement) {
-      throw new Error('Context element not found')
-    }
-
-    const insPoint = this.parser
-      .getInsertionPoints(contextElement, context.contextType)
-      .find((ip) => ip.name === insertionPoint)
-
-    if (!insPoint) {
-      throw new Error(`Insertion point "${insertionPoint}" is not defined in the parser`)
-    }
-
-    const insPointElement: HTMLElement | null = this.parser.findInsertionPoint(
-      contextElement,
-      context.contextType,
-      insertionPoint
-    )
-
-    const insertionType = insPoint.insertionType ?? DefaultInsertionType
-
-    if (!insPointElement) {
-      throw new Error(
-        `Insertion point "${insertionPoint}" not found in "${context.contextType}" context type for "${insertionType}" insertion type`
-      )
-    }
-
-    switch (insertionType) {
-      case InsertionType.Before:
-        insPointElement.before(injectingElement)
-        break
-      case InsertionType.After:
-        insPointElement.after(injectingElement)
-        break
-      case InsertionType.End:
-        insPointElement.appendChild(injectingElement)
-        break
-      case InsertionType.Begin:
-        insPointElement.insertBefore(injectingElement, insPointElement.firstChild)
-        break
-      default:
-        throw new Error('Unknown insertion type')
-    }
-  }
-
-  getInsertionPoints(context: IContextNode): InsertionPoint[] {
-    const htmlElement = this.#elementByContext.get(context)!
-    if (!htmlElement) return []
-    return this.parser.getInsertionPoints(htmlElement, context.contextType)
-  }
-
-  getContextElement(context: IContextNode): HTMLElement | null {
-    return this.#elementByContext.get(context) ?? null
-  }
-
-  getInsertionPointElement(context: IContextNode, insPointName: string): HTMLElement | null {
-    const contextElement = this.getContextElement(context)
-    if (!contextElement) return null
-    return this.parser.findInsertionPoint(contextElement, context.contextType, insPointName)
   }
 
   _tryCreateContextForElement(element: HTMLElement, contextName: string): IContextNode | null
