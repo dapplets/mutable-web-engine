@@ -11,7 +11,6 @@ export type EngineConfig = {
     bosElementName?: string;
     bosElementStyleSrc?: string;
 };
-export declare let engineSingleton: Engine | null;
 export declare class Engine {
     #private;
     private config;

@@ -1,10 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AppSwitcher = exports.MiniOverlay = exports.useMutationApp = exports.useEditMutation = exports.useCreateMutation = exports.useMutableWeb = exports.useEngine = exports.App = exports.Engine = exports.engineSingleton = exports.LocalStorage = exports.customElements = void 0;
+exports.AppSwitcher = exports.MiniOverlay = exports.useMutationApp = exports.useEditMutation = exports.useCreateMutation = exports.useMutableWeb = exports.useEngine = exports.App = exports.Engine = exports.LocalStorage = exports.customElements = void 0;
 var engine_1 = require("./engine");
 Object.defineProperty(exports, "customElements", { enumerable: true, get: function () { return engine_1.customElements; } });
 Object.defineProperty(exports, "LocalStorage", { enumerable: true, get: function () { return engine_1.LocalStorage; } });
-Object.defineProperty(exports, "engineSingleton", { enumerable: true, get: function () { return engine_1.engineSingleton; } });
 Object.defineProperty(exports, "Engine", { enumerable: true, get: function () { return engine_1.Engine; } });
 Object.defineProperty(exports, "App", { enumerable: true, get: function () { return engine_1.App; } });
 Object.defineProperty(exports, "useEngine", { enumerable: true, get: function () { return engine_1.useEngine; } });

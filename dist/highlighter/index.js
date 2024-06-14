@@ -31,7 +31,22 @@ const DEFAULT_BORDER_STYLE = 'dashed';
 const DEFAULT_BORDER_WIDTH = 2; //px
 const DEFAULT_BACKGROUND_COLOR = 'rgb(56 188 255 / 5%)'; // light blue
 const defaultStyledBorder = `${DEFAULT_BORDER_WIDTH}px ${DEFAULT_BORDER_STYLE} ${DEFAULT_BORDER_COLOR}`;
-const ContextReactangle = ({ context, styles, onClick, contextDepth, }) => {
+const elementDepth = (el) => {
+    let depth = 0;
+    while (el.parentNode !== null || el.host) {
+        if (el.host)
+            el = el.host;
+        el = el.parentNode;
+        depth++;
+    }
+    return depth;
+};
+const getContextDepth = (context) => {
+    // console.log('context', context)
+    // return context.parentNode ? getContextDepth(context.parentNode) + 1 : 0
+    return context.element ? elementDepth(context.element) : 0;
+};
+const ContextReactangle = ({ context, styles, onClick }) => {
     var _a, _b, _c;
     const [isEntered, setIsEntered] = (0, react_1.useState)(false);
     // const [isDisplayed, setIsDisplayed] = useState(false)
@@ -63,6 +78,9 @@ const ContextReactangle = ({ context, styles, onClick, contextDepth, }) => {
     const targetOffset = context.element.getBoundingClientRect();
     const targetHeight = targetOffset.height;
     const targetWidth = targetOffset.width;
+    const contextDepth = getContextDepth(context);
+    console.log('contextDepth', contextDepth);
+    console.log('context.element', context.element);
     const wrapperStyle = {
         left: targetOffset.left - bodyOffset.left,
         top: targetOffset.top - bodyOffset.top,
@@ -72,7 +90,7 @@ const ContextReactangle = ({ context, styles, onClick, contextDepth, }) => {
         borderRadius: (_b = styles === null || styles === void 0 ? void 0 : styles.borderRadius) !== null && _b !== void 0 ? _b : DEFAULT_BORDER_RADIUS,
         border: (_c = styles === null || styles === void 0 ? void 0 : styles.border) !== null && _c !== void 0 ? _c : defaultStyledBorder,
         position: 'absolute',
-        zIndex: 99999999 + (contextDepth !== null && contextDepth !== void 0 ? contextDepth : 0),
+        zIndex: 1 + (contextDepth !== null && contextDepth !== void 0 ? contextDepth : 0),
         pointerEvents: onClick ? 'auto' : 'none',
         transition: 'all .2s ease-in-out',
         opacity: isEntered ? 1 : 0,

@@ -29,7 +29,7 @@ const react_2 = require("../../../react");
 const engine_context_1 = require("../contexts/engine-context");
 const use_user_links_1 = require("../contexts/engine-context/use-user-links");
 const near_social_vm_1 = require("near-social-vm");
-const use_portals_1 = require("../contexts/engine-context/use-portals");
+const use_portal_filter_1 = require("../contexts/engine-context/use-portal-filter");
 const shadow_dom_wrapper_1 = require("../../bos/shadow-dom-wrapper");
 const context_tree_1 = require("../../../react/components/context-tree");
 const use_context_apps_1 = require("../contexts/engine-context/use-context-apps");
@@ -60,7 +60,7 @@ const ContextHandler = ({ context, insPoints, }) => {
 };
 const InsPointHandler = ({ insPointName, bosLayoutManager, context, transferableContext, allUserLinks, apps, isEditMode, onEnableEditMode, onDisableEditMode, onAttachContextRef, }) => {
     const { pickerTask, setPickerTask, redirectMap } = (0, engine_context_1.useEngine)();
-    const { components } = (0, use_portals_1.usePortals)(context, insPointName); // ToDo: extract to the separate AppManager component
+    const { components } = (0, use_portal_filter_1.usePortalFilter)(context, insPointName); // ToDo: extract to the separate AppManager component
     const pickContext = (0, react_1.useCallback)((target) => {
         return new Promise((resolve, reject) => {
             if (pickerTask) {

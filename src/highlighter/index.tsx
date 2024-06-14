@@ -9,8 +9,20 @@ const DEFAULT_BACKGROUND_COLOR = 'rgb(56 188 255 / 5%)' // light blue
 
 const defaultStyledBorder = `${DEFAULT_BORDER_WIDTH}px ${DEFAULT_BORDER_STYLE} ${DEFAULT_BORDER_COLOR}`
 
+const getElementDepth = (el: Element | Node) => {
+  let depth = 0
+  let host = (el as any).host
+  while (el.parentNode !== null || host) {
+    if (host) el = host as Node
+    el = el.parentNode!
+    host = (el as any).host
+    depth++
+  }
+  return depth
+}
+
 const getContextDepth = (context: IContextNode): number => {
-  return context.parentNode ? getContextDepth(context.parentNode) + 1 : 0
+  return context.element ? getElementDepth(context.element) : 0
 }
 
 interface IContextReactangle {
@@ -21,7 +33,6 @@ interface IContextReactangle {
 
 export const ContextReactangle: FC<IContextReactangle> = ({ context, styles, onClick }) => {
   const [isEntered, setIsEntered] = useState(false)
-  // const [isDisplayed, setIsDisplayed] = useState(false)
   const pickerRef = useRef<any>(null)
 
   useEffect(() => {
@@ -29,11 +40,9 @@ export const ContextReactangle: FC<IContextReactangle> = ({ context, styles, onC
 
     const mouseEnterHandler = () => {
       setIsEntered(true)
-      // setTimeout(() => setIsDisplayed(true))
     }
     const mouseLeaveHandler = () => {
       setIsEntered(false)
-      // setTimeout(() => setIsDisplayed(false))
     }
     pickerRef.current.addEventListener('mouseenter', mouseEnterHandler)
     pickerRef.current.addEventListener('mouseleave', mouseLeaveHandler)
@@ -46,7 +55,6 @@ export const ContextReactangle: FC<IContextReactangle> = ({ context, styles, onC
     }
   }, [pickerRef.current])
 
-  // if (!isEntered) return null
   if (!context.element) return null
 
   const bodyOffset = document.documentElement.getBoundingClientRect()
@@ -64,7 +72,7 @@ export const ContextReactangle: FC<IContextReactangle> = ({ context, styles, onC
     borderRadius: styles?.borderRadius ?? DEFAULT_BORDER_RADIUS,
     border: styles?.border ?? defaultStyledBorder,
     position: 'absolute',
-    zIndex: 99999999 + (contextDepth ?? 0),
+    zIndex: 1 + (contextDepth ?? 0),
     pointerEvents: onClick ? 'auto' : 'none',
     transition: 'all .2s ease-in-out',
     opacity: isEntered ? 1 : 0,

@@ -21,7 +21,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
 };
 var _Engine_provider, _Engine_selector, _Engine_nearConfig, _Engine_repository;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Engine = exports.engineSingleton = void 0;
+exports.Engine = void 0;
 const core_1 = require("../core");
 const constants_1 = require("./constants");
 const near_signer_1 = require("./providers/near-signer");
@@ -30,8 +30,6 @@ const mutation_manager_1 = require("./mutation-manager");
 const repository_1 = require("./storage/repository");
 const json_storage_1 = require("./storage/json-storage");
 const local_storage_1 = require("./storage/local-storage");
-// ToDo: dirty hack
-exports.engineSingleton = null;
 class Engine {
     constructor(config) {
         this.config = config;
@@ -81,7 +79,6 @@ class Engine {
         this.mutationManager = new mutation_manager_1.MutationManager(__classPrivateFieldGet(this, _Engine_provider, "f"));
         this.core = new core_1.Core();
         this.core.on('contextStarted', this.handleContextStarted.bind(this));
-        exports.engineSingleton = this;
     }
     handleContextStarted(_a) {
         return __awaiter(this, arguments, void 0, function* ({ context }) {
