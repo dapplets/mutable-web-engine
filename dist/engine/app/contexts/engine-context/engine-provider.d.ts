@@ -1,7 +1,5 @@
 import { FC, ReactElement } from 'react';
-import { Engine } from '../../../engine';
 type Props = {
-    engine: Engine;
     children?: ReactElement;
 };
 declare const EngineProvider: FC<Props>;

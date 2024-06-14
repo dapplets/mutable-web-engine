@@ -7,8 +7,8 @@ exports.ContextPicker = void 0;
 const react_1 = __importDefault(require("react"));
 const react_2 = require("../../../react");
 const engine_context_1 = require("../contexts/engine-context");
-const mutation_manager_1 = require("../../mutation-manager");
 const highlighter_1 = require("../../../highlighter");
+const target_service_1 = require("../services/target/target.service");
 const ContextPicker = () => {
     const { tree } = (0, react_2.useCore)();
     const { pickerTask } = (0, engine_context_1.useEngine)();
@@ -16,7 +16,7 @@ const ContextPicker = () => {
         return null;
     return (react_1.default.createElement(react_2.ContextTree, null, ({ context }) => {
         const isSuitable = pickerTask.target
-            ? mutation_manager_1.MutationManager._isTargetMet(pickerTask.target, context)
+            ? target_service_1.TargetService.isTargetMet(pickerTask.target, context)
             : true;
         if (!isSuitable)
             return null;

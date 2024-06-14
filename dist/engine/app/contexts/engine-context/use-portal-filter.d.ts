@@ -3,7 +3,7 @@ import { IContextNode } from '../../../../core';
 export declare const usePortalFilter: (context: IContextNode, insPointName?: string) => {
     components: {
         key: string;
-        target: import("../../../providers/provider").InjectableTarget;
+        target: import("./engine-context").InjectableTarget;
         component: import("react").FC<unknown>;
     }[];
 };

@@ -1,4 +1,4 @@
-import { Mutation } from '../../../providers/provider';
+import { Mutation } from '../../services/mutation/mutation.entity';
 export declare function useEditMutation(): {
     editMutation: (editingMutation: Mutation) => Promise<void>;
     isLoading: boolean;

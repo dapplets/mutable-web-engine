@@ -1,4 +1,4 @@
-import { InjectableTarget } from '../../../providers/provider';
+import { InjectableTarget } from './engine-context';
 export declare const usePortals: () => {
     portals: Map<string, {
         component: React.FC<unknown>;

@@ -28,13 +28,18 @@ const react_1 = __importStar(require("react"));
 const engine_context_1 = require("./engine-context");
 const use_portals_1 = require("./use-portals");
 const use_dev_mode_1 = require("./use-dev-mode");
-const EngineProvider = ({ engine, children }) => {
+const EngineProvider = ({ children }) => {
     const viewportRef = react_1.default.useRef(null);
     const [pickerTask, setPickerTask] = (0, react_1.useState)(null);
     const { portals, addPortal, removePortal } = (0, use_portals_1.usePortals)();
     const { redirectMap, enableDevMode, disableDevMode } = (0, use_dev_mode_1.useDevMode)();
+    (0, react_1.useEffect)(() => {
+        console.log('[MutableWeb] Dev mode:', {
+            enableDevMode,
+            disableDevMode,
+        });
+    }, [enableDevMode, disableDevMode]);
     const state = {
-        engine,
         viewportRef,
         portals,
         addPortal,
@@ -45,9 +50,6 @@ const EngineProvider = ({ engine, children }) => {
         enableDevMode,
         disableDevMode,
     };
-    (0, react_1.useEffect)(() => {
-        console.log('engine context', state);
-    }, []);
     return react_1.default.createElement(engine_context_1.EngineContext.Provider, { value: state }, children);
 };
 exports.EngineProvider = EngineProvider;

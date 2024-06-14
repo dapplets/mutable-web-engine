@@ -30,7 +30,7 @@ class PureContextNode {
         this.insPoints = []; // ToDo: replace with Map
         this.element = null;
         _PureContextNode_parsedContext.set(this, {});
-        _PureContextNode_eventEmitter.set(this, new event_emitter_1.EventEmitter());
+        _PureContextNode_eventEmitter.set(this, new event_emitter_1.EventEmitter()); // ToDo: implement event bubbling?
         this.namespace = namespace;
         this.contextType = contextType;
         this.parsedContext = parsedContext;

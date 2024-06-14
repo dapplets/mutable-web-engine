@@ -19,7 +19,7 @@ function useEditMutation() {
     const editMutation = (editingMutation) => __awaiter(this, void 0, void 0, function* () {
         try {
             setIsLoading(true);
-            const editedMutation = yield engine.editMutation(editingMutation);
+            const editedMutation = yield engine.mutationService.editMutation(editingMutation);
             setMutations((mutations) => mutations.map((mut) => (mut.id === editedMutation.id ? editedMutation : mut)));
         }
         catch (err) {

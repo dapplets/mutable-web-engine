@@ -31,36 +31,33 @@ const DEFAULT_BORDER_STYLE = 'dashed';
 const DEFAULT_BORDER_WIDTH = 2; //px
 const DEFAULT_BACKGROUND_COLOR = 'rgb(56 188 255 / 5%)'; // light blue
 const defaultStyledBorder = `${DEFAULT_BORDER_WIDTH}px ${DEFAULT_BORDER_STYLE} ${DEFAULT_BORDER_COLOR}`;
-const elementDepth = (el) => {
+const getElementDepth = (el) => {
     let depth = 0;
-    while (el.parentNode !== null || el.host) {
-        if (el.host)
-            el = el.host;
+    let host = el.host;
+    while (el.parentNode !== null || host) {
+        if (host)
+            el = host;
         el = el.parentNode;
+        host = el.host;
         depth++;
     }
     return depth;
 };
 const getContextDepth = (context) => {
-    // console.log('context', context)
-    // return context.parentNode ? getContextDepth(context.parentNode) + 1 : 0
-    return context.element ? elementDepth(context.element) : 0;
+    return context.element ? getElementDepth(context.element) : 0;
 };
 const ContextReactangle = ({ context, styles, onClick }) => {
     var _a, _b, _c;
     const [isEntered, setIsEntered] = (0, react_1.useState)(false);
-    // const [isDisplayed, setIsDisplayed] = useState(false)
     const pickerRef = (0, react_1.useRef)(null);
     (0, react_1.useEffect)(() => {
         if (!pickerRef.current)
             return;
         const mouseEnterHandler = () => {
             setIsEntered(true);
-            // setTimeout(() => setIsDisplayed(true))
         };
         const mouseLeaveHandler = () => {
             setIsEntered(false);
-            // setTimeout(() => setIsDisplayed(false))
         };
         pickerRef.current.addEventListener('mouseenter', mouseEnterHandler);
         pickerRef.current.addEventListener('mouseleave', mouseLeaveHandler);
@@ -71,7 +68,6 @@ const ContextReactangle = ({ context, styles, onClick }) => {
             pickerRef.current.removeEventListener('mouseleave', mouseLeaveHandler);
         };
     }, [pickerRef.current]);
-    // if (!isEntered) return null
     if (!context.element)
         return null;
     const bodyOffset = document.documentElement.getBoundingClientRect();
@@ -79,8 +75,6 @@ const ContextReactangle = ({ context, styles, onClick }) => {
     const targetHeight = targetOffset.height;
     const targetWidth = targetOffset.width;
     const contextDepth = getContextDepth(context);
-    console.log('contextDepth', contextDepth);
-    console.log('context.element', context.element);
     const wrapperStyle = {
         left: targetOffset.left - bodyOffset.left,
         top: targetOffset.top - bodyOffset.top,
@@ -94,6 +88,7 @@ const ContextReactangle = ({ context, styles, onClick }) => {
         pointerEvents: onClick ? 'auto' : 'none',
         transition: 'all .2s ease-in-out',
         opacity: isEntered ? 1 : 0,
+        cursor: 'pointer',
     };
     return react_1.default.createElement("div", { ref: pickerRef, style: wrapperStyle, className: "mweb-picker", onClick: onClick });
 };

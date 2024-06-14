@@ -19,7 +19,7 @@ function useCreateMutation() {
     const createMutation = (creatingMutation) => __awaiter(this, void 0, void 0, function* () {
         try {
             setIsLoading(true);
-            const createdMutation = yield engine.createMutation(creatingMutation);
+            const createdMutation = yield engine.mutationService.createMutation(creatingMutation);
             setMutations((mutations) => [...mutations, createdMutation]);
         }
         catch (err) {

@@ -26,18 +26,28 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CoreProvider = void 0;
 const react_1 = __importStar(require("react"));
 const core_context_1 = require("./core-context");
-const CoreProvider = ({ children, core }) => {
+const core_1 = require("../../../core");
+const CoreProvider = ({ children }) => {
+    const coreRef = (0, react_1.useRef)(null);
+    if (!coreRef.current) {
+        coreRef.current = new core_1.Core();
+    }
+    const core = coreRef.current;
     const attachParserConfig = (0, react_1.useCallback)((parserConfig) => {
         core.attachParserConfig(parserConfig);
     }, [core]);
     const detachParserConfig = (0, react_1.useCallback)((parserId) => {
         core.detachParserConfig(parserId);
     }, [core]);
+    const updateRootContext = (0, react_1.useCallback)((rootParsedContext = {}) => {
+        core.updateRootContext(rootParsedContext);
+    }, [core]);
     const state = {
         core,
         tree: core.tree,
         attachParserConfig,
         detachParserConfig,
+        updateRootContext,
     };
     return react_1.default.createElement(core_context_1.CoreContext.Provider, { value: state }, children);
 };

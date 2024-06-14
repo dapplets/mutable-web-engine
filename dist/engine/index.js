@@ -29,7 +29,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.useMutationApp = exports.useEditMutation = exports.useCreateMutation = exports.useMutableWeb = exports.useEngine = exports.App = exports.LocalStorage = exports.customElements = void 0;
 __exportStar(require("./engine"), exports);
 exports.customElements = __importStar(require("./custom-elements"));
-var local_storage_1 = require("./storage/local-storage");
+var local_storage_1 = require("./app/services/local-db/local-storage");
 Object.defineProperty(exports, "LocalStorage", { enumerable: true, get: function () { return local_storage_1.LocalStorage; } });
 var app_1 = require("./app/app");
 Object.defineProperty(exports, "App", { enumerable: true, get: function () { return app_1.App; } });

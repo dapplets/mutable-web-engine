@@ -13,13 +13,16 @@ exports.useMutationApp = void 0;
 const react_1 = require("react");
 const mutable_web_context_1 = require("./mutable-web-context");
 function useMutationApp(appId) {
-    const { engine, setMutationApps } = (0, react_1.useContext)(mutable_web_context_1.MutableWebContext);
+    const { engine, setMutationApps, selectedMutation } = (0, react_1.useContext)(mutable_web_context_1.MutableWebContext);
     const [isLoading, setIsLoading] = (0, react_1.useState)(false);
     const [error, setError] = (0, react_1.useState)(null);
     const enableApp = () => __awaiter(this, void 0, void 0, function* () {
+        if (!selectedMutation) {
+            throw new Error('No selected mutation');
+        }
         try {
             setIsLoading(true);
-            yield engine.enableApp(appId);
+            yield engine.applicationService.enableAppInMutation(selectedMutation.id, appId);
             setMutationApps((apps) => apps.map((app) => app.id === appId ? Object.assign(Object.assign({}, app), { settings: Object.assign(Object.assign({}, app.settings), { isEnabled: true }) }) : app));
         }
         catch (err) {
@@ -35,9 +38,12 @@ function useMutationApp(appId) {
         }
     });
     const disableApp = () => __awaiter(this, void 0, void 0, function* () {
+        if (!selectedMutation) {
+            throw new Error('No selected mutation');
+        }
         try {
             setIsLoading(true);
-            yield engine.disableApp(appId);
+            yield engine.applicationService.disableAppInMutation(selectedMutation.id, appId);
             setMutationApps((apps) => apps.map((app) => app.id === appId ? Object.assign(Object.assign({}, app), { settings: Object.assign(Object.assign({}, app.settings), { isEnabled: false }) }) : app));
         }
         catch (err) {

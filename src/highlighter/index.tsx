@@ -76,6 +76,7 @@ export const ContextReactangle: FC<IContextReactangle> = ({ context, styles, onC
     pointerEvents: onClick ? 'auto' : 'none',
     transition: 'all .2s ease-in-out',
     opacity: isEntered ? 1 : 0,
+    cursor: 'pointer',
   }
 
   return <div ref={pickerRef} style={wrapperStyle} className="mweb-picker" onClick={onClick} />

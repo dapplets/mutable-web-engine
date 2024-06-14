@@ -7,5 +7,6 @@ exports.contextDefaultValues = {
     tree: null,
     attachParserConfig: () => undefined,
     detachParserConfig: () => undefined,
+    updateRootContext: () => undefined,
 };
 exports.CoreContext = (0, react_1.createContext)(exports.contextDefaultValues);
