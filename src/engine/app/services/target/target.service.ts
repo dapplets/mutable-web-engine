@@ -4,14 +4,16 @@ import { ScalarType, TargetCondition, Target } from './target.entity'
 export class TargetService {
   static isTargetMet(target: Target, context: IContextNode): boolean {
     // ToDo: check insertion points?
-    return target.namespace === context.namespace &&
+    return (
+      target.namespace === context.namespace &&
       target.contextType === context.contextType &&
       this._areConditionsMet(target.if, context.parsedContext) &&
-      target.parent
-      ? context.parentNode
-        ? this.isTargetMet(target.parent, context.parentNode)
-        : false
-      : true
+      (target.parent
+        ? context.parentNode
+          ? this.isTargetMet(target.parent, context.parentNode)
+          : false
+        : true)
+    )
   }
 
   static _areConditionsMet(
