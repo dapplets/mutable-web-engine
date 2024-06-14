@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { InjectableTarget } from '../providers/provider'
 import { useEngine } from '../app/contexts/engine-context'
+import { InjectableTarget } from '../app/contexts/engine-context/engine-context'
 
 const _DappletPortal: React.FC<{ component: React.FC; target: InjectableTarget }> = ({
   component: Component,

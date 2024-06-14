@@ -1,9 +1,11 @@
 import { createContext } from 'react'
-import { Engine } from '../../../engine'
-import { InjectableTarget } from '../../../providers/provider'
 import { IContextNode } from '../../../../core'
 import { BosRedirectMap } from '../../services/dev-server-service'
 import { Target } from '../../services/target/target.entity'
+
+export type InjectableTarget = Target & {
+  injectTo: string
+}
 
 export type PickerTask = {
   callback: ((context: IContextNode | null) => void) | null

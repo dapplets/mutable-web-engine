@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import { InjectableTarget } from '../../../providers/provider'
+import { InjectableTarget } from './engine-context';
 
 export const usePortals = () => {
   const [portals, setPortals] = useState(
