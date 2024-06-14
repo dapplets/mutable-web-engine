@@ -11,6 +11,7 @@ import { useContextApps } from '../contexts/mutable-web-context/use-context-apps
 import { Target } from '../services/target/target.entity'
 import { AppId, AppMetadata } from '../services/application/application.entity'
 import { BosUserLink, UserLinkId } from '../services/user-link/user-link.entity'
+import { useModal } from '../contexts/modal-context'
 
 export const ContextManager: FC = () => {
   return <ContextTree children={ContextHandler} />
@@ -111,6 +112,7 @@ const InsPointHandler: FC<{
 }) => {
   const { pickerTask, setPickerTask, redirectMap } = useEngine()
   const { components } = usePortalFilter(context, insPointName) // ToDo: extract to the separate AppManager component
+  const { notify } = useModal()
 
   const pickContext = useCallback((target: Target) => {
     return new Promise<TransferableContext | null>((resolve, reject) => {
@@ -196,6 +198,8 @@ const InsPointHandler: FC<{
 
     pickContext,
     pickContexts,
+
+    notify,
   }
 
   // Don't render layout manager if there are no components
