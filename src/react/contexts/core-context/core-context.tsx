@@ -7,7 +7,7 @@ import { EventEmitter } from '../../../core/event-emitter'
 export type CoreContextState = {
   core: Core | null
   tree: IContextNode | null
-  event: EventEmitter<TreeBuilderEvents> | null
+  event: EventEmitter<any> | null
   attachParserConfig: (parserConfig: ParserConfig) => void
   detachParserConfig: (parserId: string) => void
 }

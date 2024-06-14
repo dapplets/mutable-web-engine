@@ -12,7 +12,7 @@ import { EventEmitter, Subscription } from './event-emitter'
 export interface CoreConfig {}
 
 export class Core {
-  private _eventEmitter: EventEmitter<TreeBuilderEvents>
+  private _eventEmitter: EventEmitter<any>
   private _treeBuilder: PureTreeBuilder
 
   /**
@@ -24,12 +24,14 @@ export class Core {
     return this._treeBuilder.root
   }
 
-  public get event() {
-    return this._eventEmitter.emit
-  }
   constructor(config?: CoreConfig) {
-    this._eventEmitter = new EventEmitter<TreeBuilderEvents>()
+    this._eventEmitter = new EventEmitter<any>()
     this._treeBuilder = new PureTreeBuilder(this._eventEmitter)
+  }
+
+  public createNotify(notify: any): void {
+    this._treeBuilder.notificationCreate(this._treeBuilder.root, notify)
+    return this._eventEmitter.emit(notify.name, notify)
   }
 
   public attachParserConfig(parserConfig: ParserConfig) {

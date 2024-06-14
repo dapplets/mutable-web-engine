@@ -37,7 +37,7 @@ export const App: FC<{
       setEngine(engine)
     })()
   }, [config, defaultMutationId])
-
+  // console.log(engine, 'eventEmitter app')
   if (!engine) return null
   return (
     <StyleSheetManager target={stylesMountPoint}>

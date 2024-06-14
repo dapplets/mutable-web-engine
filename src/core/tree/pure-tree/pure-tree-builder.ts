@@ -10,6 +10,7 @@ export type TreeBuilderEvents = {
   contextChanged: { context: IContextNode; previousContext: ParsedContext }
   insertionPointStarted: { context: IContextNode; insertionPoint: InsertionPointWithElement }
   insertionPointFinished: { context: IContextNode; insertionPoint: InsertionPointWithElement }
+  notificationCreate: { context: any; notification: any }
 }
 
 export class PureTreeBuilder implements ITreeBuilder {
@@ -18,6 +19,11 @@ export class PureTreeBuilder implements ITreeBuilder {
   constructor(private _eventEmitter: EventEmitter<TreeBuilderEvents>) {
     // ToDo: move to engine, it's not a core responsibility
     this.root = this.createNode(DappletsEngineNs, 'website') // default ns
+  }
+  notificationCreate(parent: IContextNode, notify: any): void {
+    this._emitnotificationCreate(parent, notify)
+
+    this._eventEmitter.emit('notificationCreate', notify)
   }
 
   appendChild(parent: IContextNode, child: IContextNode): void {
@@ -41,6 +47,8 @@ export class PureTreeBuilder implements ITreeBuilder {
   ): IContextNode {
     return new PureContextNode(namespace, contextType, parsedContext, insPoints, element)
   }
+
+  createNotification(parent: IContextNode, notify: any) {}
 
   updateParsedContext(context: IContextNode, newParsedContext: any): void {
     const oldParsedContext = context.parsedContext
@@ -107,6 +115,13 @@ export class PureTreeBuilder implements ITreeBuilder {
     this._eventEmitter.emit('insertionPointFinished', {
       context,
       insertionPoint,
+    })
+  }
+
+  private _emitnotificationCreate(context: any, notification: any) {
+    this._eventEmitter.emit('notificationCreate', {
+      context,
+      notification,
     })
   }
 }

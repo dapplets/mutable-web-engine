@@ -7,7 +7,7 @@ import { TreeBuilderEvents } from '../../../core/tree/pure-tree/pure-tree-builde
 
 type Props = {
   core: Core
-  event: EventEmitter<TreeBuilderEvents>
+  event: EventEmitter<any>
   children: ReactElement
 }
 

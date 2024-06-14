@@ -10,6 +10,8 @@ import { ShadowDomWrapper } from '../../bos/shadow-dom-wrapper'
 import { ContextTree } from '../../../react/components/context-tree'
 import { useContextApps } from '../contexts/engine-context/use-context-apps'
 import { EventEmitter } from '../../../core/event-emitter'
+import { TreeBuilderEvents } from '../../../core/tree/pure-tree/pure-tree-builder'
+import { CoreEvents } from '../../../core/events'
 
 export const ContextManager: FC = () => {
   return <ContextTree children={ContextHandler} />
@@ -23,7 +25,7 @@ enum TypeNotify {
 }
 interface Notification {
   subject: string
-  text: string
+  body: string
 
   type: TypeNotify
 }
@@ -34,7 +36,8 @@ const ContextHandler: FC<{ context: IContextNode; insPoints: InsertionPointWithE
 }) => {
   const { userLinks } = useUserLinks(context)
   const { apps } = useContextApps(context)
-  const eventEmitter = new EventEmitter<any>()
+  const { engine } = useEngine()
+
   const [isEditMode, setIsEditMode] = useState(false)
 
   const transferableContext = useMemo(() => buildTransferableContext(context), [context])
@@ -57,9 +60,11 @@ const ContextHandler: FC<{ context: IContextNode; insPoints: InsertionPointWithE
 
   const handleCreateNotification = useCallback(
     (notify: Notification) => {
-      eventEmitter.emit(notify.text, { ...notify })
+      engine.createNotify(notify)
+      console.log(engine, 'engine')
+      console.log(notify, 'notify')
     },
-    [eventEmitter]
+    [event]
   )
 
   return (

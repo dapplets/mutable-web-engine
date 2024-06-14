@@ -7,6 +7,7 @@ export type TreeNodeEvents = {
   childContextRemoved: { child: IContextNode }
   insertionPointAdded: { insertionPoint: InsertionPointWithElement }
   insertionPointRemoved: { insertionPoint: InsertionPointWithElement }
+  notificationCreate: { child: IContextNode }
 }
 
 export type InsertionPointWithElement = InsertionPoint & {
@@ -29,7 +30,7 @@ export interface IContextNode {
   children: IContextNode[]
   removeChild(child: IContextNode): void
   appendChild(child: IContextNode): void
-
+  notificationCreate(child: IContextNode): void
   appendInsPoint(insPoint: InsertionPointWithElement): void
   removeInsPoint(insPointName: string): void
 
@@ -41,7 +42,7 @@ export interface IContextNode {
 
 export interface ITreeBuilder {
   root: IContextNode
-
+  notificationCreate(parent: IContextNode, child: any): void
   appendChild(parent: IContextNode, child: IContextNode): void
   removeChild(parent: IContextNode, child: IContextNode): void
   updateParsedContext(context: IContextNode, parsedContext: any): void

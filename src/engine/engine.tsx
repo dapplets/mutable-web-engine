@@ -37,7 +37,7 @@ export class Engine {
 
   started: boolean = false
   core: Core
-  event: EventEmitter<TreeBuilderEvents>
+  event: EventEmitter<any>
 
   constructor(public readonly config: EngineConfig) {
     if (!this.config.storage) {
@@ -54,7 +54,7 @@ export class Engine {
     this.mutationManager = new MutationManager(this.#provider)
 
     this.core = new Core()
-    this.event = new EventEmitter()
+    this.event = new EventEmitter<TreeBuilderEvents>()
     this.core.on('contextStarted', this.handleContextStarted.bind(this))
   }
 
@@ -167,6 +167,11 @@ export class Engine {
 
     this.stop()
     await this.start(mutationId)
+  }
+
+  async createNotify(notify: any): Promise<void> {
+    this.event.emit('createNotify', notify)
+    this.core.createNotify(notify)
   }
 
   async getCurrentMutation(): Promise<MutationWithSettings | null> {

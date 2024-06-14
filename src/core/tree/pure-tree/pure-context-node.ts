@@ -11,10 +11,14 @@ export class PureContextNode implements IContextNode {
   public element: HTMLElement | null = null
 
   #parsedContext: any = {}
-  #eventEmitter = new EventEmitter<TreeNodeEvents>()
+  #eventEmitter = new EventEmitter<any>()
+  #notificationCreate: any
 
   public get parsedContext() {
     return this.#parsedContext
+  }
+  public get notificationCreate() {
+    return this.#notificationCreate
   }
 
   public set parsedContext(parsedContext: any) {
@@ -22,18 +26,26 @@ export class PureContextNode implements IContextNode {
     this.#eventEmitter.emit('contextChanged', {})
   }
 
+  public set notificationCreate(parsedContext: any) {
+    this.#parsedContext = parsedContext
+    this.#notificationCreate
+    this.#eventEmitter.emit('notificationCreate', parsedContext)
+  }
+
   constructor(
     namespace: string,
     contextType: string,
     parsedContext: any = {},
     insPoints: InsertionPointWithElement[] = [],
-    element: HTMLElement | null = null
+    element: HTMLElement | null = null,
+    notificationCreate: any = {}
   ) {
     this.namespace = namespace
     this.contextType = contextType
     this.parsedContext = parsedContext
     this.insPoints = insPoints
     this.element = element
+    this.notificationCreate = notificationCreate
 
     // ToDo: the similar logic is in tree builder
     this.id = parsedContext.id ?? null
@@ -43,8 +55,13 @@ export class PureContextNode implements IContextNode {
     child.parentNode = null
     this.children = this.children.filter((c) => c !== child)
     this.#eventEmitter.emit('childContextRemoved', { child })
-    
+
     // ToDo: remove children of removed context?
+  }
+
+  createNotification(child: any): void {
+    this.notificationCreate(child)
+    this.#eventEmitter.emit('notificationCreate', { child })
   }
 
   appendChild(child: IContextNode): void {
