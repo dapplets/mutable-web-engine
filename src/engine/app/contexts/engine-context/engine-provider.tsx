@@ -1,4 +1,4 @@
-import React, { FC, ReactElement, useState } from 'react'
+import React, { FC, ReactElement, useEffect, useState } from 'react'
 import { EngineContext, EngineContextState, PickerTask } from './engine-context'
 import { usePortals } from './use-portals'
 import { useDevMode } from './use-dev-mode'
@@ -13,6 +13,13 @@ const EngineProvider: FC<Props> = ({ children }) => {
 
   const { portals, addPortal, removePortal } = usePortals()
   const { redirectMap, enableDevMode, disableDevMode } = useDevMode()
+
+  useEffect(() => {
+    console.log('[MutableWeb] Dev mode:', {
+      enableDevMode,
+      disableDevMode,
+    })
+  }, [enableDevMode, disableDevMode])
 
   const state: EngineContextState = {
     viewportRef,
