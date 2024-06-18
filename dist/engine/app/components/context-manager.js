@@ -61,7 +61,7 @@ const ContextHandler = ({ context, insPoints, }) => {
 const InsPointHandler = ({ insPointName, bosLayoutManager, context, transferableContext, allUserLinks, apps, isEditMode, onCreateUserLink, onDeleteUserLink, onEnableEditMode, onDisableEditMode, onAttachContextRef, }) => {
     const { pickerTask, setPickerTask, redirectMap } = (0, engine_context_1.useEngine)();
     const { components } = (0, use_portal_filter_1.usePortalFilter)(context, insPointName); // ToDo: extract to the separate AppManager component
-    const pickContext = (0, react_1.useCallback)((target) => {
+    const pickContext = (0, react_1.useCallback)((target, styles) => {
         return new Promise((resolve, reject) => {
             if (pickerTask) {
                 return reject('The picker is busy');
@@ -70,20 +70,21 @@ const InsPointHandler = ({ insPointName, bosLayoutManager, context, transferable
                 resolve(context ? buildTransferableContext(context) : null);
                 setPickerTask(null);
             };
-            setPickerTask({ callback, target });
+            setPickerTask({ callback, target, styles });
         });
     }, []);
-    const pickContexts = (0, react_1.useCallback)((target, callback) => {
+    const pickContexts = (0, react_1.useCallback)(({ target, callback, styles, highlightChildren, }) => {
         if (pickerTask) {
             throw new Error('The picker is busy');
         }
         const stop = () => setPickerTask(null);
-        const taskCallback = (context) => {
-            if (context) {
-                callback(buildTransferableContext(context));
-            }
-        };
-        setPickerTask({ callback: taskCallback, target });
+        const taskCallback = callback &&
+            ((context) => {
+                if (context) {
+                    callback(buildTransferableContext(context));
+                }
+            });
+        setPickerTask({ callback: taskCallback, target, styles, highlightChildren });
         return { stop };
     }, []);
     const attachInsPointRef = (0, react_1.useCallback)((callback) => {
