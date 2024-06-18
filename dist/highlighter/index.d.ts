@@ -1,10 +1,15 @@
 import React, { FC } from 'react';
 import { IContextNode } from '../core';
-interface IContextReactangle {
+interface IHighlighter {
+    focusedContext: IContextNode | null;
     context: IContextNode;
+    onMouseEnter: () => void;
+    onMouseLeave: () => void;
     styles?: React.CSSProperties;
-    onClick?: () => void;
+    onClick?: (() => void) | null;
+    highlightChildren?: boolean;
+    variant?: 'primary' | 'secondary';
 }
-export declare const ContextReactangle: FC<IContextReactangle>;
+export declare const Highlighter: FC<IHighlighter>;
 export {};
 //# sourceMappingURL=index.d.ts.map

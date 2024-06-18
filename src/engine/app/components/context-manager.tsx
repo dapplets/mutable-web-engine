@@ -112,7 +112,7 @@ const InsPointHandler: FC<{
   const { pickerTask, setPickerTask, redirectMap } = useEngine()
   const { components } = usePortalFilter(context, insPointName) // ToDo: extract to the separate AppManager component
 
-  const pickContext = useCallback((target: Target) => {
+  const pickContext = useCallback((target: Target, styles?: React.CSSProperties) => {
     return new Promise<TransferableContext | null>((resolve, reject) => {
       if (pickerTask) {
         return reject('The picker is busy')
@@ -123,25 +123,37 @@ const InsPointHandler: FC<{
         setPickerTask(null)
       }
 
-      setPickerTask({ callback, target })
+      setPickerTask({ callback, target, styles })
     })
   }, [])
 
   const pickContexts = useCallback(
-    (target: Target, callback: (context: TransferableContext) => void) => {
+    ({
+      target,
+      callback,
+      styles,
+      highlightChildren,
+    }: {
+      target?: Target
+      callback?: (context: TransferableContext) => void
+      styles?: React.CSSProperties
+      highlightChildren?: boolean
+    }) => {
       if (pickerTask) {
         throw new Error('The picker is busy')
       }
 
       const stop = () => setPickerTask(null)
 
-      const taskCallback = (context: IContextNode | null) => {
-        if (context) {
-          callback(buildTransferableContext(context))
-        }
-      }
+      const taskCallback =
+        callback &&
+        ((context: IContextNode | null) => {
+          if (context) {
+            callback(buildTransferableContext(context))
+          }
+        })
 
-      setPickerTask({ callback: taskCallback, target })
+      setPickerTask({ callback: taskCallback, target, styles, highlightChildren })
 
       return { stop }
     },
