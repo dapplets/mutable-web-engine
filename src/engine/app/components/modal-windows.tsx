@@ -108,8 +108,8 @@ const ButtonAction = styled.button`
 `
 
 const IconWrapper = styled.div<{ $type: 'error' | 'info' | 'warning' }>`
-  border-top-left-radius: 10;
-  border-bottom-right-radius: 10;
+  border-top-left-radius: 10px;
+  border-bottom-right-radius: 10px;
   padding: 0;
   margin: 0;
   position: absolute;
@@ -156,16 +156,13 @@ export const ModalWindows = () => {
     padding: '10px',
   }
 
-  // ToDo: use bootstrap here
-  console.log(modals)
-
   return (
     <ToastContainer position="top-end">
-      {modals.map(({ subject, body, type, actions }) => (
+      {modals.map(({ subject, body, type, actions, id }) => (
         <Toast
-          key={subject}
+          key={id}
           show={subject ? true : false}
-          onClose={() => closeModal(subject)}
+          onClose={() => closeModal(id)}
           style={wrapperStyle}
         >
           <Toast.Header className={`alert-${type.toLowerCase()}`} style={toastHeaderStyle}>
@@ -184,7 +181,13 @@ export const ModalWindows = () => {
           <Toast.Body style={toastBodyStyle}> {body}</Toast.Body>
           <div style={buttonsBlockStyle}>
             {actions?.map(({ label, onClick }) => (
-              <ButtonAction key={label} onClick={onClick}>
+              <ButtonAction
+                key={label}
+                onClick={() => {
+                  onClick()
+                  closeModal(id)
+                }}
+              >
                 {label}
               </ButtonAction>
             ))}

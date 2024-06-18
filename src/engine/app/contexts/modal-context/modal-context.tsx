@@ -4,6 +4,7 @@ export type ModalProps = {
   subject: string
   body: string
   type: 'error' | 'info' | 'warning'
+  id: number
   actions: {
     label: string
     onClick: () => void
@@ -13,7 +14,7 @@ export type ModalProps = {
 export type ModalContextState = {
   modals: ModalProps[]
   notify: (modalProps: ModalProps) => void
-  closeModal: (subject: string) => void
+  closeModal: (id: number) => void
 }
 
 export const contextDefaultValues: ModalContextState = {

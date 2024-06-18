@@ -15,8 +15,8 @@ const ModalProvider: FC<Props> = ({ children }) => {
     setModals((prev) => [...prev, modalWithId])
   }, [])
 
-  const closeModal = useCallback((subject: string) => {
-    setModals((prev) => prev.filter((modal) => modal.subject !== subject))
+  const closeModal = useCallback((id: number) => {
+    setModals((prev) => prev.filter((modal) => modal.id !== id))
   }, [])
 
   const state: ModalContextState = {
