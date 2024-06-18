@@ -23,14 +23,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ContextReactangle = void 0;
+exports.Highlighter = void 0;
 const react_1 = __importStar(require("react"));
 const DEFAULT_BORDER_RADIUS = 6; // px
-const DEFAULT_BORDER_COLOR = '#384BFF'; //blue
-const DEFAULT_BORDER_STYLE = 'dashed';
+const DEFAULT_BORDER_COLOR = '#384BFF'; // blue
+const DEFAULT_INACTIVE_BORDER_COLOR = '#384BFF4D'; // light blue
+const DEFAULT_BORDER_STYLE = 'solid';
+const DEFAULT_CHILDREN_BORDER_STYLE = 'dashed';
 const DEFAULT_BORDER_WIDTH = 2; //px
-const DEFAULT_BACKGROUND_COLOR = 'rgb(56 188 255 / 5%)'; // light blue
-const defaultStyledBorder = `${DEFAULT_BORDER_WIDTH}px ${DEFAULT_BORDER_STYLE} ${DEFAULT_BORDER_COLOR}`;
+const DEFAULT_BACKGROUND_COLOR = 'rgb(56 188 255 / 5%)'; // light light blue
 const getElementDepth = (el) => {
     let depth = 0;
     let host = el.host;
@@ -46,50 +47,51 @@ const getElementDepth = (el) => {
 const getContextDepth = (context) => {
     return context.element ? getElementDepth(context.element) : 0;
 };
-const ContextReactangle = ({ context, styles, onClick }) => {
+const Highlighter = ({ focusedContext, context, onMouseEnter, onMouseLeave, styles, onClick, highlightChildren, variant, }) => {
     var _a, _b, _c;
-    const [isEntered, setIsEntered] = (0, react_1.useState)(false);
     const pickerRef = (0, react_1.useRef)(null);
     (0, react_1.useEffect)(() => {
         if (!pickerRef.current)
             return;
-        const mouseEnterHandler = () => {
-            setIsEntered(true);
-        };
-        const mouseLeaveHandler = () => {
-            setIsEntered(false);
-        };
-        pickerRef.current.addEventListener('mouseenter', mouseEnterHandler);
-        pickerRef.current.addEventListener('mouseleave', mouseLeaveHandler);
+        pickerRef.current.addEventListener('mouseenter', onMouseEnter);
+        pickerRef.current.addEventListener('mouseleave', onMouseLeave);
         return () => {
             if (!pickerRef.current)
                 return;
-            pickerRef.current.removeEventListener('mouseenter', mouseEnterHandler);
-            pickerRef.current.removeEventListener('mouseleave', mouseLeaveHandler);
+            pickerRef.current.removeEventListener('mouseenter', onMouseEnter);
+            pickerRef.current.removeEventListener('mouseleave', onMouseLeave);
         };
     }, [pickerRef.current]);
     if (!context.element)
         return null;
+    const isFirstLevelContext = !context.parentNode || context.parentNode.contextType === 'root';
     const bodyOffset = document.documentElement.getBoundingClientRect();
     const targetOffset = context.element.getBoundingClientRect();
-    const targetHeight = targetOffset.height;
-    const targetWidth = targetOffset.width;
     const contextDepth = getContextDepth(context);
+    const backgroundColor = onClick
+        ? (_a = styles === null || styles === void 0 ? void 0 : styles.backgroundColor) !== null && _a !== void 0 ? _a : DEFAULT_BACKGROUND_COLOR
+        : 'transparent';
+    const opacity = variant === 'primary' ||
+        (variant === 'secondary' && highlightChildren) ||
+        (!focusedContext && isFirstLevelContext)
+        ? 1
+        : 0;
+    const border = (_b = styles === null || styles === void 0 ? void 0 : styles.border) !== null && _b !== void 0 ? _b : `${DEFAULT_BORDER_WIDTH}px ${isFirstLevelContext ? DEFAULT_BORDER_STYLE : DEFAULT_CHILDREN_BORDER_STYLE} ${focusedContext ? DEFAULT_BORDER_COLOR : DEFAULT_INACTIVE_BORDER_COLOR}`;
     const wrapperStyle = {
-        left: targetOffset.left - bodyOffset.left,
-        top: targetOffset.top - bodyOffset.top,
-        width: targetWidth,
-        height: targetHeight,
-        backgroundColor: onClick ? (_a = styles === null || styles === void 0 ? void 0 : styles.backgroundColor) !== null && _a !== void 0 ? _a : DEFAULT_BACKGROUND_COLOR : 'transparent',
-        borderRadius: (_b = styles === null || styles === void 0 ? void 0 : styles.borderRadius) !== null && _b !== void 0 ? _b : DEFAULT_BORDER_RADIUS,
-        border: (_c = styles === null || styles === void 0 ? void 0 : styles.border) !== null && _c !== void 0 ? _c : defaultStyledBorder,
         position: 'absolute',
-        zIndex: 1 + (contextDepth !== null && contextDepth !== void 0 ? contextDepth : 0),
-        pointerEvents: onClick ? 'auto' : 'none',
+        top: targetOffset.top - bodyOffset.top,
+        left: targetOffset.left - bodyOffset.left,
+        width: targetOffset.width,
+        height: targetOffset.height,
+        borderRadius: (_c = styles === null || styles === void 0 ? void 0 : styles.borderRadius) !== null && _c !== void 0 ? _c : DEFAULT_BORDER_RADIUS,
+        border,
+        backgroundColor,
         transition: 'all .2s ease-in-out',
-        opacity: isEntered ? 1 : 0,
         cursor: 'pointer',
+        pointerEvents: onClick ? 'auto' : 'none',
+        zIndex: 1000000 + (contextDepth !== null && contextDepth !== void 0 ? contextDepth : 0),
+        opacity,
     };
-    return react_1.default.createElement("div", { ref: pickerRef, style: wrapperStyle, className: "mweb-picker", onClick: onClick });
+    return (react_1.default.createElement("div", { ref: pickerRef, style: wrapperStyle, className: "mweb-picker", onClick: onClick !== null && onClick !== void 0 ? onClick : undefined }));
 };
-exports.ContextReactangle = ContextReactangle;
+exports.Highlighter = Highlighter;

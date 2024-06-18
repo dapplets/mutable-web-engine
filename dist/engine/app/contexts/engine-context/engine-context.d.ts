@@ -6,8 +6,10 @@ export type InjectableTarget = Target & {
     injectTo: string;
 };
 export type PickerTask = {
-    callback: ((context: IContextNode | null) => void) | null;
-    target: Target;
+    target?: Target | Target[];
+    callback?: ((context: IContextNode | null) => void) | null;
+    styles?: React.CSSProperties;
+    highlightChildren?: boolean;
 };
 export type EngineContextState = {
     viewportRef: React.RefObject<HTMLDivElement>;
