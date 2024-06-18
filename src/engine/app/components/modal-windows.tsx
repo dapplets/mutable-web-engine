@@ -157,6 +157,7 @@ export const ModalWindows = () => {
   }
 
   // ToDo: use bootstrap here
+  console.log(modals)
 
   return (
     <ToastContainer position="top-end">
@@ -167,9 +168,15 @@ export const ModalWindows = () => {
           onClose={() => closeModal(subject)}
           style={wrapperStyle}
         >
-          <Toast.Header className={`alert-${type}`} style={toastHeaderStyle}>
+          <Toast.Header className={`alert-${type.toLowerCase()}`} style={toastHeaderStyle}>
             <IconWrapper $type={type}>
-              {type === 'error' ? <IconError /> : type === 'warning' ? <IconAlert /> : <IconInfo />}
+              {type.toLowerCase() === 'error' ? (
+                <IconError />
+              ) : type.toLowerCase() === 'warning' ? (
+                <IconAlert />
+              ) : (
+                <IconInfo />
+              )}
             </IconWrapper>
 
             <strong className="me-auto">{subject}</strong>

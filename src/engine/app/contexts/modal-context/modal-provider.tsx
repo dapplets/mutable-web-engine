@@ -1,4 +1,4 @@
-import React, { FC, ReactElement, useCallback, useState } from 'react'
+import React, { FC, ReactElement, useCallback, useRef, useState } from 'react'
 import { ModalContext, ModalContextState, ModalProps } from './modal-context'
 
 type Props = {
@@ -7,9 +7,12 @@ type Props = {
 
 const ModalProvider: FC<Props> = ({ children }) => {
   const [modals, setModals] = useState<ModalProps[]>([]) // ToDo: add id
+  const counterRef = useRef(0)
 
   const notify = useCallback((modalProps: ModalProps) => {
-    setModals((prev) => [...prev, modalProps])
+    const id = ++counterRef.current
+    const modalWithId = { ...modalProps, id }
+    setModals((prev) => [...prev, modalWithId])
   }, [])
 
   const closeModal = useCallback((subject: string) => {
