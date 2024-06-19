@@ -80,7 +80,7 @@ const Highlighter = ({ focusedContext, context, onMouseEnter, onMouseLeave, styl
         (!focusedContext && isFirstLevelContext)
         ? 1
         : 0;
-    const border = (_b = styles === null || styles === void 0 ? void 0 : styles.border) !== null && _b !== void 0 ? _b : `${DEFAULT_BORDER_WIDTH}px ${isFirstLevelContext ? DEFAULT_BORDER_STYLE : DEFAULT_CHILDREN_BORDER_STYLE} ${focusedContext ? DEFAULT_BORDER_COLOR : DEFAULT_INACTIVE_BORDER_COLOR}`;
+    const border = (_b = styles === null || styles === void 0 ? void 0 : styles.border) !== null && _b !== void 0 ? _b : `${DEFAULT_BORDER_WIDTH}px ${isFirstLevelContext ? DEFAULT_BORDER_STYLE : DEFAULT_CHILDREN_BORDER_STYLE} ${variant === 'primary' ? DEFAULT_BORDER_COLOR : DEFAULT_INACTIVE_BORDER_COLOR}`;
     const wrapperStyle = {
         position: 'absolute',
         display: 'flex',
@@ -99,6 +99,6 @@ const Highlighter = ({ focusedContext, context, onMouseEnter, onMouseLeave, styl
         zIndex: 1000000 + (contextDepth !== null && contextDepth !== void 0 ? contextDepth : 0),
         opacity,
     };
-    return (react_1.default.createElement("div", { ref: pickerRef, style: wrapperStyle, className: "mweb-picker", onClick: onClick !== null && onClick !== void 0 ? onClick : undefined }, onClick && react_1.default.createElement(lightning_1.default, null)));
+    return (react_1.default.createElement("div", { ref: pickerRef, style: wrapperStyle, className: "mweb-picker", onClick: onClick !== null && onClick !== void 0 ? onClick : undefined }, onClick && (react_1.default.createElement(lightning_1.default, { color: variant === 'primary' ? DEFAULT_BORDER_COLOR : DEFAULT_INACTIVE_BORDER_COLOR }))));
 };
 exports.Highlighter = Highlighter;

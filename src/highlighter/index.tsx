@@ -79,7 +79,7 @@ export const Highlighter: FC<IHighlighter> = ({
       : 0
   const border =
     styles?.border ??
-    `${DEFAULT_BORDER_WIDTH}px ${isFirstLevelContext ? DEFAULT_BORDER_STYLE : DEFAULT_CHILDREN_BORDER_STYLE} ${focusedContext ? DEFAULT_BORDER_COLOR : DEFAULT_INACTIVE_BORDER_COLOR}`
+    `${DEFAULT_BORDER_WIDTH}px ${isFirstLevelContext ? DEFAULT_BORDER_STYLE : DEFAULT_CHILDREN_BORDER_STYLE} ${variant === 'primary' ? DEFAULT_BORDER_COLOR : DEFAULT_INACTIVE_BORDER_COLOR}`
 
   const wrapperStyle: React.CSSProperties = {
     position: 'absolute',
@@ -107,7 +107,11 @@ export const Highlighter: FC<IHighlighter> = ({
       className="mweb-picker"
       onClick={onClick ?? undefined}
     >
-      {onClick && <Lightning />}
+      {onClick && (
+        <Lightning
+          color={variant === 'primary' ? DEFAULT_BORDER_COLOR : DEFAULT_INACTIVE_BORDER_COLOR}
+        />
+      )}
     </div>
   )
 }
