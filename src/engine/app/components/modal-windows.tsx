@@ -1,7 +1,6 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useModal } from '../contexts/modal-context'
 import Toast from 'react-bootstrap/Toast'
-import 'bootstrap/dist/css/bootstrap.min.css'
 import ToastContainer from 'react-bootstrap/ToastContainer'
 import styled from 'styled-components'
 
@@ -126,18 +125,30 @@ const IconWrapper = styled.div<{ $type: 'error' | 'info' | 'warning' }>`
 
 export const ModalWindows = () => {
   const { modals, closeModal } = useModal()
+  const [isHovering, setIsHovering] = useState(false)
+
+  const handleMouseEnter = () => {
+    setIsHovering(!isHovering)
+  }
 
   const wrapperStyle: React.CSSProperties = {
-    borderRadius: '10px',
-    border: '1px solid #02193A',
     position: 'fixed',
     bottom: '10px',
     right: '10px',
     zIndex: 99999999,
     transition: 'all .2s ease-in-out',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+  }
+
+  const notifyStyle: React.CSSProperties = {
+    borderRadius: '10px',
+    border: '1px solid #02193A',
     boxSizing: 'border-box',
     overflow: 'hidden',
     fontFamily: 'sans-serif',
+    marginBottom: '0px',
   }
 
   const toastHeaderStyle: React.CSSProperties = {
@@ -157,28 +168,31 @@ export const ModalWindows = () => {
   }
 
   return (
-    <ToastContainer position="top-end">
-      {modals.map(({ subject, body, type, actions, id }) => (
+    <ToastContainer style={{ ...wrapperStyle }} onDoubleClick={handleMouseEnter}>
+      {modals.map(({ subject, body, type, actions, id }, index) => (
         <Toast
           key={id}
-          show={subject ? true : false}
+          show={isHovering || modals.length <= 3 || index === modals.length - 1}
           onClose={() => closeModal(id)}
-          style={wrapperStyle}
+          style={notifyStyle}
         >
-          <Toast.Header className={`alert-${type.toLowerCase()}`} style={toastHeaderStyle}>
-            <IconWrapper $type={type}>
-              {type.toLowerCase() === 'error' ? (
-                <IconError />
-              ) : type.toLowerCase() === 'warning' ? (
-                <IconAlert />
-              ) : (
-                <IconInfo />
-              )}
-            </IconWrapper>
+          {' '}
+          <div style={{ position: 'relative' }}>
+            <Toast.Header className={`alert-${type.toLowerCase()}`} style={toastHeaderStyle}>
+              <IconWrapper $type={type.toLowerCase() as 'error' | 'info' | 'warning'}>
+                {type.toLowerCase() === 'error' ? (
+                  <IconError />
+                ) : type.toLowerCase() === 'warning' ? (
+                  <IconAlert />
+                ) : (
+                  <IconInfo />
+                )}
+              </IconWrapper>
 
-            <strong className="me-auto">{subject}</strong>
-          </Toast.Header>
-          <Toast.Body style={toastBodyStyle}> {body}</Toast.Body>
+              <strong className="me-auto">{subject}</strong>
+            </Toast.Header>{' '}
+          </div>
+          <Toast.Body style={toastBodyStyle}>{body}</Toast.Body>
           <div style={buttonsBlockStyle}>
             {actions?.map(({ label, onClick }) => (
               <ButtonAction
