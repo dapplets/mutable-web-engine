@@ -22,9 +22,13 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Highlighter = void 0;
 const react_1 = __importStar(require("react"));
+const lightning_1 = __importDefault(require("./assets/icons/lightning"));
 const DEFAULT_BORDER_RADIUS = 6; // px
 const DEFAULT_BORDER_COLOR = '#384BFF'; // blue
 const DEFAULT_INACTIVE_BORDER_COLOR = '#384BFF4D'; // light blue
@@ -79,6 +83,9 @@ const Highlighter = ({ focusedContext, context, onMouseEnter, onMouseLeave, styl
     const border = (_b = styles === null || styles === void 0 ? void 0 : styles.border) !== null && _b !== void 0 ? _b : `${DEFAULT_BORDER_WIDTH}px ${isFirstLevelContext ? DEFAULT_BORDER_STYLE : DEFAULT_CHILDREN_BORDER_STYLE} ${focusedContext ? DEFAULT_BORDER_COLOR : DEFAULT_INACTIVE_BORDER_COLOR}`;
     const wrapperStyle = {
         position: 'absolute',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
         top: targetOffset.top - bodyOffset.top,
         left: targetOffset.left - bodyOffset.left,
         width: targetOffset.width,
@@ -92,6 +99,6 @@ const Highlighter = ({ focusedContext, context, onMouseEnter, onMouseLeave, styl
         zIndex: 1000000 + (contextDepth !== null && contextDepth !== void 0 ? contextDepth : 0),
         opacity,
     };
-    return (react_1.default.createElement("div", { ref: pickerRef, style: wrapperStyle, className: "mweb-picker", onClick: onClick !== null && onClick !== void 0 ? onClick : undefined }));
+    return (react_1.default.createElement("div", { ref: pickerRef, style: wrapperStyle, className: "mweb-picker", onClick: onClick !== null && onClick !== void 0 ? onClick : undefined }, onClick && react_1.default.createElement(lightning_1.default, null)));
 };
 exports.Highlighter = Highlighter;

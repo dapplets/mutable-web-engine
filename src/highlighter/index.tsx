@@ -1,5 +1,6 @@
 import React, { FC, useEffect, useRef } from 'react'
 import { IContextNode } from '../core'
+import Lightning from './assets/icons/lightning'
 
 const DEFAULT_BORDER_RADIUS = 6 // px
 const DEFAULT_BORDER_COLOR = '#384BFF' // blue
@@ -82,6 +83,9 @@ export const Highlighter: FC<IHighlighter> = ({
 
   const wrapperStyle: React.CSSProperties = {
     position: 'absolute',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     top: targetOffset.top - bodyOffset.top,
     left: targetOffset.left - bodyOffset.left,
     width: targetOffset.width,
@@ -102,6 +106,8 @@ export const Highlighter: FC<IHighlighter> = ({
       style={wrapperStyle}
       className="mweb-picker"
       onClick={onClick ?? undefined}
-    />
+    >
+      {onClick && <Lightning />}
+    </div>
   )
 }
