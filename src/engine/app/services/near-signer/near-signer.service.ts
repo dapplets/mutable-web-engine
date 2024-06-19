@@ -7,6 +7,7 @@ import Big from 'big.js'
 import { NearConfig } from '../../../constants'
 import { TypedError } from 'near-api-js/lib/providers'
 import BN from 'bn.js'
+import { Cacheable } from 'caching-decorator'
 
 export const DefaultGas = '30000000000000' // 30 TGas
 export const TGas = Big(10).pow(12)
@@ -37,6 +38,7 @@ export class NearSigner {
     return accounts[0]?.accountId ?? null
   }
 
+  @Cacheable({ ttl: 1000 }) // ~ block time
   async view(contractName: string, methodName: string, args: any): Promise<any> {
     args = args || {}
     const result = (await this.provider.query({

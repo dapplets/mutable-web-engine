@@ -15,6 +15,12 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
@@ -41,6 +47,7 @@ const key_storage_1 = require("../social-db/key-storage");
 const big_js_1 = __importDefault(require("big.js"));
 const providers_1 = require("near-api-js/lib/providers");
 const bn_js_1 = __importDefault(require("bn.js"));
+const caching_decorator_1 = require("caching-decorator");
 exports.DefaultGas = '30000000000000'; // 30 TGas
 exports.TGas = (0, big_js_1.default)(10).pow(12);
 /**
@@ -217,3 +224,6 @@ class NearSigner {
     }
 }
 exports.NearSigner = NearSigner;
+__decorate([
+    (0, caching_decorator_1.Cacheable)({ ttl: 1000 }) // ~ block time
+], NearSigner.prototype, "view", null);
