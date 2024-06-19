@@ -9,6 +9,7 @@ const DEFAULT_BORDER_STYLE = 'solid'
 const DEFAULT_CHILDREN_BORDER_STYLE = 'dashed'
 const DEFAULT_BORDER_WIDTH = 2 //px
 const DEFAULT_BACKGROUND_COLOR = 'rgb(56 188 255 / 5%)' // light light blue
+const PRIVILEGED_NAMESPACE = 'mweb' // ToDo: hardcode. Needs to be fixed.
 
 const getElementDepth = (el: Element | Node) => {
   let depth = 0
@@ -96,7 +97,7 @@ export const Highlighter: FC<IHighlighter> = ({
     transition: 'all .2s ease-in-out',
     cursor: 'pointer',
     pointerEvents: onClick ? 'auto' : 'none',
-    zIndex: 1000000 + (contextDepth ?? 0),
+    zIndex: 100000 * (context.namespace === PRIVILEGED_NAMESPACE ? 1000 : 1) + (contextDepth ?? 0),
     opacity,
   }
 

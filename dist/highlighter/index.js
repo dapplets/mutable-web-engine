@@ -36,6 +36,7 @@ const DEFAULT_BORDER_STYLE = 'solid';
 const DEFAULT_CHILDREN_BORDER_STYLE = 'dashed';
 const DEFAULT_BORDER_WIDTH = 2; //px
 const DEFAULT_BACKGROUND_COLOR = 'rgb(56 188 255 / 5%)'; // light light blue
+const PRIVILEGED_NAMESPACE = 'mweb'; // ToDo: hardcode. Needs to be fixed.
 const getElementDepth = (el) => {
     let depth = 0;
     let host = el.host;
@@ -96,7 +97,7 @@ const Highlighter = ({ focusedContext, context, onMouseEnter, onMouseLeave, styl
         transition: 'all .2s ease-in-out',
         cursor: 'pointer',
         pointerEvents: onClick ? 'auto' : 'none',
-        zIndex: 1000000 + (contextDepth !== null && contextDepth !== void 0 ? contextDepth : 0),
+        zIndex: 100000 * (context.namespace === PRIVILEGED_NAMESPACE ? 1000 : 1) + (contextDepth !== null && contextDepth !== void 0 ? contextDepth : 0),
         opacity,
     };
     return (react_1.default.createElement("div", { ref: pickerRef, style: wrapperStyle, className: "mweb-picker", onClick: onClick !== null && onClick !== void 0 ? onClick : undefined }, onClick && (react_1.default.createElement(lightning_1.default, { color: variant === 'primary' ? DEFAULT_BORDER_COLOR : DEFAULT_INACTIVE_BORDER_COLOR }))));
