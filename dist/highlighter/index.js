@@ -51,7 +51,7 @@ const getElementDepth = (el) => {
 const getContextDepth = (context) => {
     return context.element ? getElementDepth(context.element) : 0;
 };
-const Highlighter = ({ focusedContext, context, onMouseEnter, onMouseLeave, styles, onClick, highlightChildren, variant, }) => {
+const Highlighter = ({ focusedContext, context, onMouseEnter, onMouseLeave, styles, onClick, highlightChildren, variant, LatchComponent, }) => {
     var _a, _b, _c;
     const pickerRef = (0, react_1.useRef)(null);
     (0, react_1.useEffect)(() => {
@@ -99,6 +99,8 @@ const Highlighter = ({ focusedContext, context, onMouseEnter, onMouseLeave, styl
         zIndex: 1000000 + (contextDepth !== null && contextDepth !== void 0 ? contextDepth : 0),
         opacity,
     };
-    return (react_1.default.createElement("div", { ref: pickerRef, style: wrapperStyle, className: "mweb-picker", onClick: onClick !== null && onClick !== void 0 ? onClick : undefined }, onClick && (react_1.default.createElement(lightning_1.default, { color: variant === 'primary' ? DEFAULT_BORDER_COLOR : DEFAULT_INACTIVE_BORDER_COLOR }))));
+    return (react_1.default.createElement("div", { ref: pickerRef, style: wrapperStyle, className: "mweb-picker", onClick: onClick !== null && onClick !== void 0 ? onClick : undefined },
+        onClick && (react_1.default.createElement(lightning_1.default, { color: variant === 'primary' ? DEFAULT_BORDER_COLOR : DEFAULT_INACTIVE_BORDER_COLOR })),
+        LatchComponent ? react_1.default.createElement(LatchComponent, { context: context }) : null));
 };
 exports.Highlighter = Highlighter;

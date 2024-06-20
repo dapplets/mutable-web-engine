@@ -9,6 +9,9 @@ interface IHighlighter {
     onClick?: (() => void) | null;
     highlightChildren?: boolean;
     variant?: 'primary' | 'secondary';
+    LatchComponent?: React.FC<{
+        context: IContextNode;
+    }>;
 }
 export declare const Highlighter: FC<IHighlighter>;
 export {};
