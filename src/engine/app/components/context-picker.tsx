@@ -31,7 +31,7 @@ export const ContextPicker: FC = () => {
 
         const handleClick = useCallback(() => {
           pickerTask.onClick?.(context)
-        }, [pickerTask])
+        }, [pickerTask, context])
 
         const handleMouseEnter = useCallback(() => {
           setFocusedContext(context)
@@ -41,7 +41,7 @@ export const ContextPicker: FC = () => {
         const handleMouseLeave = useCallback(() => {
           setFocusedContext(null)
           pickerTask.onMouseLeave?.(context)
-        }, [])
+        }, [context])
 
         return (
           <Highlighter
@@ -53,6 +53,7 @@ export const ContextPicker: FC = () => {
             onMouseLeave={handleMouseLeave}
             styles={pickerTask.styles}
             highlightChildren={pickerTask.highlightChildren}
+            LatchComponent={pickerTask.LatchComponent}
           />
         )
       }}

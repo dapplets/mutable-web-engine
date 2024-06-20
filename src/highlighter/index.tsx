@@ -35,6 +35,7 @@ interface IHighlighter {
   onClick?: (() => void) | null
   highlightChildren?: boolean
   variant?: 'primary' | 'secondary'
+  LatchComponent?: React.FC<{ context: IContextNode }>
 }
 
 export const Highlighter: FC<IHighlighter> = ({
@@ -46,6 +47,7 @@ export const Highlighter: FC<IHighlighter> = ({
   onClick,
   highlightChildren,
   variant,
+  LatchComponent,
 }) => {
   const pickerRef = useRef<any>(null)
 
@@ -112,6 +114,7 @@ export const Highlighter: FC<IHighlighter> = ({
           color={variant === 'primary' ? DEFAULT_BORDER_COLOR : DEFAULT_INACTIVE_BORDER_COLOR}
         />
       )}
+      {LatchComponent ? <LatchComponent context={context} /> : null}
     </div>
   )
 }

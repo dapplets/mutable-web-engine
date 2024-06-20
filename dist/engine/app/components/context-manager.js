@@ -33,6 +33,7 @@ const use_portal_filter_1 = require("../contexts/engine-context/use-portal-filte
 const shadow_dom_wrapper_1 = require("../../bos/shadow-dom-wrapper");
 const context_tree_1 = require("../../../react/components/context-tree");
 const use_context_apps_1 = require("../contexts/mutable-web-context/use-context-apps");
+const transferable_context_1 = require("../common/transferable-context");
 const ContextManager = () => {
     return react_1.default.createElement(context_tree_1.ContextTree, { children: ContextHandler });
 };
@@ -41,7 +42,7 @@ const ContextHandler = ({ context, insPoints, }) => {
     const { userLinks, createUserLink, deleteUserLink } = (0, use_user_links_1.useUserLinks)(context);
     const { apps } = (0, use_context_apps_1.useContextApps)(context);
     const [isEditMode, setIsEditMode] = (0, react_1.useState)(false);
-    const transferableContext = (0, react_1.useMemo)(() => buildTransferableContext(context), [context]);
+    const transferableContext = (0, react_1.useMemo)(() => (0, transferable_context_1.buildTransferableContext)(context), [context]);
     // For OverlayTrigger
     const attachContextRef = (0, react_1.useCallback)((callback) => {
         callback(context.element);
@@ -61,32 +62,43 @@ const ContextHandler = ({ context, insPoints, }) => {
 const InsPointHandler = ({ insPointName, bosLayoutManager, context, transferableContext, allUserLinks, apps, isEditMode, onCreateUserLink, onDeleteUserLink, onEnableEditMode, onDisableEditMode, onAttachContextRef, }) => {
     const { pickerTask, setPickerTask, redirectMap } = (0, engine_context_1.useEngine)();
     const { components } = (0, use_portal_filter_1.usePortalFilter)(context, insPointName); // ToDo: extract to the separate AppManager component
+    /**
+     * @deprecated
+     */
     const pickContext = (0, react_1.useCallback)((target, styles) => {
         return new Promise((resolve, reject) => {
             if (pickerTask) {
                 return reject('The picker is busy');
             }
             const callback = (context) => {
-                resolve(context ? buildTransferableContext(context) : null);
+                resolve((0, transferable_context_1.buildTransferableContext)(context));
                 setPickerTask(null);
             };
-            setPickerTask({ callback, target, styles });
+            setPickerTask({ onClick: callback, target, styles });
         });
     }, []);
-    const pickContexts = (0, react_1.useCallback)(({ target, callback, styles, highlightChildren, }) => {
+    /**
+     * @deprecated
+     */
+    const pickContexts = (0, react_1.useCallback)(({ target, callback, click, mouseenter, mouseleave, styles, highlightChildren, }) => {
         if (pickerTask) {
             throw new Error('The picker is busy');
         }
         const stop = () => setPickerTask(null);
-        const taskCallback = callback &&
-            ((context) => {
-                if (context) {
-                    callback(buildTransferableContext(context));
-                }
-            });
-        setPickerTask({ callback: taskCallback, target, styles, highlightChildren });
+        setPickerTask({
+            target,
+            onClick: (ctx) => {
+                click === null || click === void 0 ? void 0 : click((0, transferable_context_1.buildTransferableContext)(ctx));
+                callback === null || callback === void 0 ? void 0 : callback((0, transferable_context_1.buildTransferableContext)(ctx)); // ToDo: remove
+            },
+            onMouseEnter: (ctx) => mouseenter === null || mouseenter === void 0 ? void 0 : mouseenter((0, transferable_context_1.buildTransferableContext)(ctx)),
+            onMouseLeave: (ctx) => mouseleave === null || mouseleave === void 0 ? void 0 : mouseleave((0, transferable_context_1.buildTransferableContext)(ctx)),
+            styles,
+            highlightChildren,
+        });
         return { stop };
-    }, []);
+    }, [] // ToDo: add pickerTask as dependency?
+    );
     const attachInsPointRef = (0, react_1.useCallback)((callback) => {
         var _a;
         // ToDo: the similar logic is used in ContextPortal
@@ -140,10 +152,3 @@ const InsPointHandler = ({ insPointName, bosLayoutManager, context, transferable
     return (react_1.default.createElement(shadow_dom_wrapper_1.ShadowDomWrapper, null,
         react_1.default.createElement(near_social_vm_1.Widget, { src: bosLayoutManager !== null && bosLayoutManager !== void 0 ? bosLayoutManager : defaultLayoutManager, props: props, loading: react_1.default.createElement(react_1.default.Fragment, null), config: { redirectMap } })));
 };
-const buildTransferableContext = (context) => ({
-    namespace: context.namespace,
-    type: context.contextType,
-    id: context.id,
-    parsed: context.parsedContext,
-    parent: context.parentNode ? buildTransferableContext(context.parentNode) : null,
-});

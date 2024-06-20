@@ -9,9 +9,10 @@ export type InjectableTarget = Target & {
 
 export type PickerTask = {
   target?: Target | Target[]
-  onClick?: ((context: IContextNode | null) => void) | null
-  onMouseEnter?: ((context: IContextNode | null) => void) | null
-  onMouseLeave?: ((context: IContextNode | null) => void) | null
+  onClick?: ((context: IContextNode) => void)
+  onMouseEnter?: ((context: IContextNode) => void)
+  onMouseLeave?: ((context: IContextNode) => void)
+  LatchComponent?: React.FC<{ context: IContextNode }>
   styles?: React.CSSProperties
   highlightChildren?: boolean
 }
