@@ -43,14 +43,20 @@ export const ContextPicker: FC = () => {
           pickerTask.onMouseLeave?.(context)
         }, [])
 
+        const memoizatedIsTransparent = useMemo(
+          () => !!pickerTask.transparencyCondition && pickerTask.transparencyCondition(context),
+          [context]
+        )
+
         return (
           <Highlighter
             focusedContext={focusedContext}
             context={context}
             variant={variant}
-            onClick={handleClick}
+            onClick={pickerTask.onClick && handleClick}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
+            isTransparent={memoizatedIsTransparent}
             styles={pickerTask.styles}
             highlightChildren={pickerTask.highlightChildren}
           />

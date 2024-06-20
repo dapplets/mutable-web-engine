@@ -7,9 +7,12 @@ export type InjectableTarget = Target & {
 };
 export type PickerTask = {
     target?: Target | Target[];
-    callback?: ((context: IContextNode | null) => void) | null;
+    onClick?: ((context: IContextNode | null) => void) | null;
+    onMouseEnter?: ((context: IContextNode | null) => void) | null;
+    onMouseLeave?: ((context: IContextNode | null) => void) | null;
     styles?: React.CSSProperties;
     highlightChildren?: boolean;
+    transparencyCondition?: (currentContext: IContextNode) => boolean;
 };
 export type EngineContextState = {
     viewportRef: React.RefObject<HTMLDivElement>;

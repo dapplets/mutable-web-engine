@@ -33,12 +33,6 @@ const ContextPicker = () => {
     const { tree } = (0, react_2.useCore)();
     const { pickerTask } = (0, engine_context_1.useEngine)();
     const [focusedContext, setFocusedContext] = (0, react_1.useState)(null);
-    const handleMouseEnter = (0, react_1.useCallback)((context) => {
-        setFocusedContext(context);
-    }, []);
-    const handleMouseLeave = (0, react_1.useCallback)(() => {
-        setFocusedContext(null);
-    }, []);
     if (!tree || !pickerTask)
         return null;
     return (react_1.default.createElement(react_2.ContextTree, null, ({ context }) => {
@@ -55,7 +49,22 @@ const ContextPicker = () => {
             if (focusedContext === context.parentNode)
                 return 'secondary';
         }, [focusedContext, context]);
-        return (react_1.default.createElement(highlighter_1.Highlighter, { focusedContext: focusedContext, context: context, variant: variant, onClick: pickerTask.callback && (() => { var _a; return (_a = pickerTask.callback) === null || _a === void 0 ? void 0 : _a.call(pickerTask, context); }), onMouseEnter: () => handleMouseEnter(context), onMouseLeave: handleMouseLeave, styles: pickerTask.styles, highlightChildren: pickerTask.highlightChildren }));
+        const handleClick = (0, react_1.useCallback)(() => {
+            var _a;
+            (_a = pickerTask.onClick) === null || _a === void 0 ? void 0 : _a.call(pickerTask, context);
+        }, [pickerTask]);
+        const handleMouseEnter = (0, react_1.useCallback)(() => {
+            var _a;
+            setFocusedContext(context);
+            (_a = pickerTask.onMouseEnter) === null || _a === void 0 ? void 0 : _a.call(pickerTask, context);
+        }, [context]);
+        const handleMouseLeave = (0, react_1.useCallback)(() => {
+            var _a;
+            setFocusedContext(null);
+            (_a = pickerTask.onMouseLeave) === null || _a === void 0 ? void 0 : _a.call(pickerTask, context);
+        }, []);
+        const memoizatedIsTransparent = (0, react_1.useMemo)(() => !!pickerTask.transparencyCondition && pickerTask.transparencyCondition(context), [context]);
+        return (react_1.default.createElement(highlighter_1.Highlighter, { focusedContext: focusedContext, context: context, variant: variant, onClick: pickerTask.onClick && handleClick, onMouseEnter: handleMouseEnter, onMouseLeave: handleMouseLeave, isTransparent: memoizatedIsTransparent, styles: pickerTask.styles, highlightChildren: pickerTask.highlightChildren }));
     }));
 };
 exports.ContextPicker = ContextPicker;

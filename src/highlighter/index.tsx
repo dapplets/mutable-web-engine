@@ -36,6 +36,7 @@ interface IHighlighter {
   onClick?: (() => void) | null
   highlightChildren?: boolean
   variant?: 'primary' | 'secondary'
+  isTransparent?: boolean
 }
 
 export const Highlighter: FC<IHighlighter> = ({
@@ -47,6 +48,7 @@ export const Highlighter: FC<IHighlighter> = ({
   onClick,
   highlightChildren,
   variant,
+  isTransparent = false,
 }) => {
   const pickerRef = useRef<any>(null)
 
@@ -96,7 +98,7 @@ export const Highlighter: FC<IHighlighter> = ({
     backgroundColor,
     transition: 'all .2s ease-in-out',
     cursor: 'pointer',
-    pointerEvents: onClick ? 'auto' : 'none',
+    pointerEvents: isTransparent ? 'none' : 'auto',
     zIndex: 100000 * (context.namespace === PRIVILEGED_NAMESPACE ? 1000 : 1) + (contextDepth ?? 0),
     opacity,
   }

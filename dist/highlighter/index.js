@@ -52,7 +52,7 @@ const getElementDepth = (el) => {
 const getContextDepth = (context) => {
     return context.element ? getElementDepth(context.element) : 0;
 };
-const Highlighter = ({ focusedContext, context, onMouseEnter, onMouseLeave, styles, onClick, highlightChildren, variant, }) => {
+const Highlighter = ({ focusedContext, context, onMouseEnter, onMouseLeave, styles, onClick, highlightChildren, variant, isTransparent = false, }) => {
     var _a, _b, _c;
     const pickerRef = (0, react_1.useRef)(null);
     (0, react_1.useEffect)(() => {
@@ -96,7 +96,7 @@ const Highlighter = ({ focusedContext, context, onMouseEnter, onMouseLeave, styl
         backgroundColor,
         transition: 'all .2s ease-in-out',
         cursor: 'pointer',
-        pointerEvents: onClick ? 'auto' : 'none',
+        pointerEvents: isTransparent ? 'none' : 'auto',
         zIndex: 100000 * (context.namespace === PRIVILEGED_NAMESPACE ? 1000 : 1) + (contextDepth !== null && contextDepth !== void 0 ? contextDepth : 0),
         opacity,
     };

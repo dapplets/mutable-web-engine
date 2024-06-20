@@ -14,6 +14,7 @@ export type PickerTask = {
   onMouseLeave?: ((context: IContextNode | null) => void) | null
   styles?: React.CSSProperties
   highlightChildren?: boolean
+  transparencyCondition?: (currentContext: IContextNode) => boolean
 }
 
 export type EngineContextState = {

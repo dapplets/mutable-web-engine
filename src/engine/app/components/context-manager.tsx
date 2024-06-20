@@ -136,6 +136,7 @@ const InsPointHandler: FC<{
       mouseleave,
       styles,
       highlightChildren,
+      transparencyCondition,
     }: {
       target?: Target
       callback?: (context: TransferableContext) => void
@@ -144,6 +145,7 @@ const InsPointHandler: FC<{
       mouseleave?: (context: TransferableContext) => void
       styles?: React.CSSProperties
       highlightChildren?: boolean
+      transparencyCondition?: (currentContext: IContextNode) => boolean
     }) => {
       if (pickerTask) {
         throw new Error('The picker is busy')
@@ -153,13 +155,15 @@ const InsPointHandler: FC<{
 
       setPickerTask({
         target,
-        onClick: (context: IContextNode | null) => {
-          if (context) {
-            // ToDo: hide to context picker?
-            click?.(buildTransferableContext(context))
-            callback?.(buildTransferableContext(context))
-          }
-        },
+        onClick:
+          (click || callback) &&
+          ((context: IContextNode | null) => {
+            if (context) {
+              // ToDo: hide to context picker?
+              click?.(buildTransferableContext(context))
+              callback?.(buildTransferableContext(context))
+            }
+          }),
         onMouseEnter: (context: IContextNode | null) => {
           if (context) {
             mouseenter?.(buildTransferableContext(context))
@@ -172,6 +176,7 @@ const InsPointHandler: FC<{
         },
         styles,
         highlightChildren,
+        transparencyCondition,
       })
 
       return { stop }

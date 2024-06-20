@@ -9,6 +9,7 @@ interface IHighlighter {
     onClick?: (() => void) | null;
     highlightChildren?: boolean;
     variant?: 'primary' | 'secondary';
+    isTransparent?: boolean;
 }
 export declare const Highlighter: FC<IHighlighter>;
 export {};

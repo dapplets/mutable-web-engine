@@ -70,23 +70,41 @@ const InsPointHandler = ({ insPointName, bosLayoutManager, context, transferable
                 resolve(context ? buildTransferableContext(context) : null);
                 setPickerTask(null);
             };
-            setPickerTask({ callback, target, styles });
+            setPickerTask({ onClick: callback, target, styles });
         });
     }, []);
-    const pickContexts = (0, react_1.useCallback)(({ target, callback, styles, highlightChildren, }) => {
+    const pickContexts = (0, react_1.useCallback)(({ target, callback, click, mouseenter, mouseleave, styles, highlightChildren, transparencyCondition, }) => {
         if (pickerTask) {
             throw new Error('The picker is busy');
         }
         const stop = () => setPickerTask(null);
-        const taskCallback = callback &&
-            ((context) => {
+        setPickerTask({
+            target,
+            onClick: (click || callback) &&
+                ((context) => {
+                    if (context) {
+                        // ToDo: hide to context picker?
+                        click === null || click === void 0 ? void 0 : click(buildTransferableContext(context));
+                        callback === null || callback === void 0 ? void 0 : callback(buildTransferableContext(context));
+                    }
+                }),
+            onMouseEnter: (context) => {
                 if (context) {
-                    callback(buildTransferableContext(context));
+                    mouseenter === null || mouseenter === void 0 ? void 0 : mouseenter(buildTransferableContext(context));
                 }
-            });
-        setPickerTask({ callback: taskCallback, target, styles, highlightChildren });
+            },
+            onMouseLeave: (context) => {
+                if (context) {
+                    mouseleave === null || mouseleave === void 0 ? void 0 : mouseleave(buildTransferableContext(context));
+                }
+            },
+            styles,
+            highlightChildren,
+            transparencyCondition,
+        });
         return { stop };
-    }, []);
+    }, [] // ToDo: add pickerTask as dependency?
+    );
     const attachInsPointRef = (0, react_1.useCallback)((callback) => {
         var _a;
         // ToDo: the similar logic is used in ContextPortal
@@ -140,6 +158,7 @@ const InsPointHandler = ({ insPointName, bosLayoutManager, context, transferable
     return (react_1.default.createElement(shadow_dom_wrapper_1.ShadowDomWrapper, null,
         react_1.default.createElement(near_social_vm_1.Widget, { src: bosLayoutManager !== null && bosLayoutManager !== void 0 ? bosLayoutManager : defaultLayoutManager, props: props, loading: react_1.default.createElement(react_1.default.Fragment, null), config: { redirectMap } })));
 };
+// ToDo: reuse in ContextPicker
 const buildTransferableContext = (context) => ({
     namespace: context.namespace,
     type: context.contextType,
