@@ -11,14 +11,6 @@ export const ContextPicker: FC = () => {
 
   const [focusedContext, setFocusedContext] = useState<IContextNode | null>(null)
 
-  const handleMouseEnter = useCallback((context: IContextNode) => {
-    setFocusedContext(context)
-  }, [])
-
-  const handleMouseLeave = useCallback(() => {
-    setFocusedContext(null)
-  }, [])
-
   if (!tree || !pickerTask) return null
 
   return (
@@ -37,13 +29,27 @@ export const ContextPicker: FC = () => {
           if (focusedContext === context.parentNode) return 'secondary'
         }, [focusedContext, context])
 
+        const handleClick = useCallback(() => {
+          pickerTask.onClick?.(context)
+        }, [pickerTask])
+
+        const handleMouseEnter = useCallback(() => {
+          setFocusedContext(context)
+          pickerTask.onMouseEnter?.(context)
+        }, [context])
+
+        const handleMouseLeave = useCallback(() => {
+          setFocusedContext(null)
+          pickerTask.onMouseLeave?.(context)
+        }, [])
+
         return (
           <Highlighter
             focusedContext={focusedContext}
             context={context}
             variant={variant}
-            onClick={pickerTask.callback && (() => pickerTask.callback?.(context))}
-            onMouseEnter={() => handleMouseEnter(context)}
+            onClick={handleClick}
+            onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             styles={pickerTask.styles}
             highlightChildren={pickerTask.highlightChildren}

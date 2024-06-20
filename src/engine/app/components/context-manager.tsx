@@ -123,7 +123,7 @@ const InsPointHandler: FC<{
         setPickerTask(null)
       }
 
-      setPickerTask({ callback, target, styles })
+      setPickerTask({ onClick: callback, target, styles })
     })
   }, [])
 
@@ -131,11 +131,17 @@ const InsPointHandler: FC<{
     ({
       target,
       callback,
+      click,
+      mouseenter,
+      mouseleave,
       styles,
       highlightChildren,
     }: {
       target?: Target
       callback?: (context: TransferableContext) => void
+      click?: (context: TransferableContext) => void
+      mouseenter?: (context: TransferableContext) => void
+      mouseleave?: (context: TransferableContext) => void
       styles?: React.CSSProperties
       highlightChildren?: boolean
     }) => {
@@ -145,19 +151,32 @@ const InsPointHandler: FC<{
 
       const stop = () => setPickerTask(null)
 
-      const taskCallback =
-        callback &&
-        ((context: IContextNode | null) => {
+      setPickerTask({
+        target,
+        onClick: (context: IContextNode | null) => {
           if (context) {
-            callback(buildTransferableContext(context))
+            // ToDo: hide to context picker?
+            click?.(buildTransferableContext(context))
+            callback?.(buildTransferableContext(context))
           }
-        })
-
-      setPickerTask({ callback: taskCallback, target, styles, highlightChildren })
+        },
+        onMouseEnter: (context: IContextNode | null) => {
+          if (context) {
+            mouseenter?.(buildTransferableContext(context))
+          }
+        },
+        onMouseLeave: (context: IContextNode | null) => {
+          if (context) {
+            mouseleave?.(buildTransferableContext(context))
+          }
+        },
+        styles,
+        highlightChildren,
+      })
 
       return { stop }
     },
-    []
+    [] // ToDo: add pickerTask as dependency?
   )
 
   const attachInsPointRef = useCallback(
@@ -240,6 +259,7 @@ interface TransferableContext {
   parent: TransferableContext | null
 }
 
+// ToDo: reuse in ContextPicker
 const buildTransferableContext = (context: IContextNode): TransferableContext => ({
   namespace: context.namespace,
   type: context.contextType,
