@@ -107,7 +107,6 @@ const ButtonAction = styled.button`
 `
 
 const IconWrapper = styled.div<{ $type: 'error' | 'info' | 'warning' }>`
-  border-top-left-radius: 10px;
   border-bottom-right-radius: 10px;
   padding: 0;
   margin: 0;
@@ -123,91 +122,189 @@ const IconWrapper = styled.div<{ $type: 'error' | 'info' | 'warning' }>`
     props.$type === 'error' ? '#DB504A' : props.$type === 'warning' ? '#d0911a' : '#384BFF'};
 `
 
+const ToastContainerStyle = {
+  position: 'fixed' as 'fixed',
+  bottom: '10px',
+  right: '10px',
+  zIndex: 99999999,
+  transition: 'all .2s ease-in-out',
+  display: 'flex',
+  flexDirection: 'column' as 'column',
+  gap: '10px',
+}
+
+const toastHeaderStyle: React.CSSProperties = {
+  paddingLeft: '3rem',
+  borderBottom: 'none',
+  paddingRight: '1rem',
+  fontSize: '16px',
+  fontWeight: '600',
+}
+
+const toastBodyStyle: React.CSSProperties = {
+  color: '#7A818B',
+}
+
+const buttonsBlockStyle: React.CSSProperties = {
+  display: 'flex',
+  gap: '10px',
+  flexWrap: 'wrap',
+  padding: '10px',
+}
+
 export const ModalWindows = () => {
   const { modals, closeModal } = useModal()
   const [isHovering, setIsHovering] = useState(false)
+  const [closingModals, setClosingModals] = useState<string[]>([])
 
   const handleMouseEnter = () => {
     setIsHovering(!isHovering)
   }
 
-  const wrapperStyle: React.CSSProperties = {
-    position: 'fixed',
-    bottom: '10px',
-    right: '10px',
-    zIndex: 99999999,
-    transition: 'all .2s ease-in-out',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '10px',
-  }
-
-  const notifyStyle: React.CSSProperties = {
-    borderRadius: '10px',
-    border: '1px solid #02193A',
-    boxSizing: 'border-box',
-    overflow: 'hidden',
-    fontFamily: 'sans-serif',
-    marginBottom: '0px',
-  }
-
-  const toastHeaderStyle: React.CSSProperties = {
-    paddingLeft: '3rem',
-    borderBottom: 'none',
-  }
-
-  const toastBodyStyle: React.CSSProperties = {
-    color: '#7A818B',
-  }
-
-  const buttonsBlockStyle: React.CSSProperties = {
-    display: 'flex',
-    gap: '10px',
-    flexWrap: 'wrap',
-    padding: '10px',
+  const handleClose = (id: string) => {
+    setClosingModals((prev) => [...prev, id])
+    setTimeout(() => {
+      closeModal(+id)
+      setClosingModals((prev) => prev.filter((modalId) => modalId !== id))
+    }, 500)
   }
 
   return (
-    <ToastContainer style={{ ...wrapperStyle }} onDoubleClick={handleMouseEnter}>
-      {modals.map(({ subject, body, type, actions, id }, index) => (
-        <Toast
-          key={id}
-          show={isHovering || modals.length <= 3 || index === modals.length - 1}
-          onClose={() => closeModal(id)}
-          style={notifyStyle}
-        >
-          {' '}
-          <div style={{ position: 'relative' }}>
-            <Toast.Header className={`alert-${type.toLowerCase()}`} style={toastHeaderStyle}>
-              <IconWrapper $type={type.toLowerCase() as 'error' | 'info' | 'warning'}>
-                {type.toLowerCase() === 'error' ? (
-                  <IconError />
-                ) : type.toLowerCase() === 'warning' ? (
-                  <IconAlert />
-                ) : (
-                  <IconInfo />
-                )}
-              </IconWrapper>
+    <ToastContainer style={ToastContainerStyle} onDoubleClick={handleMouseEnter}>
+      {!isHovering && modals.length > 3 ? (
+        <style>
+          {`
+          .toast-container::before,
+          .toast-container::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 10px;
+            background: #02193A;
+            left: 0;
+          }
 
-              <strong className="me-auto">{subject}</strong>
-            </Toast.Header>{' '}
-          </div>
-          <Toast.Body style={toastBodyStyle}>{body}</Toast.Body>
-          <div style={buttonsBlockStyle}>
-            {actions?.map(({ label, onClick }) => (
-              <ButtonAction
-                key={label}
-                onClick={() => {
-                  onClick()
-                  closeModal(id)
-                }}
-              >
-                {label}
-              </ButtonAction>
-            ))}
-          </div>
-        </Toast>
-      ))}
+          .toast-container::before {
+           bottom: 100%;
+           border-radius: 10px 10px 0 0;
+           box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.5);
+           width: 90%;
+           height: 7px;
+           opacity: 0.3;
+           left: 10px;
+          }
+
+          .toast-container::after {
+          bottom: 98%;
+          border-radius: 10px 10px 0px 0px;
+          box-shadow: 0 0px 5px rgba(0, 0, 0, 0.5);
+          left: 5px;
+          width: 95%;
+          opacity: 0.5;
+          height: 5px;
+
+          }
+
+          @keyframes slideIn {
+            from {
+              transform: translateX(100%);
+              opacity: 0;
+            }
+            to {
+              transform: translateX(0);
+              opacity: 1;
+            }
+          }
+          @keyframes slideOut {
+            from {
+              transform: translateX(0);
+              opacity: 1;
+            }
+            to {
+              transform: translateY(100%);
+              opacity: 0;
+            }
+          }
+        `}
+        </style>
+      ) : null}
+
+      {modals.map(({ subject, body, type, actions, id }, index) => {
+        const isVisible = isHovering || modals.length <= 3 || index === modals.length - 1
+
+        return (
+          <Toast
+            key={id}
+            show={isVisible}
+            onClose={() => handleClose(id.toString())}
+            style={{
+              borderRadius: '10px',
+              border: '1px solid #02193A',
+              boxSizing: 'border-box',
+              overflow: 'hidden',
+              fontFamily: 'sans-serif',
+              marginBottom: '0px',
+              animation: closingModals.includes(id.toString())
+                ? 'slideOut 0.5s ease-in-out'
+                : 'slideIn 0.5s ease-in-out',
+            }}
+          >
+            <style>
+              {`
+              @keyframes slideIn {
+                from {
+                  transform: translateX(100%);
+                  opacity: 0;
+                }
+                to {
+                  transform: translateX(0);
+                  opacity: 1;
+                }
+              }
+              @keyframes slideOut {
+                from {
+                  transform: translateX(0);
+                  opacity: 1;
+                }
+                to {
+                  transform: translateY(100%);
+                  opacity: 0;
+                }
+              }
+            `}
+            </style>
+            <div style={{ position: 'relative' }}>
+              <Toast.Header className={`alert-${type.toLowerCase()}`} style={toastHeaderStyle}>
+                <IconWrapper $type={type.toLowerCase() as 'error' | 'info' | 'warning'}>
+                  {type.toLowerCase() === 'error' ? (
+                    <IconError />
+                  ) : type.toLowerCase() === 'warning' ? (
+                    <IconAlert />
+                  ) : (
+                    <IconInfo />
+                  )}
+                </IconWrapper>
+
+                <strong className="me-auto">{subject}</strong>
+              </Toast.Header>
+            </div>
+            <Toast.Body style={toastBodyStyle}>{body}</Toast.Body>
+            <div style={buttonsBlockStyle}>
+              {actions?.map(({ label, onClick }) => (
+                <ButtonAction
+                  key={label}
+                  onClick={() => {
+                    onClick()
+                    closeModal(id)
+                  }}
+                >
+                  {label}
+                </ButtonAction>
+              ))}
+            </div>
+          </Toast>
+        )
+      })}
     </ToastContainer>
   )
 }
