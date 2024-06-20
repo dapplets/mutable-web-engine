@@ -11,6 +11,7 @@ import { useContextApps } from '../contexts/mutable-web-context/use-context-apps
 import { Target } from '../services/target/target.entity'
 import { AppId, AppMetadata } from '../services/application/application.entity'
 import { BosUserLink, UserLinkId } from '../services/user-link/user-link.entity'
+import { TransferableContext, buildTransferableContext } from '../common/transferable-context'
 
 export const ContextManager: FC = () => {
   return <ContextTree children={ContextHandler} />
@@ -112,14 +113,17 @@ const InsPointHandler: FC<{
   const { pickerTask, setPickerTask, redirectMap } = useEngine()
   const { components } = usePortalFilter(context, insPointName) // ToDo: extract to the separate AppManager component
 
+  /**
+   * @deprecated
+   */
   const pickContext = useCallback((target: Target, styles?: React.CSSProperties) => {
     return new Promise<TransferableContext | null>((resolve, reject) => {
       if (pickerTask) {
         return reject('The picker is busy')
       }
 
-      const callback = (context: IContextNode | null) => {
-        resolve(context ? buildTransferableContext(context) : null)
+      const callback = (context: IContextNode) => {
+        resolve(buildTransferableContext(context))
         setPickerTask(null)
       }
 
@@ -127,6 +131,9 @@ const InsPointHandler: FC<{
     })
   }, [])
 
+  /**
+   * @deprecated
+   */
   const pickContexts = useCallback(
     ({
       target,
@@ -153,23 +160,12 @@ const InsPointHandler: FC<{
 
       setPickerTask({
         target,
-        onClick: (context: IContextNode | null) => {
-          if (context) {
-            // ToDo: hide to context picker?
-            click?.(buildTransferableContext(context))
-            callback?.(buildTransferableContext(context))
-          }
+        onClick: (ctx) => {
+          click?.(buildTransferableContext(ctx))
+          callback?.(buildTransferableContext(ctx)) // ToDo: remove
         },
-        onMouseEnter: (context: IContextNode | null) => {
-          if (context) {
-            mouseenter?.(buildTransferableContext(context))
-          }
-        },
-        onMouseLeave: (context: IContextNode | null) => {
-          if (context) {
-            mouseleave?.(buildTransferableContext(context))
-          }
-        },
+        onMouseEnter: (ctx) => mouseenter?.(buildTransferableContext(ctx)),
+        onMouseLeave: (ctx) => mouseleave?.(buildTransferableContext(ctx)),
         styles,
         highlightChildren,
       })
@@ -250,20 +246,3 @@ const InsPointHandler: FC<{
     </ShadowDomWrapper>
   )
 }
-
-interface TransferableContext {
-  namespace: string | null
-  type: string
-  id: string | null
-  parsed: any
-  parent: TransferableContext | null
-}
-
-// ToDo: reuse in ContextPicker
-const buildTransferableContext = (context: IContextNode): TransferableContext => ({
-  namespace: context.namespace,
-  type: context.contextType,
-  id: context.id,
-  parsed: context.parsedContext,
-  parent: context.parentNode ? buildTransferableContext(context.parentNode) : null,
-})
