@@ -9,7 +9,8 @@ const _DappletContextPicker: React.FC<{
   onMouseEnter?: (ctx: TransferableContext) => void
   onMouseLeave?: (ctx: TransferableContext) => void
   LatchComponent?: React.FC<{ context: TransferableContext }>
-}> = ({ target, onClick, onMouseEnter, onMouseLeave, LatchComponent }) => {
+  highlightChildren?: boolean // ToDo: remove
+}> = ({ target, onClick, onMouseEnter, onMouseLeave, LatchComponent, highlightChildren }) => {
   const { setPickerTask } = useEngine()
 
   React.useEffect(() => {
@@ -21,9 +22,10 @@ const _DappletContextPicker: React.FC<{
       LatchComponent: LatchComponent
         ? ({ context }) => <LatchComponent context={buildTransferableContext(context)} />
         : undefined,
+      highlightChildren,
     })
     return () => setPickerTask(null)
-  }, [target, onClick, onMouseEnter, onMouseLeave])
+  }, [target, onClick, onMouseEnter, onMouseLeave, LatchComponent, highlightChildren])
 
   return null
 }
