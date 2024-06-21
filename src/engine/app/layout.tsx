@@ -5,7 +5,6 @@ import { ContextManager } from './components/context-manager'
 import { ShadowDomWrapper } from '../bos/shadow-dom-wrapper'
 import { useEngine } from './contexts/engine-context'
 import { useMutableWeb } from './contexts/mutable-web-context'
-import { ModalWindows } from './components/modal-windows'
 
 export const Layout: FC = () => {
   const { viewportRef } = useEngine()
@@ -15,7 +14,6 @@ export const Layout: FC = () => {
     <ShadowDomWrapper ref={viewportRef} stylesheetSrc={engine.config.bosElementStyleSrc}>
       <ContextPicker />
       <ContextManager />
-      <ModalWindows />
     </ShadowDomWrapper>
   )
 }

@@ -33,6 +33,7 @@ const use_portal_filter_1 = require("../contexts/engine-context/use-portal-filte
 const shadow_dom_wrapper_1 = require("../../bos/shadow-dom-wrapper");
 const context_tree_1 = require("../../../react/components/context-tree");
 const use_context_apps_1 = require("../contexts/mutable-web-context/use-context-apps");
+const modal_context_1 = require("../contexts/modal-context");
 const transferable_context_1 = require("../common/transferable-context");
 const ContextManager = () => {
     return react_1.default.createElement(context_tree_1.ContextTree, { children: ContextHandler });
@@ -62,6 +63,7 @@ const ContextHandler = ({ context, insPoints, }) => {
 const InsPointHandler = ({ insPointName, bosLayoutManager, context, transferableContext, allUserLinks, apps, isEditMode, onCreateUserLink, onDeleteUserLink, onEnableEditMode, onDisableEditMode, onAttachContextRef, }) => {
     const { pickerTask, setPickerTask, redirectMap } = (0, engine_context_1.useEngine)();
     const { components } = (0, use_portal_filter_1.usePortalFilter)(context, insPointName); // ToDo: extract to the separate AppManager component
+    const { notify } = (0, modal_context_1.useModal)();
     /**
      * @deprecated
      */
@@ -125,6 +127,7 @@ const InsPointHandler = ({ insPointName, bosLayoutManager, context, transferable
                     id: link.id,
                     authorId: link.authorId,
                 },
+                notify,
             }, // ToDo: add props
             isSuitable: link.insertionPoint === insPointName, // ToDo: LM know about widgets from other LM
         })),
@@ -140,6 +143,7 @@ const InsPointHandler = ({ insPointName, bosLayoutManager, context, transferable
         attachInsPointRef,
         pickContext,
         pickContexts,
+        notify,
     };
     // Don't render layout manager if there are no components
     // It improves performance

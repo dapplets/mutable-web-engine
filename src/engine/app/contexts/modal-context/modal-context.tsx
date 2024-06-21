@@ -12,15 +12,11 @@ export type ModalProps = {
 }
 
 export type ModalContextState = {
-  modals: ModalProps[]
   notify: (modalProps: ModalProps) => void
-  closeModal: (id: number) => void
 }
 
 export const contextDefaultValues: ModalContextState = {
-  modals: [],
   notify: () => {},
-  closeModal: () => {},
 }
 
 export const ModalContext = createContext<ModalContextState>(contextDefaultValues)
