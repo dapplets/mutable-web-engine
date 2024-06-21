@@ -166,7 +166,7 @@ export const ModalWindows = () => {
     setTimeout(() => {
       closeModal(+id)
       setClosingModals((prev) => prev.filter((modalId) => modalId !== id))
-    }, 500)
+    }, 200)
   }
 
   return (
