@@ -27,6 +27,7 @@ export const ContextPicker: FC = () => {
         const variant = useMemo(() => {
           if (focusedContext === context) return 'primary'
           if (focusedContext === context.parentNode) return 'secondary'
+          if (focusedContext && context.children.includes(focusedContext)) return 'latch-only'
         }, [focusedContext, context])
 
         const handleClick = useCallback(() => {

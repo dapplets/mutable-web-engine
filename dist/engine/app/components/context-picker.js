@@ -48,6 +48,8 @@ const ContextPicker = () => {
                 return 'primary';
             if (focusedContext === context.parentNode)
                 return 'secondary';
+            if (focusedContext && context.children.includes(focusedContext))
+                return 'latch-only';
         }, [focusedContext, context]);
         const handleClick = (0, react_1.useCallback)(() => {
             var _a;
