@@ -27,7 +27,7 @@ exports.DappletContextPicker = void 0;
 const React = __importStar(require("react"));
 const engine_context_1 = require("../app/contexts/engine-context");
 const transferable_context_1 = require("../app/common/transferable-context");
-const _DappletContextPicker = ({ target, onClick, onMouseEnter, onMouseLeave, LatchComponent }) => {
+const _DappletContextPicker = ({ target, onClick, onMouseEnter, onMouseLeave, LatchComponent, highlightChildren }) => {
     const { setPickerTask } = (0, engine_context_1.useEngine)();
     React.useEffect(() => {
         setPickerTask({
@@ -38,9 +38,10 @@ const _DappletContextPicker = ({ target, onClick, onMouseEnter, onMouseLeave, La
             LatchComponent: LatchComponent
                 ? ({ context }) => React.createElement(LatchComponent, { context: (0, transferable_context_1.buildTransferableContext)(context) })
                 : undefined,
+            highlightChildren,
         });
         return () => setPickerTask(null);
-    }, [target, onClick, onMouseEnter, onMouseLeave]);
+    }, [target, onClick, onMouseEnter, onMouseLeave, LatchComponent, highlightChildren]);
     return null;
 };
 const DappletContextPicker = (props) => {
