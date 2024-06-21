@@ -1,9 +1,14 @@
 import { createContext } from 'react'
+export enum NotificationType {
+  Error = 'error',
+  Warning = 'warning',
+  Info = 'info',
+}
 
 export type ModalProps = {
   subject: string
   body: string
-  type: 'error' | 'info' | 'warning'
+  type: NotificationType
   id: number
   actions: {
     label: string
