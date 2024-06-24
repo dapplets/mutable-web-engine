@@ -8,9 +8,14 @@ interface IHighlighter {
     styles?: React.CSSProperties;
     onClick?: (() => void) | null;
     highlightChildren?: boolean;
-    variant?: 'primary' | 'secondary' | 'latch-only';
+    variant?: 'primary' | 'secondary';
     LatchComponent?: React.FC<{
         context: IContextNode;
+        variant: 'primary' | 'secondary';
+        contextDimensions: {
+            width: number;
+            height: number;
+        };
     }>;
 }
 export declare const Highlighter: FC<IHighlighter>;

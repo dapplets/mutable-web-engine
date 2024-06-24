@@ -1,4 +1,5 @@
-import React, { FC, useEffect, useRef } from 'react'
+import React, { FC, useEffect, useMemo, useRef } from 'react'
+import ReactDOMServer from 'react-dom/server'
 import { IContextNode } from '../core'
 import Lightning from './assets/icons/lightning'
 
@@ -34,8 +35,12 @@ interface IHighlighter {
   styles?: React.CSSProperties
   onClick?: (() => void) | null
   highlightChildren?: boolean
-  variant?: 'primary' | 'secondary' | 'latch-only'
-  LatchComponent?: React.FC<{ context: IContextNode }>
+  variant?: 'primary' | 'secondary'
+  LatchComponent?: React.FC<{
+    context: IContextNode
+    variant: 'primary' | 'secondary'
+    contextDimensions: { width: number; height: number }
+  }>
 }
 
 export const Highlighter: FC<IHighlighter> = ({
@@ -51,41 +56,143 @@ export const Highlighter: FC<IHighlighter> = ({
 }) => {
   const pickerRef = useRef<any>(null)
 
+  const bodyOffset = document.documentElement.getBoundingClientRect()
+  const targetOffset = context.element?.getBoundingClientRect()
+
+  const hasLatch = useMemo(
+    () =>
+      LatchComponent && variant
+        ? !!ReactDOMServer.renderToStaticMarkup(
+            <LatchComponent
+              context={context}
+              variant={variant}
+              contextDimensions={{
+                width: targetOffset?.width || 0,
+                height: targetOffset?.height || 0,
+              }}
+            />
+          ).trim()
+        : false,
+    [context]
+  )
+
   useEffect(() => {
+    if (hasLatch) {
+      context.element?.addEventListener('mouseenter', onMouseEnter)
+      context.element?.addEventListener('mouseleave', onMouseLeave)
+    }
     if (!pickerRef.current) return
     pickerRef.current.addEventListener('mouseenter', onMouseEnter)
     pickerRef.current.addEventListener('mouseleave', onMouseLeave)
 
     return () => {
+      if (hasLatch) {
+        context.element?.removeEventListener('mouseenter', onMouseEnter)
+        context.element?.removeEventListener('mouseleave', onMouseLeave)
+      }
       if (!pickerRef.current) return
       pickerRef.current.removeEventListener('mouseenter', onMouseEnter)
       pickerRef.current.removeEventListener('mouseleave', onMouseLeave)
     }
   }, [pickerRef.current])
 
-  if (!context.element) return null
+  if (!context.element || !targetOffset) return null
 
   const isFirstLevelContext = !context.parentNode || context.parentNode.contextType === 'root'
-
-  const bodyOffset = document.documentElement.getBoundingClientRect()
-  const targetOffset = context.element.getBoundingClientRect()
   const contextDepth = getContextDepth(context)
-  const backgroundColor =
-    onClick && variant !== 'latch-only'
-      ? styles?.backgroundColor ?? DEFAULT_BACKGROUND_COLOR
-      : 'transparent'
+  const backgroundColor = onClick
+    ? styles?.backgroundColor ?? DEFAULT_BACKGROUND_COLOR
+    : 'transparent'
   const opacity =
     variant === 'primary' ||
     (variant === 'secondary' && highlightChildren) ||
-    (!focusedContext && isFirstLevelContext) ||
-    variant === 'latch-only'
+    (!focusedContext && isFirstLevelContext)
       ? 1
       : 0
   const border =
     styles?.border ??
-    (variant !== 'latch-only'
-      ? `${DEFAULT_BORDER_WIDTH}px ${isFirstLevelContext ? DEFAULT_BORDER_STYLE : DEFAULT_CHILDREN_BORDER_STYLE} ${variant === 'primary' ? DEFAULT_BORDER_COLOR : DEFAULT_INACTIVE_BORDER_COLOR}`
-      : undefined)
+    `${DEFAULT_BORDER_WIDTH}px ${isFirstLevelContext ? DEFAULT_BORDER_STYLE : DEFAULT_CHILDREN_BORDER_STYLE} ${variant === 'primary' ? DEFAULT_BORDER_COLOR : DEFAULT_INACTIVE_BORDER_COLOR}`
+
+  if (hasLatch) {
+    const wrapperStyle: React.CSSProperties = {
+      transition: 'all .2s ease-in-out',
+      opacity,
+    }
+
+    const topStyle: React.CSSProperties = {
+      left: targetOffset.left + 4 - bodyOffset.left,
+      top: targetOffset.top - 1 - bodyOffset.top,
+      width: targetOffset.width - ((styles?.borderRadius as number) ?? DEFAULT_BORDER_RADIUS),
+      height: 2,
+      position: 'absolute',
+      zIndex: 1000000 + (contextDepth ?? 0),
+      borderTop: border,
+    }
+
+    const bottomStyle: React.CSSProperties = {
+      left: targetOffset.left + 4 - bodyOffset.left,
+      top: targetOffset.top + targetOffset.height - 1 - bodyOffset.top,
+      width: targetOffset.width - ((styles?.borderRadius as number) ?? DEFAULT_BORDER_RADIUS),
+      height: 2,
+      position: 'absolute',
+      zIndex: 1000000 + (contextDepth ?? 0),
+      borderBottom: border,
+    }
+
+    const leftStyle: React.CSSProperties = {
+      left: targetOffset.left - 2 - bodyOffset.left,
+      top: targetOffset.top - 1 - bodyOffset.top,
+      height: targetOffset.height + 2,
+      width: (styles?.borderRadius as number) ?? DEFAULT_BORDER_RADIUS,
+      position: 'absolute',
+      zIndex: 1000000 + (contextDepth ?? 0),
+      borderLeft: border,
+      borderTop: border,
+      borderBottom: border,
+      borderRadius: `${(styles?.borderRadius as number) ?? DEFAULT_BORDER_RADIUS}px 0 0 ${(styles?.borderRadius as number) ?? DEFAULT_BORDER_RADIUS}px`,
+    }
+
+    const rightStyle: React.CSSProperties = {
+      left: targetOffset.left + targetOffset.width - 2 - bodyOffset.left,
+      top: targetOffset.top - 1 - bodyOffset.top,
+      height: targetOffset.height + 2,
+      width: (styles?.borderRadius as number) ?? DEFAULT_BORDER_RADIUS,
+      position: 'absolute',
+      zIndex: 1000000 + (contextDepth ?? 0),
+      borderRight: border,
+      borderTop: border,
+      borderBottom: border,
+      borderRadius: `0 ${(styles?.borderRadius as number) ?? DEFAULT_BORDER_RADIUS}px ${(styles?.borderRadius as number) ?? DEFAULT_BORDER_RADIUS}px 0`,
+    }
+
+    return (
+      <div style={wrapperStyle} className="mweb-picker" ref={pickerRef}>
+        {LatchComponent && variant && (
+          <div
+            style={{
+              position: 'absolute',
+              left: targetOffset.left + 4 - bodyOffset.left,
+              top: targetOffset.top - 1 - bodyOffset.top,
+              zIndex: 1000001 + (contextDepth ?? 0),
+            }}
+          >
+            <LatchComponent
+              context={context}
+              variant={variant}
+              contextDimensions={{
+                width: targetOffset.width,
+                height: targetOffset.height,
+              }}
+            />
+          </div>
+        )}
+        <div style={topStyle}></div>
+        <div style={leftStyle}></div>
+        <div style={rightStyle}></div>
+        <div style={bottomStyle}></div>
+      </div>
+    )
+  }
 
   const wrapperStyle: React.CSSProperties = {
     position: 'absolute',
@@ -98,12 +205,11 @@ export const Highlighter: FC<IHighlighter> = ({
     height: targetOffset.height,
     borderRadius: styles?.borderRadius ?? DEFAULT_BORDER_RADIUS,
     border,
-    backgroundColor,
     transition: 'all .2s ease-in-out',
     cursor: 'pointer',
-    pointerEvents: onClick ? 'auto' : 'none',
     zIndex: 1000000 + (contextDepth ?? 0),
     opacity,
+    backgroundColor,
   }
 
   return (
@@ -113,12 +219,9 @@ export const Highlighter: FC<IHighlighter> = ({
       className="mweb-picker"
       onClick={onClick ?? undefined}
     >
-      {onClick && variant !== 'latch-only' && (
-        <Lightning
-          color={variant === 'primary' ? DEFAULT_BORDER_COLOR : DEFAULT_INACTIVE_BORDER_COLOR}
-        />
-      )}
-      {LatchComponent ? <LatchComponent context={context} /> : null}
+      <Lightning
+        color={variant === 'primary' ? DEFAULT_BORDER_COLOR : DEFAULT_INACTIVE_BORDER_COLOR}
+      />
     </div>
   )
 }

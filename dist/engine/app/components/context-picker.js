@@ -36,6 +36,7 @@ const ContextPicker = () => {
     if (!tree || !pickerTask)
         return null;
     return (react_1.default.createElement(react_2.ContextTree, null, ({ context }) => {
+        console.log('context', context);
         const isSuitable = (pickerTask === null || pickerTask === void 0 ? void 0 : pickerTask.target)
             ? Array.isArray(pickerTask.target)
                 ? pickerTask.target.map((t) => target_service_1.TargetService.isTargetMet(t, context)).includes(true)
@@ -46,10 +47,9 @@ const ContextPicker = () => {
         const variant = (0, react_1.useMemo)(() => {
             if (focusedContext === context)
                 return 'primary';
-            if (focusedContext === context.parentNode)
+            if (focusedContext === context.parentNode ||
+                (focusedContext && context.children.includes(focusedContext)))
                 return 'secondary';
-            if (focusedContext && context.children.includes(focusedContext))
-                return 'latch-only';
         }, [focusedContext, context]);
         const handleClick = (0, react_1.useCallback)(() => {
             var _a;

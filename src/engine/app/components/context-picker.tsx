@@ -16,6 +16,7 @@ export const ContextPicker: FC = () => {
   return (
     <ContextTree>
       {({ context }) => {
+        console.log('context', context)
         const isSuitable = pickerTask?.target
           ? Array.isArray(pickerTask.target)
             ? pickerTask.target.map((t) => TargetService.isTargetMet(t, context)).includes(true)
@@ -26,8 +27,11 @@ export const ContextPicker: FC = () => {
 
         const variant = useMemo(() => {
           if (focusedContext === context) return 'primary'
-          if (focusedContext === context.parentNode) return 'secondary'
-          if (focusedContext && context.children.includes(focusedContext)) return 'latch-only'
+          if (
+            focusedContext === context.parentNode ||
+            (focusedContext && context.children.includes(focusedContext))
+          )
+            return 'secondary'
         }, [focusedContext, context])
 
         const handleClick = useCallback(() => {

@@ -36,7 +36,7 @@ const _DappletContextPicker = ({ target, onClick, onMouseEnter, onMouseLeave, La
             onMouseEnter: (ctx) => onMouseEnter === null || onMouseEnter === void 0 ? void 0 : onMouseEnter((0, transferable_context_1.buildTransferableContext)(ctx)),
             onMouseLeave: (ctx) => onMouseLeave === null || onMouseLeave === void 0 ? void 0 : onMouseLeave((0, transferable_context_1.buildTransferableContext)(ctx)),
             LatchComponent: LatchComponent
-                ? ({ context }) => React.createElement(LatchComponent, { context: (0, transferable_context_1.buildTransferableContext)(context) })
+                ? ({ context, variant, contextDimensions }) => (React.createElement(LatchComponent, { context: (0, transferable_context_1.buildTransferableContext)(context), variant: variant, contextDimensions: contextDimensions }))
                 : undefined,
             highlightChildren,
         });
