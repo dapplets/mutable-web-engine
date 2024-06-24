@@ -28,14 +28,30 @@ const react_1 = __importStar(require("react"));
 const modal_context_1 = require("./modal-context");
 const antd_1 = require("antd");
 const ModalProvider = ({ children }) => {
+    const counterRef = (0, react_1.useRef)(0);
     const [api, contextHolder] = antd_1.notification.useNotification();
     const notify = (0, react_1.useCallback)((modalProps) => {
-        api.info({
+        if (!Object.values(modal_context_1.NotificationType).includes(modalProps.type)) {
+            console.error('Unknown notification type: ' + modalProps.type);
+            return;
+        }
+        const modalId = counterRef.current++;
+        console.log(modalProps);
+        api[modalProps.type]({
+            key: modalId,
             message: modalProps.subject,
             description: modalProps.body,
             placement: 'bottomRight',
+            btn: modalProps.actions && modalProps.actions.length
+                ? modalProps.actions.map((action, i) => (react_1.default.createElement(antd_1.Space, { key: i, style: { marginRight: '10px' } },
+                    react_1.default.createElement(antd_1.Button, { type: "primary", size: "small", onClick: () => {
+                            var _a;
+                            (_a = action.onClick) === null || _a === void 0 ? void 0 : _a.call(action);
+                            api.destroy(modalId);
+                        } }, action.label))))
+                : null,
         });
-    }, []);
+    }, [api]);
     const state = {
         notify,
     };

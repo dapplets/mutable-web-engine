@@ -1,9 +1,13 @@
 /// <reference types="react" />
+export declare enum NotificationType {
+    Error = "error",
+    Warning = "warning",
+    Info = "info"
+}
 export type ModalProps = {
     subject: string;
     body: string;
-    type: 'error' | 'info' | 'warning';
-    id: number;
+    type: NotificationType;
     actions: {
         label: string;
         onClick: () => void;

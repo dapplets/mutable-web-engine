@@ -9,7 +9,6 @@ export type ModalProps = {
   subject: string
   body: string
   type: NotificationType
-  id: number
   actions: {
     label: string
     onClick: () => void
