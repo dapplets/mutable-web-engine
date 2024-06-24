@@ -27,12 +27,13 @@ exports.ShadowDomWrapper = void 0;
 const React = __importStar(require("react"));
 const react_dom_1 = require("react-dom");
 const styled_components_1 = require("styled-components");
+const cssinjs_1 = require("@ant-design/cssinjs");
 const generateGuid = () => {
     return Array.from(crypto.getRandomValues(new Uint8Array(16)))
         .map((b) => b.toString(16).padStart(2, '0'))
         .join('');
 };
-exports.ShadowDomWrapper = React.forwardRef(({ children, stylesheetSrc }, ref) => {
+exports.ShadowDomWrapper = React.forwardRef(({ children, stylesheetSrc, className }, ref) => {
     const myRef = React.useRef(null);
     const [root, setRoot] = React.useState(null);
     // ToDo: to make sure that when stylesheetSrc changes, it doesn't get executed multiple times
@@ -90,11 +91,10 @@ exports.ShadowDomWrapper = React.forwardRef(({ children, stylesheetSrc }, ref) =
             setRoot(null);
         }
     }, [myRef, stylesheetSrc]);
-    return (React.createElement("div", { ref: (node) => {
-            myRef.current = node;
-        } }, root && children
+    return (React.createElement("div", { className: className, ref: myRef }, root && children
         ? (0, react_dom_1.createPortal)(React.createElement(styled_components_1.StyleSheetManager, { target: root.stylesMountPoint },
-            React.createElement(React.Fragment, null, children)), root.container)
+            React.createElement(cssinjs_1.StyleProvider, { container: root.stylesMountPoint },
+                React.createElement(React.Fragment, null, children))), root.container)
         : null));
 });
 exports.ShadowDomWrapper.displayName = 'ShadowDomWrapper';

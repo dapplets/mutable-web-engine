@@ -1,14 +1,21 @@
 import React, { FC, ReactElement, useCallback, useRef } from 'react'
 import { ModalContext, ModalContextState, ModalProps, NotificationType } from './modal-context'
 import { Button, Space, notification } from 'antd'
+import { useEngine } from '../engine-context'
 
 type Props = {
   children?: ReactElement
 }
 
 const ModalProvider: FC<Props> = ({ children }) => {
+  const { viewportRef } = useEngine()
   const counterRef = useRef(0)
-  const [api, contextHolder] = notification.useNotification()
+  const [api, contextHolder] = notification.useNotification({
+    getContainer: () => {
+      if (!viewportRef.current) throw new Error('Viewport is not initialized')
+      return viewportRef.current
+    },
+  })
 
   const notify = useCallback(
     (modalProps: ModalProps) => {
@@ -18,8 +25,6 @@ const ModalProvider: FC<Props> = ({ children }) => {
       }
 
       const modalId = counterRef.current++
-
-      console.log(modalProps)
 
       api[modalProps.type]({
         key: modalId,

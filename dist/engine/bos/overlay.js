@@ -51,7 +51,7 @@ const Overlay = ({ children }) => {
     const { viewportRef } = (0, engine_context_1.useEngine)();
     if (!viewportRef.current)
         return null;
-    return (0, react_dom_1.createPortal)(React.createElement(shadow_dom_wrapper_1.ShadowDomWrapper, null,
+    return (0, react_dom_1.createPortal)(React.createElement(shadow_dom_wrapper_1.ShadowDomWrapper, { className: "mweb-overlay" },
         React.createElement(ModalBackdrop, null, children)), viewportRef.current);
 };
 exports.Overlay = Overlay;

@@ -153,6 +153,6 @@ const InsPointHandler = ({ insPointName, bosLayoutManager, context, transferable
     ) {
         return null;
     }
-    return (react_1.default.createElement(shadow_dom_wrapper_1.ShadowDomWrapper, null,
+    return (react_1.default.createElement(shadow_dom_wrapper_1.ShadowDomWrapper, { className: "mweb-layout-manager" },
         react_1.default.createElement(near_social_vm_1.Widget, { src: bosLayoutManager !== null && bosLayoutManager !== void 0 ? bosLayoutManager : defaultLayoutManager, props: props, loading: react_1.default.createElement(react_1.default.Fragment, null), config: { redirectMap } })));
 };

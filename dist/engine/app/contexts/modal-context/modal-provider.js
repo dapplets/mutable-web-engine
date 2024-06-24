@@ -27,16 +27,23 @@ exports.ModalProvider = void 0;
 const react_1 = __importStar(require("react"));
 const modal_context_1 = require("./modal-context");
 const antd_1 = require("antd");
+const engine_context_1 = require("../engine-context");
 const ModalProvider = ({ children }) => {
+    const { viewportRef } = (0, engine_context_1.useEngine)();
     const counterRef = (0, react_1.useRef)(0);
-    const [api, contextHolder] = antd_1.notification.useNotification();
+    const [api, contextHolder] = antd_1.notification.useNotification({
+        getContainer: () => {
+            if (!viewportRef.current)
+                throw new Error('Viewport is not initialized');
+            return viewportRef.current;
+        },
+    });
     const notify = (0, react_1.useCallback)((modalProps) => {
         if (!Object.values(modal_context_1.NotificationType).includes(modalProps.type)) {
             console.error('Unknown notification type: ' + modalProps.type);
             return;
         }
         const modalId = counterRef.current++;
-        console.log(modalProps);
         api[modalProps.type]({
             key: modalId,
             message: modalProps.subject,

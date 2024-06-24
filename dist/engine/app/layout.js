@@ -10,11 +10,14 @@ const context_manager_1 = require("./components/context-manager");
 const shadow_dom_wrapper_1 = require("../bos/shadow-dom-wrapper");
 const engine_context_1 = require("./contexts/engine-context");
 const mutable_web_context_1 = require("./contexts/mutable-web-context");
+const modal_context_1 = require("./contexts/modal-context");
 const Layout = () => {
     const { viewportRef } = (0, engine_context_1.useEngine)();
     const { engine } = (0, mutable_web_context_1.useMutableWeb)();
-    return (react_1.default.createElement(shadow_dom_wrapper_1.ShadowDomWrapper, { ref: viewportRef, stylesheetSrc: engine.config.bosElementStyleSrc },
-        react_1.default.createElement(context_picker_1.ContextPicker, null),
-        react_1.default.createElement(context_manager_1.ContextManager, null)));
+    return (react_1.default.createElement(shadow_dom_wrapper_1.ShadowDomWrapper, { ref: viewportRef, stylesheetSrc: engine.config.bosElementStyleSrc, className: "mweb-layout" },
+        react_1.default.createElement(modal_context_1.ModalProvider, null,
+            react_1.default.createElement(react_1.default.Fragment, null,
+                react_1.default.createElement(context_picker_1.ContextPicker, null),
+                react_1.default.createElement(context_manager_1.ContextManager, null)))));
 };
 exports.Layout = Layout;

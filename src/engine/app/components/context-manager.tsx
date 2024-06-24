@@ -241,7 +241,7 @@ const InsPointHandler: FC<{
   }
 
   return (
-    <ShadowDomWrapper>
+    <ShadowDomWrapper className="mweb-layout-manager">
       <Widget
         src={bosLayoutManager ?? defaultLayoutManager}
         props={props}

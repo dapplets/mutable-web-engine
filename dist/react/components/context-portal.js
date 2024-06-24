@@ -16,6 +16,7 @@ const ContextPortal = ({ context, children, injectTo }) => {
             return;
         if (!containerRef.current) {
             containerRef.current = document.createElement('div');
+            containerRef.current.className = 'mweb-context-portal';
         }
         const { element, insertionType } = target;
         switch (insertionType) {

@@ -5,15 +5,24 @@ import { ContextManager } from './components/context-manager'
 import { ShadowDomWrapper } from '../bos/shadow-dom-wrapper'
 import { useEngine } from './contexts/engine-context'
 import { useMutableWeb } from './contexts/mutable-web-context'
+import { ModalProvider } from './contexts/modal-context'
 
 export const Layout: FC = () => {
   const { viewportRef } = useEngine()
   const { engine } = useMutableWeb()
 
   return (
-    <ShadowDomWrapper ref={viewportRef} stylesheetSrc={engine.config.bosElementStyleSrc}>
-      <ContextPicker />
-      <ContextManager />
+    <ShadowDomWrapper
+      ref={viewportRef}
+      stylesheetSrc={engine.config.bosElementStyleSrc}
+      className="mweb-layout"
+    >
+      <ModalProvider>
+        <>
+          <ContextPicker />
+          <ContextManager />
+        </>
+      </ModalProvider>
     </ShadowDomWrapper>
   )
 }
