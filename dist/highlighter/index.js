@@ -37,6 +37,7 @@ const DEFAULT_BORDER_STYLE = 'solid';
 const DEFAULT_CHILDREN_BORDER_STYLE = 'dashed';
 const DEFAULT_BORDER_WIDTH = 2; //px
 const DEFAULT_BACKGROUND_COLOR = 'rgb(56 188 255 / 5%)'; // light light blue
+const PRIVILEGED_NAMESPACE = 'mweb'; // ToDo: hardcode. Needs to be fixed.
 const getElementDepth = (el) => {
     let depth = 0;
     let host = el.host;
@@ -98,6 +99,7 @@ const Highlighter = ({ focusedContext, context, onMouseEnter, onMouseLeave, styl
         ? 1
         : 0;
     const border = (_c = styles === null || styles === void 0 ? void 0 : styles.border) !== null && _c !== void 0 ? _c : `${DEFAULT_BORDER_WIDTH}px ${isFirstLevelContext ? DEFAULT_BORDER_STYLE : DEFAULT_CHILDREN_BORDER_STYLE} ${variant === 'primary' ? DEFAULT_BORDER_COLOR : DEFAULT_INACTIVE_BORDER_COLOR}`;
+    const zIndex = 100000 * (context.namespace === PRIVILEGED_NAMESPACE ? 1000 : 1) + (contextDepth !== null && contextDepth !== void 0 ? contextDepth : 0);
     if (hasLatch) {
         const wrapperStyle = {
             transition: 'all .2s ease-in-out',
@@ -109,7 +111,7 @@ const Highlighter = ({ focusedContext, context, onMouseEnter, onMouseLeave, styl
             width: targetOffset.width - ((_d = styles === null || styles === void 0 ? void 0 : styles.borderRadius) !== null && _d !== void 0 ? _d : DEFAULT_BORDER_RADIUS),
             height: 2,
             position: 'absolute',
-            zIndex: 1000000 + (contextDepth !== null && contextDepth !== void 0 ? contextDepth : 0),
+            zIndex,
             borderTop: border,
         };
         const bottomStyle = {
@@ -118,7 +120,7 @@ const Highlighter = ({ focusedContext, context, onMouseEnter, onMouseLeave, styl
             width: targetOffset.width - ((_e = styles === null || styles === void 0 ? void 0 : styles.borderRadius) !== null && _e !== void 0 ? _e : DEFAULT_BORDER_RADIUS),
             height: 2,
             position: 'absolute',
-            zIndex: 1000000 + (contextDepth !== null && contextDepth !== void 0 ? contextDepth : 0),
+            zIndex,
             borderBottom: border,
         };
         const leftStyle = {
@@ -127,7 +129,7 @@ const Highlighter = ({ focusedContext, context, onMouseEnter, onMouseLeave, styl
             height: targetOffset.height + 2,
             width: (_f = styles === null || styles === void 0 ? void 0 : styles.borderRadius) !== null && _f !== void 0 ? _f : DEFAULT_BORDER_RADIUS,
             position: 'absolute',
-            zIndex: 1000000 + (contextDepth !== null && contextDepth !== void 0 ? contextDepth : 0),
+            zIndex,
             borderLeft: border,
             borderTop: border,
             borderBottom: border,
@@ -139,7 +141,7 @@ const Highlighter = ({ focusedContext, context, onMouseEnter, onMouseLeave, styl
             height: targetOffset.height + 2,
             width: (_j = styles === null || styles === void 0 ? void 0 : styles.borderRadius) !== null && _j !== void 0 ? _j : DEFAULT_BORDER_RADIUS,
             position: 'absolute',
-            zIndex: 1000000 + (contextDepth !== null && contextDepth !== void 0 ? contextDepth : 0),
+            zIndex,
             borderRight: border,
             borderTop: border,
             borderBottom: border,
@@ -150,7 +152,7 @@ const Highlighter = ({ focusedContext, context, onMouseEnter, onMouseLeave, styl
                     position: 'absolute',
                     left: targetOffset.left + 4 - bodyOffset.left,
                     top: targetOffset.top - 1 - bodyOffset.top,
-                    zIndex: 1000001 + (contextDepth !== null && contextDepth !== void 0 ? contextDepth : 0),
+                    zIndex: zIndex + 1,
                 } },
                 react_1.default.createElement(LatchComponent, { context: context, variant: variant, contextDimensions: {
                         width: targetOffset.width,
@@ -174,7 +176,7 @@ const Highlighter = ({ focusedContext, context, onMouseEnter, onMouseLeave, styl
         border,
         transition: 'all .2s ease-in-out',
         cursor: 'pointer',
-        zIndex: 1000000 + (contextDepth !== null && contextDepth !== void 0 ? contextDepth : 0),
+        zIndex,
         opacity,
         backgroundColor,
     };

@@ -10,6 +10,7 @@ const DEFAULT_BORDER_STYLE = 'solid'
 const DEFAULT_CHILDREN_BORDER_STYLE = 'dashed'
 const DEFAULT_BORDER_WIDTH = 2 //px
 const DEFAULT_BACKGROUND_COLOR = 'rgb(56 188 255 / 5%)' // light light blue
+const PRIVILEGED_NAMESPACE = 'mweb' // ToDo: hardcode. Needs to be fixed.
 
 const getElementDepth = (el: Element | Node) => {
   let depth = 0
@@ -113,6 +114,9 @@ export const Highlighter: FC<IHighlighter> = ({
     styles?.border ??
     `${DEFAULT_BORDER_WIDTH}px ${isFirstLevelContext ? DEFAULT_BORDER_STYLE : DEFAULT_CHILDREN_BORDER_STYLE} ${variant === 'primary' ? DEFAULT_BORDER_COLOR : DEFAULT_INACTIVE_BORDER_COLOR}`
 
+  const zIndex =
+    100000 * (context.namespace === PRIVILEGED_NAMESPACE ? 1000 : 1) + (contextDepth ?? 0)
+
   if (hasLatch) {
     const wrapperStyle: React.CSSProperties = {
       transition: 'all .2s ease-in-out',
@@ -125,7 +129,7 @@ export const Highlighter: FC<IHighlighter> = ({
       width: targetOffset.width - ((styles?.borderRadius as number) ?? DEFAULT_BORDER_RADIUS),
       height: 2,
       position: 'absolute',
-      zIndex: 1000000 + (contextDepth ?? 0),
+      zIndex,
       borderTop: border,
     }
 
@@ -135,7 +139,7 @@ export const Highlighter: FC<IHighlighter> = ({
       width: targetOffset.width - ((styles?.borderRadius as number) ?? DEFAULT_BORDER_RADIUS),
       height: 2,
       position: 'absolute',
-      zIndex: 1000000 + (contextDepth ?? 0),
+      zIndex,
       borderBottom: border,
     }
 
@@ -145,7 +149,7 @@ export const Highlighter: FC<IHighlighter> = ({
       height: targetOffset.height + 2,
       width: (styles?.borderRadius as number) ?? DEFAULT_BORDER_RADIUS,
       position: 'absolute',
-      zIndex: 1000000 + (contextDepth ?? 0),
+      zIndex,
       borderLeft: border,
       borderTop: border,
       borderBottom: border,
@@ -158,7 +162,7 @@ export const Highlighter: FC<IHighlighter> = ({
       height: targetOffset.height + 2,
       width: (styles?.borderRadius as number) ?? DEFAULT_BORDER_RADIUS,
       position: 'absolute',
-      zIndex: 1000000 + (contextDepth ?? 0),
+      zIndex,
       borderRight: border,
       borderTop: border,
       borderBottom: border,
@@ -173,7 +177,7 @@ export const Highlighter: FC<IHighlighter> = ({
               position: 'absolute',
               left: targetOffset.left + 4 - bodyOffset.left,
               top: targetOffset.top - 1 - bodyOffset.top,
-              zIndex: 1000001 + (contextDepth ?? 0),
+              zIndex: zIndex + 1,
             }}
           >
             <LatchComponent
@@ -207,7 +211,7 @@ export const Highlighter: FC<IHighlighter> = ({
     border,
     transition: 'all .2s ease-in-out',
     cursor: 'pointer',
-    zIndex: 1000000 + (contextDepth ?? 0),
+    zIndex,
     opacity,
     backgroundColor,
   }
