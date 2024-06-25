@@ -1,4 +1,4 @@
-import { createContext } from 'react'
+import { ReactElement, createContext } from 'react'
 import { IContextNode } from '../../../../core'
 import { BosRedirectMap } from '../../services/dev-server-service'
 import { Target } from '../../services/target/target.entity'
@@ -7,14 +7,21 @@ export type InjectableTarget = Target & {
   injectTo: string
 }
 
+export type TLatchVariant = 'primary' | 'secondary'
+
 export type PickerTask = {
   target?: Target | Target[]
   onClick?: (context: IContextNode) => void
   onMouseEnter?: (context: IContextNode) => void
   onMouseLeave?: (context: IContextNode) => void
-  LatchComponent?: React.FC<{ context: IContextNode }>
+  LatchComponent?: React.FC<{
+    context: IContextNode
+    variant: TLatchVariant
+    contextDimensions: { width: number; height: number }
+  }>
   styles?: React.CSSProperties
   highlightChildren?: boolean
+  children?: ReactElement | ReactElement[]
 }
 
 export type EngineContextState = {

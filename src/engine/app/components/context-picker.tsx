@@ -26,8 +26,11 @@ export const ContextPicker: FC = () => {
 
         const variant = useMemo(() => {
           if (focusedContext === context) return 'primary'
-          if (focusedContext === context.parentNode) return 'secondary'
-          if (focusedContext && context.children.includes(focusedContext)) return 'latch-only'
+          if (
+            focusedContext === context.parentNode ||
+            (focusedContext && context.children.includes(focusedContext))
+          )
+            return 'secondary'
         }, [focusedContext, context])
 
         const handleClick = useCallback(() => {
@@ -55,6 +58,7 @@ export const ContextPicker: FC = () => {
             styles={pickerTask.styles}
             highlightChildren={pickerTask.highlightChildren}
             LatchComponent={pickerTask.LatchComponent}
+            children={pickerTask.children}
           />
         )
       }}

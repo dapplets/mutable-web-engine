@@ -46,10 +46,9 @@ const ContextPicker = () => {
         const variant = (0, react_1.useMemo)(() => {
             if (focusedContext === context)
                 return 'primary';
-            if (focusedContext === context.parentNode)
+            if (focusedContext === context.parentNode ||
+                (focusedContext && context.children.includes(focusedContext)))
                 return 'secondary';
-            if (focusedContext && context.children.includes(focusedContext))
-                return 'latch-only';
         }, [focusedContext, context]);
         const handleClick = (0, react_1.useCallback)(() => {
             var _a;
@@ -65,7 +64,7 @@ const ContextPicker = () => {
             setFocusedContext(null);
             (_a = pickerTask.onMouseLeave) === null || _a === void 0 ? void 0 : _a.call(pickerTask, context);
         }, [context]);
-        return (react_1.default.createElement(highlighter_1.Highlighter, { focusedContext: focusedContext, context: context, variant: variant, onClick: handleClick, onMouseEnter: handleMouseEnter, onMouseLeave: handleMouseLeave, styles: pickerTask.styles, highlightChildren: pickerTask.highlightChildren, LatchComponent: pickerTask.LatchComponent }));
+        return (react_1.default.createElement(highlighter_1.Highlighter, { focusedContext: focusedContext, context: context, variant: variant, onClick: handleClick, onMouseEnter: handleMouseEnter, onMouseLeave: handleMouseLeave, styles: pickerTask.styles, highlightChildren: pickerTask.highlightChildren, LatchComponent: pickerTask.LatchComponent, children: pickerTask.children }));
     }));
 };
 exports.ContextPicker = ContextPicker;
