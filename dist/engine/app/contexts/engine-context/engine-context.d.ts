@@ -7,9 +7,9 @@ export type InjectableTarget = Target & {
 };
 export type PickerTask = {
     target?: Target | Target[];
-    onClick?: ((context: IContextNode) => void);
-    onMouseEnter?: ((context: IContextNode) => void);
-    onMouseLeave?: ((context: IContextNode) => void);
+    onClick?: (context: IContextNode) => void;
+    onMouseEnter?: (context: IContextNode) => void;
+    onMouseLeave?: (context: IContextNode) => void;
     LatchComponent?: React.FC<{
         context: IContextNode;
     }>;
@@ -17,7 +17,6 @@ export type PickerTask = {
     highlightChildren?: boolean;
 };
 export type EngineContextState = {
-    viewportRef: React.RefObject<HTMLDivElement>;
     portals: Map<string, {
         component: React.FC<unknown>;
         target: InjectableTarget;

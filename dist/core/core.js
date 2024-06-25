@@ -42,7 +42,7 @@ class Core {
         this._treeBuilder.appendChild(this._treeBuilder.root, adapter.context);
         this.adapters.set(adapter.namespace, adapter);
         adapter.start();
-        console.log(`[MutableWeb] Loaded new adapter: ${adapter.namespace}`);
+        console.log(`[MutableWeb] Loaded parser: ${adapter.namespace}`);
     }
     _unregisterAdapter(adapter) {
         if (!this._treeBuilder)
@@ -50,6 +50,7 @@ class Core {
         adapter.stop();
         this._treeBuilder.removeChild(this._treeBuilder.root, adapter.context);
         this.adapters.delete(adapter.namespace);
+        console.log(`[MutableWeb] Unloaded parser: ${adapter.namespace}`);
     }
     _createAdapter(config) {
         if (!this._treeBuilder) {

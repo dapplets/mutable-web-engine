@@ -31,7 +31,7 @@ const React = __importStar(require("react"));
 const react_dom_1 = require("react-dom");
 const styled_components_1 = __importDefault(require("styled-components"));
 const shadow_dom_wrapper_1 = require("./shadow-dom-wrapper");
-const engine_context_1 = require("../app/contexts/engine-context");
+const viewport_context_1 = require("../app/contexts/viewport-context");
 const ModalBackdrop = styled_components_1.default.div `
   background: #ffffff88;
   position: fixed;
@@ -48,7 +48,7 @@ const ModalBackdrop = styled_components_1.default.div `
   visibility: visible;
 `;
 const Overlay = ({ children }) => {
-    const { viewportRef } = (0, engine_context_1.useEngine)();
+    const { viewportRef } = (0, viewport_context_1.useViewport)();
     if (!viewportRef.current)
         return null;
     return (0, react_dom_1.createPortal)(React.createElement(shadow_dom_wrapper_1.ShadowDomWrapper, null,
