@@ -8,7 +8,7 @@ interface IHighlighter {
     styles?: React.CSSProperties;
     onClick?: (() => void) | null;
     highlightChildren?: boolean;
-    variant?: 'primary' | 'secondary';
+    variant?: 'primary' | 'secondary' | 'latch-only';
     LatchComponent?: React.FC<{
         context: IContextNode;
     }>;

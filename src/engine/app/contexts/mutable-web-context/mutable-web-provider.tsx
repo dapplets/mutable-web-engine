@@ -1,4 +1,13 @@
-import React, { FC, ReactElement, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, {
+  FC,
+  ReactElement,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { MutableWebContext, MutableWebContextState } from './mutable-web-context'
 import { Engine, EngineConfig } from '../../../engine'
 import { useMutationApps } from './use-mutation-apps'
@@ -12,7 +21,7 @@ import { AdapterType, ParserConfig } from '../../services/parser-config/parser-c
 type Props = {
   config: EngineConfig
   defaultMutationId?: string | null
-  children: ReactElement
+  children: ReactNode
 }
 
 const MWebParserConfig: ParserConfig = {
@@ -92,6 +101,10 @@ const MutableWebProvider: FC<Props> = ({ config, defaultMutationId, children }) 
       mutationId: selectedMutationId ?? null,
       gatewayId: config.gatewayId,
     })
+  }, [selectedMutationId])
+
+  useEffect(() => {
+    if (!tree) return
 
     // Load parser configs for root context
     // ToDo: generalize for whole context tree
@@ -110,7 +123,7 @@ const MutableWebProvider: FC<Props> = ({ config, defaultMutationId, children }) 
         detachParserConfig(parser.id)
       }
     }
-  }, [parserConfigs, tree, selectedMutationId])
+  }, [parserConfigs, tree])
 
   // ToDo: move to separate hook
   const switchMutation = useCallback(
@@ -121,6 +134,8 @@ const MutableWebProvider: FC<Props> = ({ config, defaultMutationId, children }) 
 
       if (mutationId) {
         await engine.mutationService.updateMutationLastUsage(mutationId, window.location.hostname)
+
+        // ToDo: update lastUsage in the state?
       }
     },
     [selectedMutationId]
@@ -131,16 +146,7 @@ const MutableWebProvider: FC<Props> = ({ config, defaultMutationId, children }) 
     async (mutationId: string | null) => {
       try {
         setFavoriteMutationId(mutationId)
-
         await engine.mutationService.setFavoriteMutation(mutationId)
-
-        setMutations((prev) =>
-          prev.map((mut) =>
-            mut.id === mutationId
-              ? { ...mut, settings: { ...mut.settings, isFavorite: true } }
-              : { ...mut, settings: { ...mut.settings, isFavorite: false } }
-          )
-        )
       } catch (err) {
         console.error(err)
       }
@@ -185,7 +191,11 @@ const MutableWebProvider: FC<Props> = ({ config, defaultMutationId, children }) 
     setMutationApps,
   }
 
-  return <MutableWebContext.Provider value={state}>{children}</MutableWebContext.Provider>
+  return (
+    <MutableWebContext.Provider value={state}>
+      <>{children}</>
+    </MutableWebContext.Provider>
+  )
 }
 
 export { MutableWebProvider }

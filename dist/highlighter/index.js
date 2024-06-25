@@ -72,15 +72,18 @@ const Highlighter = ({ focusedContext, context, onMouseEnter, onMouseLeave, styl
     const bodyOffset = document.documentElement.getBoundingClientRect();
     const targetOffset = context.element.getBoundingClientRect();
     const contextDepth = getContextDepth(context);
-    const backgroundColor = onClick
+    const backgroundColor = onClick && variant !== 'latch-only'
         ? (_a = styles === null || styles === void 0 ? void 0 : styles.backgroundColor) !== null && _a !== void 0 ? _a : DEFAULT_BACKGROUND_COLOR
         : 'transparent';
     const opacity = variant === 'primary' ||
         (variant === 'secondary' && highlightChildren) ||
-        (!focusedContext && isFirstLevelContext)
+        (!focusedContext && isFirstLevelContext) ||
+        variant === 'latch-only'
         ? 1
         : 0;
-    const border = (_b = styles === null || styles === void 0 ? void 0 : styles.border) !== null && _b !== void 0 ? _b : `${DEFAULT_BORDER_WIDTH}px ${isFirstLevelContext ? DEFAULT_BORDER_STYLE : DEFAULT_CHILDREN_BORDER_STYLE} ${variant === 'primary' ? DEFAULT_BORDER_COLOR : DEFAULT_INACTIVE_BORDER_COLOR}`;
+    const border = (_b = styles === null || styles === void 0 ? void 0 : styles.border) !== null && _b !== void 0 ? _b : (variant !== 'latch-only'
+        ? `${DEFAULT_BORDER_WIDTH}px ${isFirstLevelContext ? DEFAULT_BORDER_STYLE : DEFAULT_CHILDREN_BORDER_STYLE} ${variant === 'primary' ? DEFAULT_BORDER_COLOR : DEFAULT_INACTIVE_BORDER_COLOR}`
+        : undefined);
     const wrapperStyle = {
         position: 'absolute',
         display: 'flex',
@@ -100,7 +103,7 @@ const Highlighter = ({ focusedContext, context, onMouseEnter, onMouseLeave, styl
         opacity,
     };
     return (react_1.default.createElement("div", { ref: pickerRef, style: wrapperStyle, className: "mweb-picker", onClick: onClick !== null && onClick !== void 0 ? onClick : undefined },
-        onClick && (react_1.default.createElement(lightning_1.default, { color: variant === 'primary' ? DEFAULT_BORDER_COLOR : DEFAULT_INACTIVE_BORDER_COLOR })),
+        onClick && variant !== 'latch-only' && (react_1.default.createElement(lightning_1.default, { color: variant === 'primary' ? DEFAULT_BORDER_COLOR : DEFAULT_INACTIVE_BORDER_COLOR })),
         LatchComponent ? react_1.default.createElement(LatchComponent, { context: context }) : null));
 };
 exports.Highlighter = Highlighter;

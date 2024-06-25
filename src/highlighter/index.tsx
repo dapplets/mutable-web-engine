@@ -34,7 +34,7 @@ interface IHighlighter {
   styles?: React.CSSProperties
   onClick?: (() => void) | null
   highlightChildren?: boolean
-  variant?: 'primary' | 'secondary'
+  variant?: 'primary' | 'secondary' | 'latch-only'
   LatchComponent?: React.FC<{ context: IContextNode }>
 }
 
@@ -70,18 +70,22 @@ export const Highlighter: FC<IHighlighter> = ({
   const bodyOffset = document.documentElement.getBoundingClientRect()
   const targetOffset = context.element.getBoundingClientRect()
   const contextDepth = getContextDepth(context)
-  const backgroundColor = onClick
-    ? styles?.backgroundColor ?? DEFAULT_BACKGROUND_COLOR
-    : 'transparent'
+  const backgroundColor =
+    onClick && variant !== 'latch-only'
+      ? styles?.backgroundColor ?? DEFAULT_BACKGROUND_COLOR
+      : 'transparent'
   const opacity =
     variant === 'primary' ||
     (variant === 'secondary' && highlightChildren) ||
-    (!focusedContext && isFirstLevelContext)
+    (!focusedContext && isFirstLevelContext) ||
+    variant === 'latch-only'
       ? 1
       : 0
   const border =
     styles?.border ??
-    `${DEFAULT_BORDER_WIDTH}px ${isFirstLevelContext ? DEFAULT_BORDER_STYLE : DEFAULT_CHILDREN_BORDER_STYLE} ${variant === 'primary' ? DEFAULT_BORDER_COLOR : DEFAULT_INACTIVE_BORDER_COLOR}`
+    (variant !== 'latch-only'
+      ? `${DEFAULT_BORDER_WIDTH}px ${isFirstLevelContext ? DEFAULT_BORDER_STYLE : DEFAULT_CHILDREN_BORDER_STYLE} ${variant === 'primary' ? DEFAULT_BORDER_COLOR : DEFAULT_INACTIVE_BORDER_COLOR}`
+      : undefined)
 
   const wrapperStyle: React.CSSProperties = {
     position: 'absolute',
@@ -109,7 +113,7 @@ export const Highlighter: FC<IHighlighter> = ({
       className="mweb-picker"
       onClick={onClick ?? undefined}
     >
-      {onClick && (
+      {onClick && variant !== 'latch-only' && (
         <Lightning
           color={variant === 'primary' ? DEFAULT_BORDER_COLOR : DEFAULT_INACTIVE_BORDER_COLOR}
         />

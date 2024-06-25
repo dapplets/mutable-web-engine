@@ -91,7 +91,6 @@ export class MutationService {
   }
 
   public async populateMutationWithSettings(mutation: Mutation): Promise<MutationWithSettings> {
-    const isFavorite = (await this.getFavoriteMutation()) === mutation.id
     const lastUsage = await this.mutationRepository.getMutationLastUsage(
       mutation.id,
       window.location.hostname
@@ -100,7 +99,6 @@ export class MutationService {
     return {
       ...mutation,
       settings: {
-        isFavorite,
         lastUsage,
       },
     }
