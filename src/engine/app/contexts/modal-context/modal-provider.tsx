@@ -1,14 +1,14 @@
 import React, { FC, ReactElement, useCallback, useRef } from 'react'
 import { ModalContext, ModalContextState, ModalProps, NotificationType } from './modal-context'
 import { Button, Space, notification } from 'antd'
-import { useEngine } from '../engine-context'
+import { useViewport } from '../viewport-context'
 
 type Props = {
   children?: ReactElement
 }
 
 const ModalProvider: FC<Props> = ({ children }) => {
-  const { viewportRef } = useEngine()
+  const { viewportRef } = useViewport()
   const counterRef = useRef(0)
   const [api, contextHolder] = notification.useNotification({
     getContainer: () => {

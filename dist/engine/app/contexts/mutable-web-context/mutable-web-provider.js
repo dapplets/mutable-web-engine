@@ -91,6 +91,10 @@ const MutableWebProvider = ({ config, defaultMutationId, children }) => {
             mutationId: selectedMutationId !== null && selectedMutationId !== void 0 ? selectedMutationId : null,
             gatewayId: config.gatewayId,
         });
+    }, [selectedMutationId]);
+    (0, react_1.useEffect)(() => {
+        if (!tree)
+            return;
         // Load parser configs for root context
         // ToDo: generalize for whole context tree
         for (const parser of parserConfigs) {
@@ -104,7 +108,7 @@ const MutableWebProvider = ({ config, defaultMutationId, children }) => {
                 detachParserConfig(parser.id);
             }
         };
-    }, [parserConfigs, tree, selectedMutationId]);
+    }, [parserConfigs, tree]);
     // ToDo: move to separate hook
     const switchMutation = (0, react_1.useCallback)((mutationId) => __awaiter(void 0, void 0, void 0, function* () {
         if (selectedMutationId === mutationId)
@@ -112,6 +116,7 @@ const MutableWebProvider = ({ config, defaultMutationId, children }) => {
         setSelectedMutationId(mutationId);
         if (mutationId) {
             yield engine.mutationService.updateMutationLastUsage(mutationId, window.location.hostname);
+            // ToDo: update lastUsage in the state?
         }
     }), [selectedMutationId]);
     // ToDo: move to separate hook
@@ -119,8 +124,6 @@ const MutableWebProvider = ({ config, defaultMutationId, children }) => {
         try {
             setFavoriteMutationId(mutationId);
             yield engine.mutationService.setFavoriteMutation(mutationId);
-            setMutations((prev) => prev.map((mut) => mut.id === mutationId
-                ? Object.assign(Object.assign({}, mut), { settings: Object.assign(Object.assign({}, mut.settings), { isFavorite: true }) }) : Object.assign(Object.assign({}, mut), { settings: Object.assign(Object.assign({}, mut.settings), { isFavorite: false }) })));
         }
         catch (err) {
             console.error(err);
@@ -152,6 +155,7 @@ const MutableWebProvider = ({ config, defaultMutationId, children }) => {
         setMutations,
         setMutationApps,
     };
-    return react_1.default.createElement(mutable_web_context_1.MutableWebContext.Provider, { value: state }, children);
+    return (react_1.default.createElement(mutable_web_context_1.MutableWebContext.Provider, { value: state },
+        react_1.default.createElement(react_1.default.Fragment, null, children)));
 };
 exports.MutableWebProvider = MutableWebProvider;

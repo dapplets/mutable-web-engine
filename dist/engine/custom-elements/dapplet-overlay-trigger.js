@@ -39,10 +39,10 @@ const React = __importStar(require("react"));
 const react_1 = require("react");
 const react_bootstrap_1 = require("react-bootstrap");
 const styled_components_1 = require("styled-components");
-const engine_context_1 = require("../app/contexts/engine-context");
+const viewport_context_1 = require("../app/contexts/viewport-context");
 const _DappletOverlayTrigger = (_a) => {
     var { children } = _a, attributes = __rest(_a, ["children"]);
-    const { viewportRef } = (0, engine_context_1.useEngine)();
+    const { viewportRef } = (0, viewport_context_1.useViewport)();
     if (!viewportRef.current)
         return null;
     const Overlay = React.useCallback((0, react_1.forwardRef)((props, ref) => {

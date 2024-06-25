@@ -1,9 +1,9 @@
-import { FC, ReactElement } from 'react';
+import { FC, ReactNode } from 'react';
 import { EngineConfig } from '../../../engine';
 type Props = {
     config: EngineConfig;
     defaultMutationId?: string | null;
-    children: ReactElement;
+    children: ReactNode;
 };
 declare const MutableWebProvider: FC<Props>;
 export { MutableWebProvider };

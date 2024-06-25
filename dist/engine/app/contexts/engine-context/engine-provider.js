@@ -29,7 +29,6 @@ const engine_context_1 = require("./engine-context");
 const use_portals_1 = require("./use-portals");
 const use_dev_mode_1 = require("./use-dev-mode");
 const EngineProvider = ({ children }) => {
-    const viewportRef = react_1.default.useRef(null);
     const [pickerTask, setPickerTask] = (0, react_1.useState)(null);
     const { portals, addPortal, removePortal } = (0, use_portals_1.usePortals)();
     const { redirectMap, enableDevMode, disableDevMode } = (0, use_dev_mode_1.useDevMode)();
@@ -40,7 +39,6 @@ const EngineProvider = ({ children }) => {
         });
     }, [enableDevMode, disableDevMode]);
     const state = {
-        viewportRef,
         portals,
         addPortal,
         removePortal,

@@ -102,10 +102,8 @@ class MutationService {
     }
     populateMutationWithSettings(mutation) {
         return __awaiter(this, void 0, void 0, function* () {
-            const isFavorite = (yield this.getFavoriteMutation()) === mutation.id;
             const lastUsage = yield this.mutationRepository.getMutationLastUsage(mutation.id, window.location.hostname);
             return Object.assign(Object.assign({}, mutation), { settings: {
-                    isFavorite,
                     lastUsage,
                 } });
         });

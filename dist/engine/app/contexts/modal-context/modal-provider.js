@@ -27,9 +27,9 @@ exports.ModalProvider = void 0;
 const react_1 = __importStar(require("react"));
 const modal_context_1 = require("./modal-context");
 const antd_1 = require("antd");
-const engine_context_1 = require("../engine-context");
+const viewport_context_1 = require("../viewport-context");
 const ModalProvider = ({ children }) => {
-    const { viewportRef } = (0, engine_context_1.useEngine)();
+    const { viewportRef } = (0, viewport_context_1.useViewport)();
     const counterRef = (0, react_1.useRef)(0);
     const [api, contextHolder] = antd_1.notification.useNotification({
         getContainer: () => {
