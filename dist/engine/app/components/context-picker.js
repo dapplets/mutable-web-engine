@@ -26,12 +26,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ContextPicker = void 0;
 const react_1 = __importStar(require("react"));
 const react_2 = require("../../../react");
-const engine_context_1 = require("../contexts/engine-context");
 const highlighter_1 = require("../../../highlighter");
 const target_service_1 = require("../services/target/target.service");
+const picker_context_1 = require("../contexts/picker-context");
 const ContextPicker = () => {
     const { tree } = (0, react_2.useCore)();
-    const { pickerTask } = (0, engine_context_1.useEngine)();
+    const { pickerTask } = (0, picker_context_1.usePicker)();
     const [focusedContext, setFocusedContext] = (0, react_1.useState)(null);
     if (!tree || !pickerTask)
         return null;

@@ -1,5 +1,5 @@
-import React, { FC, ReactElement, useEffect, useState } from 'react'
-import { EngineContext, EngineContextState, PickerTask } from './engine-context'
+import React, { FC, ReactElement, useEffect } from 'react'
+import { EngineContext, EngineContextState } from './engine-context'
 import { usePortals } from './use-portals'
 import { useDevMode } from './use-dev-mode'
 
@@ -8,8 +8,6 @@ type Props = {
 }
 
 const EngineProvider: FC<Props> = ({ children }) => {
-  const [pickerTask, setPickerTask] = useState<PickerTask | null>(null)
-
   const { portals, addPortal, removePortal } = usePortals()
   const { redirectMap, enableDevMode, disableDevMode } = useDevMode()
 
@@ -24,8 +22,6 @@ const EngineProvider: FC<Props> = ({ children }) => {
     portals,
     addPortal,
     removePortal,
-    pickerTask,
-    setPickerTask,
     redirectMap,
     enableDevMode,
     disableDevMode,

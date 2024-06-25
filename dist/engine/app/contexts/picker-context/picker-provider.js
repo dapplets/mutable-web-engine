@@ -23,28 +23,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.EngineProvider = void 0;
+exports.PickerProvider = void 0;
 const react_1 = __importStar(require("react"));
-const engine_context_1 = require("./engine-context");
-const use_portals_1 = require("./use-portals");
-const use_dev_mode_1 = require("./use-dev-mode");
-const EngineProvider = ({ children }) => {
-    const { portals, addPortal, removePortal } = (0, use_portals_1.usePortals)();
-    const { redirectMap, enableDevMode, disableDevMode } = (0, use_dev_mode_1.useDevMode)();
-    (0, react_1.useEffect)(() => {
-        console.log('[MutableWeb] Dev mode:', {
-            enableDevMode,
-            disableDevMode,
-        });
-    }, [enableDevMode, disableDevMode]);
+const picker_context_1 = require("./picker-context");
+const PickerProvider = ({ children }) => {
+    const [pickerTask, setPickerTask] = (0, react_1.useState)(null);
     const state = {
-        portals,
-        addPortal,
-        removePortal,
-        redirectMap,
-        enableDevMode,
-        disableDevMode,
+        pickerTask,
+        setPickerTask,
     };
-    return react_1.default.createElement(engine_context_1.EngineContext.Provider, { value: state }, children);
+    return react_1.default.createElement(picker_context_1.PickerContext.Provider, { value: state }, children);
 };
-exports.EngineProvider = EngineProvider;
+exports.PickerProvider = PickerProvider;

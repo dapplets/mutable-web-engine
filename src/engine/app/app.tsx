@@ -8,6 +8,7 @@ import { MutableWebProvider } from './contexts/mutable-web-context'
 import { ViewportProvider } from './contexts/viewport-context'
 import { ContextPicker } from './components/context-picker'
 import { ContextManager } from './components/context-manager'
+import { PickerProvider } from './contexts/picker-context'
 
 export const App: FC<{
   config: EngineConfig
@@ -19,13 +20,15 @@ export const App: FC<{
     <StyleSheetManager target={stylesMountPoint}>
       <CoreProvider>
         <EngineProvider>
-          <MutableWebProvider config={config} defaultMutationId={defaultMutationId}>
-            <ViewportProvider stylesheetSrc={config.bosElementStyleSrc}>
-              <ContextPicker />
-              <ContextManager />
-            </ViewportProvider>
-            <React.Fragment>{children}</React.Fragment>
-          </MutableWebProvider>
+          <PickerProvider>
+            <MutableWebProvider config={config} defaultMutationId={defaultMutationId}>
+              <ViewportProvider stylesheetSrc={config.bosElementStyleSrc}>
+                <ContextPicker />
+                <ContextManager />
+              </ViewportProvider>
+              <React.Fragment>{children}</React.Fragment>
+            </MutableWebProvider>
+          </PickerProvider>
         </EngineProvider>
       </CoreProvider>
     </StyleSheetManager>

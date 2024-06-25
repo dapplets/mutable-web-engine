@@ -1,13 +1,13 @@
 import React, { FC, useCallback, useMemo, useState } from 'react'
 import { ContextTree, useCore } from '../../../react'
-import { useEngine } from '../contexts/engine-context'
 import { Highlighter } from '../../../highlighter'
 import { TargetService } from '../services/target/target.service'
 import { IContextNode } from '../../../core'
+import { usePicker } from '../contexts/picker-context'
 
 export const ContextPicker: FC = () => {
   const { tree } = useCore()
-  const { pickerTask } = useEngine()
+  const { pickerTask } = usePicker()
 
   const [focusedContext, setFocusedContext] = useState<IContextNode | null>(null)
 

@@ -34,6 +34,7 @@ const shadow_dom_wrapper_1 = require("../../bos/shadow-dom-wrapper");
 const context_tree_1 = require("../../../react/components/context-tree");
 const use_context_apps_1 = require("../contexts/mutable-web-context/use-context-apps");
 const transferable_context_1 = require("../common/transferable-context");
+const picker_context_1 = require("../contexts/picker-context");
 const ContextManager = () => {
     return react_1.default.createElement(context_tree_1.ContextTree, { children: ContextHandler });
 };
@@ -60,7 +61,8 @@ const ContextHandler = ({ context, insPoints, }) => {
             react_1.default.createElement(InsPointHandler, { context: context, transferableContext: transferableContext, allUserLinks: userLinks, apps: apps, isEditMode: isEditMode, onCreateUserLink: createUserLink, onDeleteUserLink: deleteUserLink, onEnableEditMode: handleEnableEditMode, onDisableEditMode: handleDisableEditMode, onAttachContextRef: attachContextRef }))));
 };
 const InsPointHandler = ({ insPointName, bosLayoutManager, context, transferableContext, allUserLinks, apps, isEditMode, onCreateUserLink, onDeleteUserLink, onEnableEditMode, onDisableEditMode, onAttachContextRef, }) => {
-    const { pickerTask, setPickerTask, redirectMap } = (0, engine_context_1.useEngine)();
+    const { redirectMap } = (0, engine_context_1.useEngine)();
+    const { pickerTask, setPickerTask } = (0, picker_context_1.usePicker)();
     const { components } = (0, use_portal_filter_1.usePortalFilter)(context, insPointName); // ToDo: extract to the separate AppManager component
     /**
      * @deprecated

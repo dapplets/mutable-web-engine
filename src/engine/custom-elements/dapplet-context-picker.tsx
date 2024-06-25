@@ -1,8 +1,8 @@
 import React, { ReactElement } from 'react'
-import { useEngine } from '../app/contexts/engine-context'
 import { Target } from '../app/services/target/target.entity'
 import { TransferableContext, buildTransferableContext } from '../app/common/transferable-context'
-import { TLatchVariant } from '../app/contexts/engine-context/engine-context'
+import { usePicker } from '../app/contexts/picker-context'
+import { TLatchVariant } from '../app/contexts/picker-context/picker-context'
 
 const _DappletContextPicker: React.FC<{
   target?: Target | Target[]
@@ -25,7 +25,7 @@ const _DappletContextPicker: React.FC<{
   highlightChildren,
   children,
 }) => {
-  const { setPickerTask } = useEngine()
+  const { setPickerTask } = usePicker()
 
   React.useEffect(() => {
     setPickerTask({

@@ -5,10 +5,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DappletContextPicker = void 0;
 const react_1 = __importDefault(require("react"));
-const engine_context_1 = require("../app/contexts/engine-context");
 const transferable_context_1 = require("../app/common/transferable-context");
+const picker_context_1 = require("../app/contexts/picker-context");
 const _DappletContextPicker = ({ target, onClick, onMouseEnter, onMouseLeave, LatchComponent, highlightChildren, children, }) => {
-    const { setPickerTask } = (0, engine_context_1.useEngine)();
+    const { setPickerTask } = (0, picker_context_1.usePicker)();
     react_1.default.useEffect(() => {
         setPickerTask({
             target,
