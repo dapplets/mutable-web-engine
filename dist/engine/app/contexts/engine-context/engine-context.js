@@ -6,8 +6,6 @@ exports.contextDefaultValues = {
     portals: new Map(),
     addPortal: () => undefined,
     removePortal: () => undefined,
-    pickerTask: null,
-    setPickerTask: () => undefined,
     redirectMap: null,
     enableDevMode: () => undefined,
     disableDevMode: () => undefined,

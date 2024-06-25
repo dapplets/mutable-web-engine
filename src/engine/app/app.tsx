@@ -8,6 +8,7 @@ import { ViewportProvider } from './contexts/viewport-context'
 import { ContextPicker } from './components/context-picker'
 import { ContextManager } from './components/context-manager'
 import { ModalProvider } from './contexts/modal-context'
+import { PickerProvider } from './contexts/picker-context'
 
 export const App: FC<{
   config: EngineConfig
@@ -19,11 +20,13 @@ export const App: FC<{
       <ModalProvider>
         <CoreProvider>
           <EngineProvider>
-            <MutableWebProvider config={config} defaultMutationId={defaultMutationId}>
-              <ContextPicker />
-              <ContextManager />
-              <Fragment>{children}</Fragment>
-            </MutableWebProvider>
+            <PickerProvider>
+              <MutableWebProvider config={config} defaultMutationId={defaultMutationId}>
+                <ContextPicker />
+                <ContextManager />
+                <Fragment>{children}</Fragment>
+              </MutableWebProvider>
+            </PickerProvider>
           </EngineProvider>
         </CoreProvider>
       </ModalProvider>

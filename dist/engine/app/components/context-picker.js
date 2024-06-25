@@ -26,12 +26,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ContextPicker = void 0;
 const react_1 = __importStar(require("react"));
 const react_2 = require("../../../react");
-const engine_context_1 = require("../contexts/engine-context");
 const highlighter_1 = require("../../../highlighter");
 const target_service_1 = require("../services/target/target.service");
+const picker_context_1 = require("../contexts/picker-context");
 const ContextPicker = () => {
     const { tree } = (0, react_2.useCore)();
-    const { pickerTask } = (0, engine_context_1.useEngine)();
+    const { pickerTask } = (0, picker_context_1.usePicker)();
     const [focusedContext, setFocusedContext] = (0, react_1.useState)(null);
     if (!tree || !pickerTask)
         return null;
@@ -46,10 +46,9 @@ const ContextPicker = () => {
         const variant = (0, react_1.useMemo)(() => {
             if (focusedContext === context)
                 return 'primary';
-            if (focusedContext === context.parentNode)
+            if (focusedContext === context.parentNode ||
+                (focusedContext && context.children.includes(focusedContext)))
                 return 'secondary';
-            if (focusedContext && context.children.includes(focusedContext))
-                return 'latch-only';
         }, [focusedContext, context]);
         const handleClick = (0, react_1.useCallback)(() => {
             var _a;
@@ -65,7 +64,7 @@ const ContextPicker = () => {
             setFocusedContext(null);
             (_a = pickerTask.onMouseLeave) === null || _a === void 0 ? void 0 : _a.call(pickerTask, context);
         }, [context]);
-        return (react_1.default.createElement(highlighter_1.Highlighter, { focusedContext: focusedContext, context: context, variant: variant, onClick: handleClick, onMouseEnter: handleMouseEnter, onMouseLeave: handleMouseLeave, styles: pickerTask.styles, highlightChildren: pickerTask.highlightChildren, LatchComponent: pickerTask.LatchComponent }));
+        return (react_1.default.createElement(highlighter_1.Highlighter, { focusedContext: focusedContext, context: context, variant: variant, onClick: handleClick, onMouseEnter: handleMouseEnter, onMouseLeave: handleMouseLeave, styles: pickerTask.styles, highlightChildren: pickerTask.highlightChildren, LatchComponent: pickerTask.LatchComponent, children: pickerTask.children }));
     }));
 };
 exports.ContextPicker = ContextPicker;

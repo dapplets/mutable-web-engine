@@ -32,14 +32,16 @@ const viewport_context_1 = require("./contexts/viewport-context");
 const context_picker_1 = require("./components/context-picker");
 const context_manager_1 = require("./components/context-manager");
 const modal_context_1 = require("./contexts/modal-context");
+const picker_context_1 = require("./contexts/picker-context");
 const App = ({ config, defaultMutationId, children }) => {
     return (react_1.default.createElement(viewport_context_1.ViewportProvider, { stylesheetSrc: config.bosElementStyleSrc },
         react_1.default.createElement(modal_context_1.ModalProvider, null,
             react_1.default.createElement(react_2.CoreProvider, null,
                 react_1.default.createElement(engine_context_1.EngineProvider, null,
-                    react_1.default.createElement(mutable_web_context_1.MutableWebProvider, { config: config, defaultMutationId: defaultMutationId },
-                        react_1.default.createElement(context_picker_1.ContextPicker, null),
-                        react_1.default.createElement(context_manager_1.ContextManager, null),
-                        react_1.default.createElement(react_1.Fragment, null, children)))))));
+                    react_1.default.createElement(picker_context_1.PickerProvider, null,
+                        react_1.default.createElement(mutable_web_context_1.MutableWebProvider, { config: config, defaultMutationId: defaultMutationId },
+                            react_1.default.createElement(context_picker_1.ContextPicker, null),
+                            react_1.default.createElement(context_manager_1.ContextManager, null),
+                            react_1.default.createElement(react_1.Fragment, null, children))))))));
 };
 exports.App = App;

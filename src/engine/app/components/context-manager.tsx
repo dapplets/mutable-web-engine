@@ -13,6 +13,7 @@ import { AppId, AppMetadata } from '../services/application/application.entity'
 import { BosUserLink, UserLinkId } from '../services/user-link/user-link.entity'
 import { useModal } from '../contexts/modal-context'
 import { TransferableContext, buildTransferableContext } from '../common/transferable-context'
+import { usePicker } from '../contexts/picker-context'
 
 export const ContextManager: FC = () => {
   return <ContextTree children={ContextHandler} />
@@ -111,7 +112,8 @@ const InsPointHandler: FC<{
   onDisableEditMode,
   onAttachContextRef,
 }) => {
-  const { pickerTask, setPickerTask, redirectMap } = useEngine()
+  const { redirectMap } = useEngine()
+  const { pickerTask, setPickerTask } = usePicker()
   const { components } = usePortalFilter(context, insPointName) // ToDo: extract to the separate AppManager component
   const { notify } = useModal()
 
