@@ -131,16 +131,7 @@ const MutableWebProvider: FC<Props> = ({ config, defaultMutationId, children }) 
     async (mutationId: string | null) => {
       try {
         setFavoriteMutationId(mutationId)
-
         await engine.mutationService.setFavoriteMutation(mutationId)
-
-        setMutations((prev) =>
-          prev.map((mut) =>
-            mut.id === mutationId
-              ? { ...mut, settings: { ...mut.settings, isFavorite: true } }
-              : { ...mut, settings: { ...mut.settings, isFavorite: false } }
-          )
-        )
       } catch (err) {
         console.error(err)
       }
