@@ -8,7 +8,6 @@ type Props = {
 }
 
 const EngineProvider: FC<Props> = ({ children }) => {
-  const viewportRef = React.useRef<HTMLDivElement>(null)
   const [pickerTask, setPickerTask] = useState<PickerTask | null>(null)
 
   const { portals, addPortal, removePortal } = usePortals()
@@ -22,7 +21,6 @@ const EngineProvider: FC<Props> = ({ children }) => {
   }, [enableDevMode, disableDevMode])
 
   const state: EngineContextState = {
-    viewportRef,
     portals,
     addPortal,
     removePortal,

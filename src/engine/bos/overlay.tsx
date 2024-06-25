@@ -2,7 +2,7 @@ import * as React from 'react'
 import { createPortal } from 'react-dom'
 import styled from 'styled-components'
 import { ShadowDomWrapper } from './shadow-dom-wrapper'
-import { useEngine } from '../app/contexts/engine-context'
+import { useViewport } from '../app/contexts/viewport-context'
 
 const ModalBackdrop = styled.div`
   background: #ffffff88;
@@ -25,7 +25,7 @@ export interface OverlayProps {
 }
 
 export const Overlay: React.FC<OverlayProps> = ({ children }) => {
-  const { viewportRef } = useEngine()
+  const { viewportRef } = useViewport()
 
   if (!viewportRef.current) return null
 

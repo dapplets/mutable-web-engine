@@ -2,10 +2,10 @@ import * as React from 'react'
 import { useRef, forwardRef, cloneElement } from 'react'
 import { OverlayTrigger as RbOverlayTrigger } from 'react-bootstrap'
 import { StyleSheetManager } from 'styled-components'
-import { useEngine } from '../app/contexts/engine-context'
+import { useViewport } from '../app/contexts/viewport-context'
 
 export const _DappletOverlayTrigger = ({ children, ...attributes }: any) => {
-  const { viewportRef } = useEngine()
+  const { viewportRef } = useViewport()
 
   if (!viewportRef.current) return null
 
