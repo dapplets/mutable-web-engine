@@ -53,13 +53,13 @@ const getElementDepth = (el) => {
 const getContextDepth = (context) => {
     return context.element ? getElementDepth(context.element) : 0;
 };
-const Highlighter = ({ focusedContext, context, onMouseEnter, onMouseLeave, styles, onClick, highlightChildren, variant, LatchComponent, }) => {
+const Highlighter = ({ focusedContext, context, onMouseEnter, onMouseLeave, styles, onClick, highlightChildren, variant, LatchComponent, children, }) => {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
     const pickerRef = (0, react_1.useRef)(null);
     const bodyOffset = document.documentElement.getBoundingClientRect();
     const targetOffset = (_a = context.element) === null || _a === void 0 ? void 0 : _a.getBoundingClientRect();
-    const hasLatch = (0, react_1.useMemo)(() => LatchComponent && variant
-        ? !!server_1.default.renderToStaticMarkup(react_1.default.createElement(LatchComponent, { context: context, variant: variant, contextDimensions: {
+    const hasLatch = (0, react_1.useMemo)(() => LatchComponent
+        ? !!server_1.default.renderToStaticMarkup(react_1.default.createElement(LatchComponent, { context: context, variant: variant !== null && variant !== void 0 ? variant : 'secondary', contextDimensions: {
                 width: (targetOffset === null || targetOffset === void 0 ? void 0 : targetOffset.width) || 0,
                 height: (targetOffset === null || targetOffset === void 0 ? void 0 : targetOffset.height) || 0,
             } })).trim()
@@ -148,13 +148,13 @@ const Highlighter = ({ focusedContext, context, onMouseEnter, onMouseLeave, styl
             borderRadius: `0 ${(_k = styles === null || styles === void 0 ? void 0 : styles.borderRadius) !== null && _k !== void 0 ? _k : DEFAULT_BORDER_RADIUS}px ${(_l = styles === null || styles === void 0 ? void 0 : styles.borderRadius) !== null && _l !== void 0 ? _l : DEFAULT_BORDER_RADIUS}px 0`,
         };
         return (react_1.default.createElement("div", { style: wrapperStyle, className: "mweb-picker", ref: pickerRef },
-            LatchComponent && variant && (react_1.default.createElement("div", { style: {
+            LatchComponent && (react_1.default.createElement("div", { style: {
                     position: 'absolute',
                     left: targetOffset.left + 4 - bodyOffset.left,
                     top: targetOffset.top - 1 - bodyOffset.top,
                     zIndex: zIndex + 1,
                 } },
-                react_1.default.createElement(LatchComponent, { context: context, variant: variant, contextDimensions: {
+                react_1.default.createElement(LatchComponent, { context: context, variant: variant !== null && variant !== void 0 ? variant : 'secondary', contextDimensions: {
                         width: targetOffset.width,
                         height: targetOffset.height,
                     } }))),
@@ -180,7 +180,6 @@ const Highlighter = ({ focusedContext, context, onMouseEnter, onMouseLeave, styl
         opacity,
         backgroundColor,
     };
-    return (react_1.default.createElement("div", { ref: pickerRef, style: wrapperStyle, className: "mweb-picker", onClick: onClick !== null && onClick !== void 0 ? onClick : undefined },
-        react_1.default.createElement(lightning_1.default, { color: variant === 'primary' ? DEFAULT_BORDER_COLOR : DEFAULT_INACTIVE_BORDER_COLOR })));
+    return (react_1.default.createElement("div", { ref: pickerRef, style: wrapperStyle, className: "mweb-picker", onClick: onClick !== null && onClick !== void 0 ? onClick : undefined }, children && (!Array.isArray(children) || children.length) ? (react_1.default.createElement("div", { style: { opacity: variant === 'primary' ? 1 : 0.5 } }, children)) : (react_1.default.createElement(lightning_1.default, { color: variant === 'primary' ? DEFAULT_BORDER_COLOR : DEFAULT_INACTIVE_BORDER_COLOR }))));
 };
 exports.Highlighter = Highlighter;

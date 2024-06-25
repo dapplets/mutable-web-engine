@@ -1,4 +1,4 @@
-import { createContext } from 'react'
+import { ReactElement, createContext } from 'react'
 import { IContextNode } from '../../../../core'
 import { BosRedirectMap } from '../../services/dev-server-service'
 import { Target } from '../../services/target/target.entity'
@@ -21,6 +21,7 @@ export type PickerTask = {
   }>
   styles?: React.CSSProperties
   highlightChildren?: boolean
+  children?: ReactElement | ReactElement[]
 }
 
 export type EngineContextState = {

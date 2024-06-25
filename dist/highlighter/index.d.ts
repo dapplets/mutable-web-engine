@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, ReactElement } from 'react';
 import { IContextNode } from '../core';
 interface IHighlighter {
     focusedContext: IContextNode | null;
@@ -17,6 +17,7 @@ interface IHighlighter {
             height: number;
         };
     }>;
+    children?: ReactElement | ReactElement[];
 }
 export declare const Highlighter: FC<IHighlighter>;
 export {};

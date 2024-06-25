@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useMemo, useRef } from 'react'
+import React, { FC, useEffect, useMemo, useRef, ReactElement } from 'react'
 import ReactDOMServer from 'react-dom/server'
 import { IContextNode } from '../core'
 import Lightning from './assets/icons/lightning'
@@ -42,6 +42,7 @@ interface IHighlighter {
     variant: 'primary' | 'secondary'
     contextDimensions: { width: number; height: number }
   }>
+  children?: ReactElement | ReactElement[]
 }
 
 export const Highlighter: FC<IHighlighter> = ({
@@ -54,6 +55,7 @@ export const Highlighter: FC<IHighlighter> = ({
   highlightChildren,
   variant,
   LatchComponent,
+  children,
 }) => {
   const pickerRef = useRef<any>(null)
 
@@ -62,11 +64,11 @@ export const Highlighter: FC<IHighlighter> = ({
 
   const hasLatch = useMemo(
     () =>
-      LatchComponent && variant
+      LatchComponent
         ? !!ReactDOMServer.renderToStaticMarkup(
             <LatchComponent
               context={context}
-              variant={variant}
+              variant={variant ?? 'secondary'}
               contextDimensions={{
                 width: targetOffset?.width || 0,
                 height: targetOffset?.height || 0,
@@ -171,7 +173,7 @@ export const Highlighter: FC<IHighlighter> = ({
 
     return (
       <div style={wrapperStyle} className="mweb-picker" ref={pickerRef}>
-        {LatchComponent && variant && (
+        {LatchComponent && (
           <div
             style={{
               position: 'absolute',
@@ -182,7 +184,7 @@ export const Highlighter: FC<IHighlighter> = ({
           >
             <LatchComponent
               context={context}
-              variant={variant}
+              variant={variant ?? 'secondary'}
               contextDimensions={{
                 width: targetOffset.width,
                 height: targetOffset.height,
@@ -223,9 +225,13 @@ export const Highlighter: FC<IHighlighter> = ({
       className="mweb-picker"
       onClick={onClick ?? undefined}
     >
-      <Lightning
-        color={variant === 'primary' ? DEFAULT_BORDER_COLOR : DEFAULT_INACTIVE_BORDER_COLOR}
-      />
+      {children && (!Array.isArray(children) || children.length) ? (
+        <div style={{ opacity: variant === 'primary' ? 1 : 0.5 }}>{children}</div>
+      ) : (
+        <Lightning
+          color={variant === 'primary' ? DEFAULT_BORDER_COLOR : DEFAULT_INACTIVE_BORDER_COLOR}
+        />
+      )}
     </div>
   )
 }

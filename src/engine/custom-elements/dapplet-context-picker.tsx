@@ -1,4 +1,4 @@
-import * as React from 'react'
+import React, { ReactElement } from 'react'
 import { useEngine } from '../app/contexts/engine-context'
 import { Target } from '../app/services/target/target.entity'
 import { TransferableContext, buildTransferableContext } from '../app/common/transferable-context'
@@ -15,7 +15,16 @@ const _DappletContextPicker: React.FC<{
     contextDimensions: { width: number; height: number }
   }>
   highlightChildren?: boolean // ToDo: remove
-}> = ({ target, onClick, onMouseEnter, onMouseLeave, LatchComponent, highlightChildren }) => {
+  children?: ReactElement | ReactElement[]
+}> = ({
+  target,
+  onClick,
+  onMouseEnter,
+  onMouseLeave,
+  LatchComponent,
+  highlightChildren,
+  children,
+}) => {
   const { setPickerTask } = useEngine()
 
   React.useEffect(() => {
@@ -34,9 +43,14 @@ const _DappletContextPicker: React.FC<{
           )
         : undefined,
       highlightChildren,
+      children: Array.isArray(children)
+        ? children
+            .map((c) => (typeof c === 'string' ? (c as string).trim() : c) as ReactElement)
+            .filter((c) => !!c)
+        : children,
     })
     return () => setPickerTask(null)
-  }, [target, onClick, onMouseEnter, onMouseLeave, LatchComponent, highlightChildren])
+  }, [target, onClick, onMouseEnter, onMouseLeave, LatchComponent, highlightChildren, children])
 
   return null
 }

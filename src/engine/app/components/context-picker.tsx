@@ -16,7 +16,6 @@ export const ContextPicker: FC = () => {
   return (
     <ContextTree>
       {({ context }) => {
-        console.log('context', context)
         const isSuitable = pickerTask?.target
           ? Array.isArray(pickerTask.target)
             ? pickerTask.target.map((t) => TargetService.isTargetMet(t, context)).includes(true)
@@ -59,6 +58,7 @@ export const ContextPicker: FC = () => {
             styles={pickerTask.styles}
             highlightChildren={pickerTask.highlightChildren}
             LatchComponent={pickerTask.LatchComponent}
+            children={pickerTask.children}
           />
         )
       }}
