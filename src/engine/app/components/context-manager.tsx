@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { FC, useCallback, useMemo, useState } from 'react'
 import { ContextPortal } from '../../../react'
 import { IContextNode, InsertionPointWithElement } from '../../../core'
 import { useEngine } from '../contexts/engine-context'
@@ -8,11 +8,9 @@ import { usePortalFilter } from '../contexts/engine-context/use-portal-filter'
 import { ShadowDomWrapper } from '../../bos/shadow-dom-wrapper'
 import { ContextTree } from '../../../react/components/context-tree'
 import { useContextApps } from '../contexts/mutable-web-context/use-context-apps'
-import { Target } from '../services/target/target.entity'
 import { AppId, AppMetadata } from '../services/application/application.entity'
 import { BosUserLink, UserLinkId } from '../services/user-link/user-link.entity'
 import { TransferableContext, buildTransferableContext } from '../common/transferable-context'
-import { usePicker } from '../contexts/picker-context'
 
 export const ContextManager: FC = () => {
   return <ContextTree children={ContextHandler} />
@@ -112,70 +110,7 @@ const InsPointHandler: FC<{
   onAttachContextRef,
 }) => {
   const { redirectMap } = useEngine()
-  const { pickerTask, setPickerTask } = usePicker()
   const { components } = usePortalFilter(context, insPointName) // ToDo: extract to the separate AppManager component
-
-  /**
-   * @deprecated
-   */
-  const pickContext = useCallback((target: Target, styles?: React.CSSProperties) => {
-    return new Promise<TransferableContext | null>((resolve, reject) => {
-      if (pickerTask) {
-        return reject('The picker is busy')
-      }
-
-      const callback = (context: IContextNode) => {
-        resolve(buildTransferableContext(context))
-        setPickerTask(null)
-      }
-
-      setPickerTask({ onClick: callback, target, styles })
-    })
-  }, [])
-
-  /**
-   * @deprecated
-   */
-  const pickContexts = useCallback(
-    ({
-      target,
-      callback,
-      click,
-      mouseenter,
-      mouseleave,
-      styles,
-      highlightChildren,
-    }: {
-      target?: Target
-      callback?: (context: TransferableContext) => void
-      click?: (context: TransferableContext) => void
-      mouseenter?: (context: TransferableContext) => void
-      mouseleave?: (context: TransferableContext) => void
-      styles?: React.CSSProperties
-      highlightChildren?: boolean
-    }) => {
-      if (pickerTask) {
-        throw new Error('The picker is busy')
-      }
-
-      const stop = () => setPickerTask(null)
-
-      setPickerTask({
-        target,
-        onClick: (ctx) => {
-          click?.(buildTransferableContext(ctx))
-          callback?.(buildTransferableContext(ctx)) // ToDo: remove
-        },
-        onMouseEnter: (ctx) => mouseenter?.(buildTransferableContext(ctx)),
-        onMouseLeave: (ctx) => mouseleave?.(buildTransferableContext(ctx)),
-        styles,
-        highlightChildren,
-      })
-
-      return { stop }
-    },
-    [] // ToDo: add pickerTask as dependency?
-  )
 
   const attachInsPointRef = useCallback(
     (callback: (r: React.Component | Element | null | undefined) => void) => {
@@ -222,9 +157,6 @@ const InsPointHandler: FC<{
     // For OverlayTrigger
     attachContextRef: onAttachContextRef,
     attachInsPointRef,
-
-    pickContext,
-    pickContexts,
   }
 
   // Don't render layout manager if there are no components
