@@ -50,7 +50,7 @@ export const ContextPicker: FC = () => {
 
         return (
           <Highlighter
-            focusedContext={focusedContext}
+            focusedContext={focusedContext} // ToDo: looks like SRP violation
             context={context}
             variant={variant}
             onClick={handleClick}
