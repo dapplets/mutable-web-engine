@@ -1,22 +1,17 @@
-import { ReactElement, createContext } from 'react'
+import { createContext } from 'react'
 import { Target } from '../../services/target/target.entity'
 import { IContextNode } from '../../../../core'
 
 export type TLatchVariant = 'primary' | 'secondary'
 
 export type PickerTask = {
-  target?: Target | Target[]
+  target?: Target[]
   onClick?: (context: IContextNode) => void
-  onMouseEnter?: (context: IContextNode) => void
-  onMouseLeave?: (context: IContextNode) => void
   LatchComponent?: React.FC<{
     context: IContextNode
     variant: TLatchVariant
     contextDimensions: { width: number; height: number }
   }>
-  styles?: React.CSSProperties
-  highlightChildren?: boolean
-  children?: ReactElement | ReactElement[]
 }
 
 export type PickerContextState = {

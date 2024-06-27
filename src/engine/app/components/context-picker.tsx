@@ -16,21 +16,24 @@ export const ContextPicker: FC = () => {
   return (
     <ContextTree>
       {({ context }) => {
-        const isSuitable = pickerTask?.target
-          ? Array.isArray(pickerTask.target)
-            ? pickerTask.target.map((t) => TargetService.isTargetMet(t, context)).includes(true)
-            : TargetService.isTargetMet(pickerTask.target, context)
-          : true
+        const isSuitable = useMemo(
+          () => pickerTask.target?.some((t) => TargetService.isTargetMet(t, context)) ?? true,
+          [pickerTask, context]
+        )
 
         if (!isSuitable) return null
 
         const variant = useMemo(() => {
-          if (focusedContext === context) return 'primary'
+          if (focusedContext === context) {
+            return 'primary'
+          }
+
           if (
             focusedContext === context.parentNode ||
             (focusedContext && context.children.includes(focusedContext))
-          )
+          ) {
             return 'secondary'
+          }
         }, [focusedContext, context])
 
         const handleClick = useCallback(() => {
@@ -39,12 +42,10 @@ export const ContextPicker: FC = () => {
 
         const handleMouseEnter = useCallback(() => {
           setFocusedContext(context)
-          pickerTask.onMouseEnter?.(context)
         }, [context])
 
         const handleMouseLeave = useCallback(() => {
           setFocusedContext(null)
-          pickerTask.onMouseLeave?.(context)
         }, [context])
 
         return (
@@ -55,10 +56,8 @@ export const ContextPicker: FC = () => {
             onClick={handleClick}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
-            styles={pickerTask.styles}
-            highlightChildren={pickerTask.highlightChildren}
+            highlightChildren
             LatchComponent={pickerTask.LatchComponent}
-            children={pickerTask.children}
           />
         )
       }}

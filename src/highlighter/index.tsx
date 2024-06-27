@@ -62,6 +62,8 @@ export const Highlighter: FC<IHighlighter> = ({
   const bodyOffset = document.documentElement.getBoundingClientRect()
   const targetOffset = context.element?.getBoundingClientRect()
 
+  // ToDo: find a better way to check null
+  // Checks that LatchComponent is not rendered as null
   const hasLatch = useMemo(
     () =>
       LatchComponent

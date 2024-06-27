@@ -7,32 +7,18 @@ import { TLatchVariant } from '../app/contexts/picker-context/picker-context'
 const _DappletContextPicker: React.FC<{
   target?: Target | Target[]
   onClick?: (ctx: TransferableContext) => void
-  onMouseEnter?: (ctx: TransferableContext) => void
-  onMouseLeave?: (ctx: TransferableContext) => void
   LatchComponent?: React.FC<{
     context: TransferableContext
     variant: TLatchVariant
     contextDimensions: { width: number; height: number }
   }>
-  highlightChildren?: boolean // ToDo: remove
-  children?: ReactElement | ReactElement[]
-}> = ({
-  target,
-  onClick,
-  onMouseEnter,
-  onMouseLeave,
-  LatchComponent,
-  highlightChildren,
-  children,
-}) => {
+}> = ({ target, onClick, LatchComponent }) => {
   const { setPickerTask } = usePicker()
 
   React.useEffect(() => {
     setPickerTask({
-      target,
+      target: Array.isArray(target) ? target : target ? [target] : undefined,
       onClick: (ctx) => onClick?.(buildTransferableContext(ctx)),
-      onMouseEnter: (ctx) => onMouseEnter?.(buildTransferableContext(ctx)),
-      onMouseLeave: (ctx) => onMouseLeave?.(buildTransferableContext(ctx)),
       LatchComponent: LatchComponent
         ? ({ context, variant, contextDimensions }) => (
             <LatchComponent
@@ -42,15 +28,9 @@ const _DappletContextPicker: React.FC<{
             />
           )
         : undefined,
-      highlightChildren,
-      children: Array.isArray(children)
-        ? children
-            .map((c) => (typeof c === 'string' ? (c as string).trim() : c) as ReactElement)
-            .filter((c) => !!c)
-        : children,
     })
     return () => setPickerTask(null)
-  }, [target, onClick, onMouseEnter, onMouseLeave, LatchComponent, highlightChildren, children])
+  }, [target, onClick, LatchComponent])
 
   return null
 }
