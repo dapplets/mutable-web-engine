@@ -66,7 +66,7 @@ const MutableWebProvider: FC<Props> = ({ config, defaultMutationId, children }) 
     const favoriteMutation = await engine.mutationService.getFavoriteMutation()
     const lastUsedMutation = tree ? await engine.mutationService.getLastUsedMutation(tree) : null
 
-    return favoriteMutation ?? lastUsedMutation
+    return lastUsedMutation ?? favoriteMutation
   }, [engine, tree])
 
   const selectedMutation = useMemo(
